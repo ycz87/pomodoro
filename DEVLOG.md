@@ -5,7 +5,7 @@
 ## v0.3.1 — 项目模式交互优化（2026-02-08）
 
 ### 需求背景
-Charles 反馈：超时弹窗打断心流，按钮布局不够直观。
+Charles 反馈：超时弹窗打断心流，按钮布局不够直观。后续要求两个模式界面完全统一。
 
 ### 改动 1：超时默认继续计时
 - 删除超时提示弹窗（"继续计时"和"标记完成"按钮）
@@ -13,23 +13,26 @@ Charles 反馈：超时弹窗打断心流，按钮布局不够直观。
 - 删除 `showOvertimePrompt` 逻辑
 - 保留：进度环变红 + 数字变红 "+MM:SS"（用户仍可感知超时）
 
-### 改动 2：按钮布局修正
-- 布局：✗（左）⏸/▶（中）✓（右），三个按钮一行
-- ✗ 灰色圆形（跳过），✓ 绿色/accent 圆形（完成），暂停/继续在中间最大
-- 删除底部"放弃本次"按钮（项目模式下）
-- 普通番茄钟模式完全不受影响
+### 改动 2：统一按钮布局
+两个模式完全一致的按钮布局：
+- **✗（左）** — 番茄钟: 放弃本次（onAbandon），项目: 跳过子任务（skipCurrentTask）
+- **⏸/▶（中）** — 暂停/继续（最大按钮）
+- **✓（右）** — 番茄钟: 手动完成（onSkip），项目: 完成子任务（completeCurrentTask）
+- idle 状态只显示 ▶ 开始
+- break 阶段隐藏 ✗/✓，只保留 ⏸/▶
+- 删除底部"放弃本次"文字按钮
+- 删除 `projectControls` 和 `hideActions` props（不再需要区分模式）
 
 ### Bug 修复：完成子任务后白屏
 - **根因：** break 阶段 ✓/✗ 按钮仍然可见，用户在 break 时点击 ✓ 会重复调用 `recordTaskResult`，导致 results 重复 + currentTaskIndex 越界 → 渲染崩溃
-- **修复 1：** Timer 新增 `hideActions` prop，break 阶段隐藏 ✓/✗ 按钮，只保留暂停/继续
-- **修复 2：** `completeCurrentTask` / `skipCurrentTask` 加 phase 保护，break/setup/summary 阶段直接 return，paused 时检查是否为 break-paused
+- **修复：** break 阶段通过 `isWork` 判断隐藏 ✗/✓；`completeCurrentTask` / `skipCurrentTask` 加 phase 保护
 
 ### 涉及文件
 - `src/types/project.ts` — 删除 `overtimeDismissed` 字段
 - `src/hooks/useProjectTimer.ts` — 删除 `overtimeDismissed`，complete/skip 加 phase 保护
-- `src/components/Timer.tsx` — 按钮重排 ✗/⏸/✓，新增 `hideActions` prop
+- `src/components/Timer.tsx` — 统一按钮布局，删除 `projectControls`/`hideActions` props
 - `src/components/ProjectTaskBar.tsx` — 清理超时提示
-- `src/App.tsx` — break 阶段传 `hideActions=true`
+- `src/App.tsx` — 项目模式通过 onSkip/onAbandon 映射到 complete/skip
 
 ---
 

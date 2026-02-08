@@ -273,7 +273,6 @@ function App() {
           if (isProjectExecuting && project.state) {
             const projWorkMinutes = project.state.tasks[project.state.currentTaskIndex]?.estimatedMinutes || 25;
             const projGrowthStage: GrowthStage | null = null; // no celebration in project mode mid-task
-            const isBreakPhase = pv.phase !== 'work';
             return (
               <>
                 <div className="flex-1 flex flex-col items-center justify-center gap-4 sm:gap-6 w-full px-4">
@@ -283,7 +282,7 @@ function App() {
                     view={pv}
                   />
 
-                  {/* Reuse the Timer component */}
+                  {/* Reuse the Timer component — unified button layout */}
                   <Timer
                     timeLeft={pv.isOvertime ? 0 : pv.timeLeft}
                     totalDuration={pv.totalDuration}
@@ -297,15 +296,10 @@ function App() {
                     onStart={() => {}}
                     onPause={project.pause}
                     onResume={project.resume}
-                    onSkip={() => {}}
-                    onAbandon={() => {}}
+                    onSkip={project.completeCurrentTask}
+                    onAbandon={project.skipCurrentTask}
                     onChangeWorkMinutes={() => {}}
                     overtime={pv.isOvertime ? { seconds: pv.overtimeSeconds } : undefined}
-                    projectControls={{
-                      onComplete: project.completeCurrentTask,
-                      onSkipTask: project.skipCurrentTask,
-                    }}
-                    hideActions={isBreakPhase}
                   />
                 </div>
 
