@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent overscroll bounce on mobile */
+body {
+  overscroll-behavior: none;
+}
+
+/* Custom selection color */
+::selection {
+  background-color: rgba(239, 68, 68, 0.3);
+  color: white;
+}
+
+/* Hide number input spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
