@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&display=swap');
 @import "tailwindcss";
 
 /* Smooth scrolling */
@@ -18,19 +17,19 @@ body {
   color: white;
 }
 
-/* Timer font */
+/* Timer font — loaded via <link> in index.html */
 .font-timer {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace !important;
 }
 
-/* Glow pulse for running timer */
-@keyframes glow-pulse {
-  0%, 100% { filter: drop-shadow(0 0 8px var(--glow-color)); }
-  50% { filter: drop-shadow(0 0 20px var(--glow-color)); }
+/* Glow pulse for the progress head dot */
+@keyframes glow-dot-pulse {
+  0%, 100% { opacity: 0.8; r: 5; }
+  50% { opacity: 1; r: 7; }
 }
 
-.animate-glow {
-  animation: glow-pulse 2.5s ease-in-out infinite;
+.animate-glow-dot {
+  animation: glow-dot-pulse 2s ease-in-out infinite;
 }
 
 /* Scale in animation for start */
