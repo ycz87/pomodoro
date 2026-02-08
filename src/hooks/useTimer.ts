@@ -38,9 +38,12 @@ export function useTimer({ settings, onComplete, onSkipWork }: UseTimerOptions):
   const [phase, setPhase] = useState<TimerPhase>('work');
   const [status, setStatus] = useState<TimerStatus>('idle');
   const [timeLeft, setTimeLeft] = useState(settings.workMinutes * 60);
-  const [roundProgress, setRoundProgress] = useState(0); // pomodoros completed in current round
+  const [roundProgress, setRoundProgress] = useState(0);
   const [celebrating, setCelebrating] = useState(false);
   const [celebrationStage, setCelebrationStage] = useState<TimerPhase | null>(null);
+  // Generation counter — increments on phase transitions to force interval restart
+  // when auto-start keeps status as 'running'
+  const [generation, setGeneration] = useState(0);
   const onCompleteRef = useRef(onComplete);
   const onSkipWorkRef = useRef(onSkipWork);
   const settingsRef = useRef(settings);
@@ -78,7 +81,7 @@ export function useTimer({ settings, onComplete, onSkipWork }: UseTimerOptions):
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [status]);
+  }, [status, generation]); // generation forces restart on auto-start transitions
 
   // Handle timer completion
   useEffect(() => {
@@ -91,23 +94,20 @@ export function useTimer({ settings, onComplete, onSkipWork }: UseTimerOptions):
 
       if (completedPhase === 'work') {
         nextRoundProgress = roundProgress + 1;
-        // Check if we should do a long break
         if (nextRoundProgress >= s.pomodorosPerRound) {
           nextPhase = 'longBreak';
         } else {
           nextPhase = 'shortBreak';
         }
       } else {
-        // After any break, go back to work
         if (completedPhase === 'longBreak') {
-          nextRoundProgress = 0; // reset round
+          nextRoundProgress = 0;
         }
         nextPhase = 'work';
       }
 
       setRoundProgress(nextRoundProgress);
 
-      // If work phase completed, trigger celebration before transitioning
       if (completedPhase === 'work') {
         setCelebrating(true);
         setCelebrationStage(completedPhase);
@@ -120,13 +120,20 @@ export function useTimer({ settings, onComplete, onSkipWork }: UseTimerOptions):
       const shouldAutoStart = completedPhase === 'work'
         ? s.autoStartBreak
         : s.autoStartWork;
-      setStatus(shouldAutoStart ? 'running' : 'idle');
+
+      if (shouldAutoStart) {
+        // Keep status as 'running' but bump generation to restart the interval
+        setGeneration((g) => g + 1);
+      } else {
+        setStatus('idle');
+      }
 
       onCompleteRef.current(completedPhase);
     }
   }, [timeLeft, status, phase, roundProgress]);
 
   const start = useCallback(() => {
+    setGeneration((g) => g + 1);
     setStatus('running');
   }, []);
 
@@ -135,6 +142,7 @@ export function useTimer({ settings, onComplete, onSkipWork }: UseTimerOptions):
   }, []);
 
   const resume = useCallback(() => {
+    setGeneration((g) => g + 1);
     setStatus('running');
   }, []);
 
@@ -144,13 +152,11 @@ export function useTimer({ settings, onComplete, onSkipWork }: UseTimerOptions):
     let nextRoundProgress = roundProgress;
 
     if (phase === 'work') {
-      // Calculate elapsed time and record it
       const totalSeconds = getDuration('work', s);
       const elapsedSeconds = totalSeconds - timeLeft;
       if (elapsedSeconds > 0) {
         onSkipWorkRef.current(elapsedSeconds);
       }
-      // Skipping work still counts toward round progress
       nextRoundProgress = roundProgress + 1;
       if (nextRoundProgress >= s.pomodorosPerRound) {
         nextPhase = 'longBreak';
@@ -171,7 +177,6 @@ export function useTimer({ settings, onComplete, onSkipWork }: UseTimerOptions):
   }, [phase, roundProgress, timeLeft]);
 
   const abandon = useCallback(() => {
-    // Return to idle for current phase, no record
     const s = settingsRef.current;
     setTimeLeft(getDuration(phase, s));
     setStatus('idle');

@@ -68,6 +68,7 @@ export const zh: Messages = {
   ambienceCategoryNature: '🌧️ 自然',
   ambienceCategoryEnvironment: '🏠 环境',
   ambienceCategoryNoise: '🎵 噪音',
+  ambienceCategoryClock: '🕐 时钟',
 
   // Ambience sound names
   ambienceNames: {
@@ -86,6 +87,10 @@ export const zh: Messages = {
     pinkNoise: '粉噪音',
     brownNoise: '棕噪音',
     binauralBeats: '双耳节拍',
+    tickClassic: '经典钟摆',
+    tickSoft: '轻柔滴答',
+    tickMechanical: '机械钟表',
+    tickWooden: '木质钟声',
   },
 
   // Alert sound names

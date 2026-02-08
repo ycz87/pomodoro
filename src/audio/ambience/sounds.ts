@@ -55,7 +55,7 @@ function noiseBuffer(ctx: AudioContext, durationSec: number): AudioBuffer {
 
 // ─── 🌧️ Natural sounds ───
 
-/** Rain — filtered noise with random droplet pings */
+/** Rain — layered filtered noise with varying intensity + random droplets */
 export class RainSound extends AmbienceSound {
   create(dest: AudioNode): GainNode {
     const ctx = getCtx();
@@ -63,29 +63,72 @@ export class RainSound extends AmbienceSound {
     gain.connect(dest);
     this.nodes.push(gain);
 
-    // Base rain: looping noise through bandpass
-    const buf = noiseBuffer(ctx, 4);
-    const startLoop = () => {
-      const src = ctx.createBufferSource();
-      src.buffer = buf;
-      src.loop = true;
-      const bp = ctx.createBiquadFilter();
-      bp.type = 'bandpass';
-      bp.frequency.value = 1200;
-      bp.Q.value = 0.4;
-      const lp = ctx.createBiquadFilter();
-      lp.type = 'lowpass';
-      lp.frequency.value = 4000;
-      src.connect(bp);
-      bp.connect(lp);
-      lp.connect(gain);
-      src.start();
-      this.sources.push(src);
-      this.nodes.push(bp, lp);
-    };
-    startLoop();
+    // Layer 1: steady base rain (mid-frequency)
+    const buf1 = noiseBuffer(ctx, 4);
+    const src1 = ctx.createBufferSource();
+    src1.buffer = buf1;
+    src1.loop = true;
+    const bp1 = ctx.createBiquadFilter();
+    bp1.type = 'bandpass';
+    bp1.frequency.value = 1200;
+    bp1.Q.value = 0.4;
+    const lp1 = ctx.createBiquadFilter();
+    lp1.type = 'lowpass';
+    lp1.frequency.value = 4000;
+    const g1 = ctx.createGain();
+    g1.gain.value = 0.35;
+    src1.connect(bp1);
+    bp1.connect(lp1);
+    lp1.connect(g1);
+    g1.connect(gain);
+    src1.start();
+    this.sources.push(src1);
+    this.nodes.push(bp1, lp1, g1);
 
-    // Random droplets
+    // Layer 2: high-frequency shimmer (light rain on surfaces)
+    const buf2 = noiseBuffer(ctx, 4);
+    const src2 = ctx.createBufferSource();
+    src2.buffer = buf2;
+    src2.loop = true;
+    const hp2 = ctx.createBiquadFilter();
+    hp2.type = 'highpass';
+    hp2.frequency.value = 3000;
+    const g2 = ctx.createGain();
+    g2.gain.value = 0.12;
+    // Slow modulation for intensity variation
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.05; // very slow
+    const lfoG = ctx.createGain();
+    lfoG.gain.value = 0.06;
+    lfo.connect(lfoG);
+    lfoG.connect(g2.gain);
+    src2.connect(hp2);
+    hp2.connect(g2);
+    g2.connect(gain);
+    lfo.start();
+    src2.start();
+    this.sources.push(src2, lfo);
+    this.nodes.push(hp2, g2, lfoG);
+
+    // Layer 3: low rumble (heavy rain on roof)
+    const buf3 = noiseBuffer(ctx, 4);
+    const src3 = ctx.createBufferSource();
+    src3.buffer = buf3;
+    src3.loop = true;
+    const lp3 = ctx.createBiquadFilter();
+    lp3.type = 'lowpass';
+    lp3.frequency.value = 500;
+    const g3 = ctx.createGain();
+    g3.gain.value = 0.15;
+    src3.connect(lp3);
+    lp3.connect(g3);
+    g3.connect(gain);
+    src3.start();
+    this.sources.push(src3);
+    this.nodes.push(lp3, g3);
+
+    // Random droplet impacts
     const droplet = () => {
       if (!this._running) return;
       const osc = ctx.createOscillator();
@@ -94,7 +137,7 @@ export class RainSound extends AmbienceSound {
       osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, ctx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(freq * 0.3, ctx.currentTime + 0.03);
-      g.gain.setValueAtTime(0.02 + Math.random() * 0.03, ctx.currentTime);
+      g.gain.setValueAtTime(0.015 + Math.random() * 0.025, ctx.currentTime);
       g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
       osc.connect(g);
       g.connect(gain);
@@ -102,14 +145,18 @@ export class RainSound extends AmbienceSound {
       osc.stop(ctx.currentTime + 0.05);
     };
     this.loopTimer = setInterval(() => {
-      if (Math.random() < 0.4) droplet();
-    }, 80);
+      // Variable density: 1-3 drops per tick
+      const count = Math.random() < 0.3 ? 2 : 1;
+      for (let i = 0; i < count; i++) {
+        if (Math.random() < 0.5) droplet();
+      }
+    }, 60);
 
     return gain;
   }
 }
 
-/** Thunderstorm — rain base + periodic low rumbles */
+/** Thunderstorm — heavy rain + thunder rumbles + lightning cracks */
 export class ThunderstormSound extends AmbienceSound {
   create(dest: AudioNode): GainNode {
     const ctx = getCtx();
@@ -117,47 +164,84 @@ export class ThunderstormSound extends AmbienceSound {
     gain.connect(dest);
     this.nodes.push(gain);
 
-    // Heavy rain base
+    // Heavy rain base — denser, lower frequency
     const buf = noiseBuffer(ctx, 4);
     const src = ctx.createBufferSource();
     src.buffer = buf;
     src.loop = true;
     const bp = ctx.createBiquadFilter();
     bp.type = 'bandpass';
-    bp.frequency.value = 800;
+    bp.frequency.value = 700;
     bp.Q.value = 0.3;
+    const lp2 = ctx.createBiquadFilter();
+    lp2.type = 'lowpass';
+    lp2.frequency.value = 3000;
     const rainGain = ctx.createGain();
-    rainGain.gain.value = 0.8;
+    rainGain.gain.value = 0.7;
     src.connect(bp);
-    bp.connect(rainGain);
+    bp.connect(lp2);
+    lp2.connect(rainGain);
     rainGain.connect(gain);
     src.start();
     this.sources.push(src);
-    this.nodes.push(bp, rainGain);
+    this.nodes.push(bp, lp2, rainGain);
 
-    // Thunder rumbles
-    const thunder = () => {
+    // Thunder rumble — deep low-frequency rolling
+    const thunderRumble = () => {
       if (!this._running) return;
-      const dur = 1.5 + Math.random() * 2;
+      const now = ctx.currentTime;
+      const dur = 2 + Math.random() * 3;
       const tBuf = noiseBuffer(ctx, dur);
       const tSrc = ctx.createBufferSource();
       tSrc.buffer = tBuf;
       const lp = ctx.createBiquadFilter();
       lp.type = 'lowpass';
-      lp.frequency.value = 150 + Math.random() * 100;
+      lp.frequency.value = 80 + Math.random() * 80;
+      lp.Q.value = 0.7;
       const tGain = ctx.createGain();
-      const now = ctx.currentTime;
       tGain.gain.setValueAtTime(0, now);
-      tGain.gain.linearRampToValueAtTime(0.3 + Math.random() * 0.4, now + 0.1);
+      tGain.gain.linearRampToValueAtTime(0.4 + Math.random() * 0.3, now + 0.15);
+      // Rolling decay with slight bumps
+      tGain.gain.setValueAtTime(0.3 + Math.random() * 0.2, now + dur * 0.3);
       tGain.gain.exponentialRampToValueAtTime(0.001, now + dur);
       tSrc.connect(lp);
       lp.connect(tGain);
       tGain.connect(gain);
-      tSrc.start();
+      tSrc.start(now);
       tSrc.stop(now + dur);
     };
+
+    // Lightning crack — sharp high-frequency burst
+    const lightningCrack = () => {
+      if (!this._running) return;
+      const now = ctx.currentTime;
+      const crackDur = 0.08 + Math.random() * 0.05;
+      const cBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * crackDur), ctx.sampleRate);
+      const data = cBuf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.08));
+      }
+      const cSrc = ctx.createBufferSource();
+      cSrc.buffer = cBuf;
+      const hp = ctx.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 2000 + Math.random() * 3000;
+      const cGain = ctx.createGain();
+      cGain.gain.setValueAtTime(0.5 + Math.random() * 0.3, now);
+      cGain.gain.exponentialRampToValueAtTime(0.001, now + crackDur + 0.05);
+      cSrc.connect(hp);
+      hp.connect(cGain);
+      cGain.connect(gain);
+      cSrc.start(now);
+      cSrc.stop(now + crackDur + 0.06);
+      // Follow with rumble
+      setTimeout(() => thunderRumble(), (0.1 + Math.random() * 0.5) * 1000);
+    };
+
     this.loopTimer = setInterval(() => {
-      if (Math.random() < 0.08) thunder();
+      const r = Math.random();
+      if (r < 0.03) lightningCrack();       // ~3% chance per second: crack + rumble
+      else if (r < 0.07) thunderRumble();    // ~4% chance: distant rumble only
     }, 1000);
 
     return gain;
@@ -248,7 +332,7 @@ export class StreamSound extends AmbienceSound {
   }
 }
 
-/** Birds — random chirps using FM synthesis */
+/** Birds — realistic chirps with FM synthesis, varied timing, stereo spread */
 export class BirdsSound extends AmbienceSound {
   create(dest: AudioNode): GainNode {
     const ctx = getCtx();
@@ -259,45 +343,43 @@ export class BirdsSound extends AmbienceSound {
     const chirp = () => {
       if (!this._running) return;
       const now = ctx.currentTime;
-      const baseFreq = 1800 + Math.random() * 2500;
-      const dur = 0.08 + Math.random() * 0.15;
+      const baseFreq = 2200 + Math.random() * 2000;
+      const noteCount = 1 + Math.floor(Math.random() * 4); // 1-4 note phrase
+      const pan = (Math.random() - 0.5) * 1.8;
 
-      const osc = ctx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(baseFreq, now);
-      osc.frequency.linearRampToValueAtTime(baseFreq * (0.7 + Math.random() * 0.6), now + dur);
+      const panner = ctx.createStereoPanner();
+      panner.pan.value = pan;
+      panner.connect(gain);
 
-      const g = ctx.createGain();
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(0.06 + Math.random() * 0.06, now + dur * 0.1);
-      g.gain.exponentialRampToValueAtTime(0.001, now + dur);
+      let offset = 0;
+      for (let n = 0; n < noteCount; n++) {
+        const dur = 0.05 + Math.random() * 0.12;
+        const freq = baseFreq * (0.8 + Math.random() * 0.5);
+        const t = now + offset;
 
-      osc.connect(g);
-      g.connect(gain);
-      osc.start(now);
-      osc.stop(now + dur);
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+        // Frequency sweep for natural bird sound
+        osc.frequency.linearRampToValueAtTime(freq * (0.85 + Math.random() * 0.3), t + dur);
 
-      // Sometimes do a double chirp
-      if (Math.random() < 0.5) {
-        const osc2 = ctx.createOscillator();
-        osc2.type = 'sine';
-        const f2 = baseFreq * (0.8 + Math.random() * 0.4);
-        osc2.frequency.setValueAtTime(f2, now + dur + 0.05);
-        osc2.frequency.linearRampToValueAtTime(f2 * 1.2, now + dur + 0.05 + dur);
-        const g2 = ctx.createGain();
-        g2.gain.setValueAtTime(0, now + dur + 0.05);
-        g2.gain.linearRampToValueAtTime(0.05, now + dur + 0.06);
-        g2.gain.exponentialRampToValueAtTime(0.001, now + dur * 2 + 0.05);
-        osc2.connect(g2);
-        g2.connect(gain);
-        osc2.start(now + dur + 0.05);
-        osc2.stop(now + dur * 2 + 0.1);
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.06 + Math.random() * 0.04, t + dur * 0.15);
+        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+        osc.connect(g);
+        g.connect(panner);
+        osc.start(t);
+        osc.stop(t + dur + 0.01);
+
+        offset += dur + 0.02 + Math.random() * 0.06;
       }
     };
 
     this.loopTimer = setInterval(() => {
-      if (Math.random() < 0.25) chirp();
-    }, 300);
+      if (Math.random() < 0.15) chirp();
+    }, 400);
 
     return gain;
   }
@@ -355,7 +437,7 @@ export class WindSound extends AmbienceSound {
   }
 }
 
-/** Crickets / Insects — rapid oscillating tones at random intervals */
+/** Crickets / Insects — rhythmic chirping with multiple overlapping crickets */
 export class CricketsSound extends AmbienceSound {
   create(dest: AudioNode): GainNode {
     const ctx = getCtx();
@@ -363,44 +445,55 @@ export class CricketsSound extends AmbienceSound {
     gain.connect(dest);
     this.nodes.push(gain);
 
-    const chirp = () => {
-      if (!this._running) return;
-      const now = ctx.currentTime;
-      const freq = 4000 + Math.random() * 2000;
-      const dur = 0.3 + Math.random() * 0.5;
-      const pulseRate = 30 + Math.random() * 30;
+    // Create 3-4 independent "crickets" with different rhythms
+    const cricketCount = 3 + Math.floor(Math.random() * 2);
+    const timers: ReturnType<typeof setInterval>[] = [];
 
-      const osc = ctx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
+    for (let c = 0; c < cricketCount; c++) {
+      const baseFreq = 3800 + Math.random() * 1500; // each cricket has its own pitch
+      const chirpRate = 600 + Math.random() * 400;   // ms between chirp bursts
+      const burstLen = 3 + Math.floor(Math.random() * 4); // pulses per burst
+      const pan = (Math.random() - 0.5) * 1.6; // stereo position
 
-      // Amplitude tremolo for cricket-like pulsing
-      const tremolo = ctx.createOscillator();
-      tremolo.type = 'square';
-      tremolo.frequency.value = pulseRate;
-      const tremoloGain = ctx.createGain();
-      tremoloGain.gain.value = 0.04;
+      const panner = ctx.createStereoPanner();
+      panner.pan.value = pan;
+      panner.connect(gain);
+      this.nodes.push(panner);
 
-      const envGain = ctx.createGain();
-      envGain.gain.setValueAtTime(0, now);
-      envGain.gain.linearRampToValueAtTime(1, now + 0.02);
-      envGain.gain.setValueAtTime(1, now + dur - 0.05);
-      envGain.gain.linearRampToValueAtTime(0, now + dur);
+      const doChirpBurst = () => {
+        if (!this._running) return;
+        const now = ctx.currentTime;
+        for (let p = 0; p < burstLen; p++) {
+          const t = now + p * 0.04; // rapid pulses ~25Hz
+          const osc = ctx.createOscillator();
+          osc.type = 'sine';
+          osc.frequency.value = baseFreq + (Math.random() - 0.5) * 100;
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(0.04 + Math.random() * 0.02, t + 0.005);
+          g.gain.linearRampToValueAtTime(0, t + 0.025);
+          osc.connect(g);
+          g.connect(panner);
+          osc.start(t);
+          osc.stop(t + 0.03);
+        }
+      };
 
-      tremolo.connect(tremoloGain);
-      osc.connect(envGain);
-      tremoloGain.connect(envGain.gain);
-      envGain.connect(gain);
+      // Stagger start times
+      const startDelay = Math.random() * chirpRate;
+      const timer = setInterval(() => {
+        if (Math.random() < 0.7) doChirpBurst(); // occasional silence for realism
+      }, chirpRate);
+      setTimeout(() => doChirpBurst(), startDelay);
+      timers.push(timer);
+    }
 
-      osc.start(now);
-      osc.stop(now + dur);
-      tremolo.start(now);
-      tremolo.stop(now + dur);
+    // Store timers for cleanup
+    const origStop = this.stop.bind(this);
+    this.stop = () => {
+      timers.forEach((t) => clearInterval(t));
+      origStop();
     };
-
-    this.loopTimer = setInterval(() => {
-      if (Math.random() < 0.2) chirp();
-    }, 400);
 
     return gain;
   }
@@ -779,6 +872,130 @@ export class BinauralBeatsSound extends AmbienceSound {
     this.sources.push(oscL, oscR);
     this.nodes.push(panL, panR, gL, gR);
 
+    return gain;
+  }
+}
+
+// ─── 🕐 Clock tick sounds (preserved from v0.03) ───
+
+/** Classic pendulum tick — frequency-dropping short pulse, once per second */
+export class TickClassicSound extends AmbienceSound {
+  create(dest: AudioNode): GainNode {
+    const ctx = getCtx();
+    const gain = ctx.createGain();
+    gain.connect(dest);
+    this.nodes.push(gain);
+
+    const tick = () => {
+      if (!this._running) return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, now);
+      osc.frequency.exponentialRampToValueAtTime(400, now + 0.03);
+      g.gain.setValueAtTime(0.08, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+      osc.connect(g); g.connect(gain);
+      osc.start(now); osc.stop(now + 0.06);
+    };
+    tick();
+    this.loopTimer = setInterval(tick, 1000);
+    return gain;
+  }
+}
+
+/** Soft tick — gentle high-frequency pulse */
+export class TickSoftSound extends AmbienceSound {
+  create(dest: AudioNode): GainNode {
+    const ctx = getCtx();
+    const gain = ctx.createGain();
+    gain.connect(dest);
+    this.nodes.push(gain);
+
+    const tick = () => {
+      if (!this._running) return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 1200;
+      g.gain.setValueAtTime(0.04, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      osc.connect(g); g.connect(gain);
+      osc.start(now); osc.stop(now + 0.04);
+    };
+    tick();
+    this.loopTimer = setInterval(tick, 1000);
+    return gain;
+  }
+}
+
+/** Mechanical clock — square wave + resonant harmonic */
+export class TickMechanicalSound extends AmbienceSound {
+  create(dest: AudioNode): GainNode {
+    const ctx = getCtx();
+    const gain = ctx.createGain();
+    gain.connect(dest);
+    this.nodes.push(gain);
+
+    const tick = () => {
+      if (!this._running) return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.exponentialRampToValueAtTime(200, now + 0.02);
+      g.gain.setValueAtTime(0.06, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      osc.connect(g); g.connect(gain);
+      osc.start(now); osc.stop(now + 0.04);
+
+      const osc2 = ctx.createOscillator();
+      const g2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.value = 1500;
+      g2.gain.setValueAtTime(0.02, now + 0.01);
+      g2.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      osc2.connect(g2); g2.connect(gain);
+      osc2.start(now + 0.01); osc2.stop(now + 0.05);
+    };
+    tick();
+    this.loopTimer = setInterval(tick, 1000);
+    return gain;
+  }
+}
+
+/** Wooden clock — bandpass-filtered noise impulse */
+export class TickWoodenSound extends AmbienceSound {
+  create(dest: AudioNode): GainNode {
+    const ctx = getCtx();
+    const gain = ctx.createGain();
+    gain.connect(dest);
+    this.nodes.push(gain);
+
+    const tick = () => {
+      if (!this._running) return;
+      const now = ctx.currentTime;
+      const bufSize = Math.floor(ctx.sampleRate * 0.03);
+      const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * 0.2));
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 1000;
+      bp.Q.value = 2;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.12, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      src.connect(bp); bp.connect(g); g.connect(gain);
+      src.start(now); src.stop(now + 0.05);
+    };
+    tick();
+    this.loopTimer = setInterval(tick, 1000);
     return gain;
   }
 }

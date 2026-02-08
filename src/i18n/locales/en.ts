@@ -68,6 +68,7 @@ export const en: Messages = {
   ambienceCategoryNature: '🌧️ Nature',
   ambienceCategoryEnvironment: '🏠 Environment',
   ambienceCategoryNoise: '🎵 Noise',
+  ambienceCategoryClock: '🕐 Clock',
 
   // Ambience sound names
   ambienceNames: {
@@ -86,6 +87,10 @@ export const en: Messages = {
     pinkNoise: 'Pink Noise',
     brownNoise: 'Brown Noise',
     binauralBeats: 'Binaural Beats',
+    tickClassic: 'Classic Pendulum',
+    tickSoft: 'Soft Tick',
+    tickMechanical: 'Mechanical',
+    tickWooden: 'Wooden',
   },
 
   // Alert sound names

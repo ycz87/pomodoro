@@ -11,6 +11,7 @@ export {
   startAmbienceSound, stopAmbienceSound, setAmbienceSoundVolume,
   applyMixerConfig, stopAllAmbience, isAmbiencePlaying,
   getActiveSoundsSummary,
+  enterPreviewMode, exitPreviewMode,
 } from './mixer';
 export type { AmbienceSoundId, AmbienceSoundConfig, AmbienceMixerConfig, AmbienceSoundMeta } from './mixer';
 

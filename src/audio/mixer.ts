@@ -10,18 +10,20 @@ import {
   BirdsSound, WindSound, CricketsSound,
   CafeSound, FireplaceSound, KeyboardSound, LibrarySound,
   WhiteNoiseSound, PinkNoiseSound, BrownNoiseSound, BinauralBeatsSound,
+  TickClassicSound, TickSoftSound, TickMechanicalSound, TickWoodenSound,
 } from './ambience/sounds';
 
 export type AmbienceSoundId =
   | 'rain' | 'thunderstorm' | 'ocean' | 'stream'
   | 'birds' | 'wind' | 'crickets'
   | 'cafe' | 'fireplace' | 'keyboard' | 'library'
-  | 'whiteNoise' | 'pinkNoise' | 'brownNoise' | 'binauralBeats';
+  | 'whiteNoise' | 'pinkNoise' | 'brownNoise' | 'binauralBeats'
+  | 'tickClassic' | 'tickSoft' | 'tickMechanical' | 'tickWooden';
 
 export interface AmbienceSoundMeta {
   id: AmbienceSoundId;
   emoji: string;
-  category: 'nature' | 'environment' | 'noise';
+  category: 'nature' | 'environment' | 'noise' | 'clock';
 }
 
 /** All available ambience sounds in display order */
@@ -44,6 +46,11 @@ export const ALL_AMBIENCE_SOUNDS: AmbienceSoundMeta[] = [
   { id: 'pinkNoise', emoji: '🩷', category: 'noise' },
   { id: 'brownNoise', emoji: '🟤', category: 'noise' },
   { id: 'binauralBeats', emoji: '🎧', category: 'noise' },
+  // Clock ticks
+  { id: 'tickClassic', emoji: '🕐', category: 'clock' },
+  { id: 'tickSoft', emoji: '🕑', category: 'clock' },
+  { id: 'tickMechanical', emoji: '⚙️', category: 'clock' },
+  { id: 'tickWooden', emoji: '🪵', category: 'clock' },
 ];
 
 /** Factory for creating sound instances */
@@ -64,6 +71,10 @@ function createSound(id: AmbienceSoundId): AmbienceSound {
     case 'pinkNoise': return new PinkNoiseSound();
     case 'brownNoise': return new BrownNoiseSound();
     case 'binauralBeats': return new BinauralBeatsSound();
+    case 'tickClassic': return new TickClassicSound();
+    case 'tickSoft': return new TickSoftSound();
+    case 'tickMechanical': return new TickMechanicalSound();
+    case 'tickWooden': return new TickWoodenSound();
   }
 }
 
@@ -87,6 +98,16 @@ export function defaultMixerConfig(): AmbienceMixerConfig {
 // ─── Mixer singleton ───
 
 const instances = new Map<AmbienceSoundId, AmbienceSound>();
+let _previewing = false;
+
+/** Enter preview mode — stopAllAmbience() becomes a no-op */
+export function enterPreviewMode(): void { _previewing = true; }
+
+/** Exit preview mode and optionally stop all sounds */
+export function exitPreviewMode(stopSounds = true): void {
+  _previewing = false;
+  if (stopSounds) stopAllAmbienceForce();
+}
 
 /** Start a specific ambience sound */
 export function startAmbienceSound(id: AmbienceSoundId, volume: number): void {
@@ -127,8 +148,14 @@ export function applyMixerConfig(config: AmbienceMixerConfig): void {
   }
 }
 
-/** Stop all ambience sounds */
+/** Stop all ambience sounds (respects preview mode) */
 export function stopAllAmbience(): void {
+  if (_previewing) return; // Don't kill preview sounds
+  stopAllAmbienceForce();
+}
+
+/** Force stop all ambience sounds (ignores preview mode) */
+function stopAllAmbienceForce(): void {
   for (const [id] of instances) {
     stopAmbienceSound(id);
   }

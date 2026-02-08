@@ -7,7 +7,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../i18n';
 import type { AmbienceMixerConfig, AmbienceSoundId } from '../audio';
-import { ALL_AMBIENCE_SOUNDS, startAmbienceSound, stopAmbienceSound, setAmbienceSoundVolume } from '../audio';
+import {
+  ALL_AMBIENCE_SOUNDS, startAmbienceSound, stopAmbienceSound, setAmbienceSoundVolume,
+  enterPreviewMode, exitPreviewMode,
+} from '../audio';
 
 interface Props {
   config: AmbienceMixerConfig;
@@ -19,6 +22,19 @@ export function AmbienceMixerModal({ config, onChange, onClose }: Props) {
   const theme = useTheme();
   const i18n = useI18n();
   const [local, setLocal] = useState<AmbienceMixerConfig>({ ...config });
+
+  // Enter preview mode on mount, exit on unmount
+  useEffect(() => {
+    enterPreviewMode();
+    // Start any already-enabled sounds for preview
+    for (const meta of ALL_AMBIENCE_SOUNDS) {
+      const cfg = config[meta.id];
+      if (cfg?.enabled) {
+        startAmbienceSound(meta.id, cfg.volume);
+      }
+    }
+    return () => exitPreviewMode(true);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync changes to parent + audio engine in real-time
   const updateSound = useCallback((id: AmbienceSoundId, enabled: boolean, volume: number) => {
@@ -59,10 +75,11 @@ export function AmbienceMixerModal({ config, onChange, onClose }: Props) {
     nature: i18n.ambienceCategoryNature,
     environment: i18n.ambienceCategoryEnvironment,
     noise: i18n.ambienceCategoryNoise,
+    clock: i18n.ambienceCategoryClock,
   };
 
   // Group sounds by category
-  const categories = ['nature', 'environment', 'noise'] as const;
+  const categories = ['nature', 'environment', 'noise', 'clock'] as const;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4"

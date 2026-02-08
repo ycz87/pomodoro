@@ -52,6 +52,7 @@ export interface Messages {
   ambienceCategoryNature: string;
   ambienceCategoryEnvironment: string;
   ambienceCategoryNoise: string;
+  ambienceCategoryClock: string;
 
   // Ambience sound names
   ambienceNames: Record<AmbienceSoundId, string>;
