@@ -138,3 +138,22 @@
   - 统计面板：当前连续 + 历史最长
 - **统计工具**（`stats.ts`）：分组、打卡计算、汇总、日期工具
 - 无第三方图表库，gzip 增量约 3KB
+
+---
+
+## v0.05 — 多语言支持（2026-02-08）
+
+### commit: daadb79
+- 自建轻量 i18n 系统：React Context + `useI18n` hook，零第三方依赖
+- `Messages` 类型接口（`src/i18n/types.ts`），编译时保证翻译 key 完整
+- 完整中英文翻译字典（`src/i18n/locales/zh.ts` / `en.ts`）
+- `detectLocale()` 自动检测浏览器语言，匹配不到默认中文
+- 语言选择持久化到 `settings.language`（localStorage）
+- Settings 面板新增语言切换入口（中文 / EN）
+- 切换语言无需刷新：`I18nProvider` 响应 locale 变化即时更新
+- 全部 12 个组件从硬编码中文迁移到 `useI18n()`：
+  - App, Timer, TaskInput, TaskList, TodayStats, Settings
+  - HistoryPanel, MiniCalendar, BarChart, Guide, CelebrationOverlay, InstallPrompt
+- 主题名、音效名、生长阶段名等全部走 i18n
+- `stats.ts` 的 `formatMinutes` / `getWeekdayShort` 不再被组件直接调用，改用 `t.formatMinutes` / `t.weekdaysShort`
+- 17 files changed, 641 insertions(+), 138 deletions(-)
