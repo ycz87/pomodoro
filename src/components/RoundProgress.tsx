@@ -1,3 +1,5 @@
+import { useTheme } from '../hooks/useTheme';
+
 interface RoundProgressProps {
   current: number; // completed in this round
   total: number;   // pomodoros per round
@@ -5,6 +7,8 @@ interface RoundProgressProps {
 }
 
 export function RoundProgress({ current, total, idle }: RoundProgressProps) {
+  const theme = useTheme();
+
   // Hide completely when idle and nothing completed
   if (idle && current === 0) return null;
 
@@ -16,15 +20,15 @@ export function RoundProgress({ current, total, idle }: RoundProgressProps) {
         {Array.from({ length: total }).map((_, i) => (
           <span
             key={i}
-            className={`inline-block w-2 h-2 rounded-full transition-all duration-300 ${
-              i < current
-                ? 'bg-red-400 scale-110'
-                : 'bg-white/15'
-            }`}
+            className="inline-block w-2 h-2 rounded-full transition-all duration-300"
+            style={{
+              backgroundColor: i < current ? theme.accent : theme.textFaint,
+              transform: i < current ? 'scale(1.1)' : 'scale(1)',
+            }}
           />
         ))}
       </div>
-      <span className="text-white/25 text-xs tabular-nums">
+      <span className="text-xs tabular-nums" style={{ color: theme.textFaint }}>
         {current}/{total}
       </span>
     </div>

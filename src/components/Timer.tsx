@@ -1,20 +1,26 @@
 import { useEffect, useRef } from 'react';
 import type { TimerPhase, TimerStatus } from '../hooks/useTimer';
+import type { GrowthStage } from '../types';
 import { formatTime } from '../utils/time';
 import { useTheme } from '../hooks/useTheme';
+import { CelebrationOverlay } from './CelebrationOverlay';
 
 interface TimerProps {
   timeLeft: number;
   totalDuration: number;
   phase: TimerPhase;
   status: TimerStatus;
+  celebrating: boolean;
+  celebrationStage: GrowthStage | null;
+  celebrationIsRipe: boolean;
+  onCelebrationComplete: () => void;
   onStart: () => void;
   onPause: () => void;
   onResume: () => void;
   onSkip: () => void;
 }
 
-export function Timer({ timeLeft, totalDuration, phase, status, onStart, onPause, onResume, onSkip }: TimerProps) {
+export function Timer({ timeLeft, totalDuration, phase, status, celebrating, celebrationStage, celebrationIsRipe, onCelebrationComplete, onStart, onPause, onResume, onSkip }: TimerProps) {
   const isWork = phase === 'work';
   const progress = totalDuration > 0 ? (totalDuration - timeLeft) / totalDuration : 0;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -48,19 +54,30 @@ export function Timer({ timeLeft, totalDuration, phase, status, onStart, onPause
 
   const phaseLabel = phase === 'work' ? '🍅 专注时间'
     : phase === 'longBreak' ? '🌙 长休息'
-    : '☕ 短休息';
+    : '☕ 休息一下';
 
   return (
-    <div ref={containerRef} className="flex flex-col items-center gap-4 sm:gap-6">
+    <div ref={containerRef} className="flex flex-col items-center gap-4 sm:gap-6 relative">
+      {/* Celebration overlay */}
+      {celebrating && celebrationStage && (
+        <CelebrationOverlay
+          stage={celebrationStage}
+          isRipe={celebrationIsRipe}
+          onComplete={onCelebrationComplete}
+        />
+      )}
+
       {/* Phase indicator */}
-      <div className="text-sm font-medium tracking-widest transition-colors duration-500"
+      <div className={`text-sm font-medium tracking-widest transition-all duration-500 ${
+        !isWork && status !== 'idle' ? 'text-base' : ''
+      }`}
         style={{ color: isWork ? theme.accent : theme.breakAccent }}>
         {phaseLabel}
       </div>
 
       {/* Circular timer */}
       <div className="relative w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] flex items-center justify-center overflow-visible">
-        <svg className="absolute inset-0 overflow-visible" viewBox={`0 0 ${size} ${size}`} overflow="visible">
+        <svg className={`absolute inset-0 overflow-visible ${celebrating ? 'animate-ring-pulse' : ''}`} viewBox={`0 0 ${size} ${size}`} overflow="visible">
           <defs>
             <linearGradient id="grad-progress" gradientUnits="userSpaceOnUse"
               x1={center} y1="0" x2={size} y2={size}>

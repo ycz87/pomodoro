@@ -1,11 +1,14 @@
 import type { PomodoroRecord } from '../types';
 import { getGrowthStage, GROWTH_EMOJI } from '../types';
+import { useTheme } from '../hooks/useTheme';
 
 interface TodayStatsProps {
   records: PomodoroRecord[];
 }
 
 export function TodayStats({ records }: TodayStatsProps) {
+  const theme = useTheme();
+
   if (records.length === 0) return null;
 
   const totalMinutes = records.reduce((sum, r) => sum + (r.durationMinutes || 25), 0);
@@ -20,7 +23,8 @@ export function TodayStats({ records }: TodayStatsProps) {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="text-white/30 text-xs tracking-wider font-medium uppercase">
+      <div className="text-xs tracking-wider font-medium uppercase"
+        style={{ color: theme.textMuted }}>
         今日收获
       </div>
       <div className="flex items-center gap-1 flex-wrap justify-center">
@@ -38,12 +42,12 @@ export function TodayStats({ records }: TodayStatsProps) {
           );
         })}
         {overflow > 0 && (
-          <span className="text-white/30 text-sm font-medium ml-1">
+          <span className="text-sm font-medium ml-1" style={{ color: theme.textMuted }}>
             +{overflow}
           </span>
         )}
       </div>
-      <div className="text-white/20 text-xs">
+      <div className="text-xs" style={{ color: theme.textFaint }}>
         共专注 {timeStr}
       </div>
     </div>

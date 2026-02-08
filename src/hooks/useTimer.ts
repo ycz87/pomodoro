@@ -14,6 +14,9 @@ interface UseTimerReturn {
   phase: TimerPhase;
   status: TimerStatus;
   roundProgress: number; // how many pomodoros completed in current round (0-based)
+  celebrating: boolean;  // true during celebration animation after work phase completes
+  celebrationStage: TimerPhase | null; // which phase just completed (for celebration)
+  dismissCelebration: () => void;
   start: () => void;
   pause: () => void;
   resume: () => void;
@@ -34,6 +37,8 @@ export function useTimer({ settings, onComplete }: UseTimerOptions): UseTimerRet
   const [status, setStatus] = useState<TimerStatus>('idle');
   const [timeLeft, setTimeLeft] = useState(settings.workMinutes * 60);
   const [roundProgress, setRoundProgress] = useState(0); // pomodoros completed in current round
+  const [celebrating, setCelebrating] = useState(false);
+  const [celebrationStage, setCelebrationStage] = useState<TimerPhase | null>(null);
   const onCompleteRef = useRef(onComplete);
   const settingsRef = useRef(settings);
 
@@ -94,6 +99,13 @@ export function useTimer({ settings, onComplete }: UseTimerOptions): UseTimerRet
       }
 
       setRoundProgress(nextRoundProgress);
+
+      // If work phase completed, trigger celebration before transitioning
+      if (completedPhase === 'work') {
+        setCelebrating(true);
+        setCelebrationStage(completedPhase);
+      }
+
       setPhase(nextPhase);
       setTimeLeft(getDuration(nextPhase, s));
       setStatus('idle');
@@ -139,7 +151,14 @@ export function useTimer({ settings, onComplete }: UseTimerOptions): UseTimerRet
     setTimeLeft(settingsRef.current.workMinutes * 60);
     setStatus('idle');
     setRoundProgress(0);
+    setCelebrating(false);
+    setCelebrationStage(null);
   }, []);
 
-  return { timeLeft, phase, status, roundProgress, start, pause, resume, skip, reset };
+  const dismissCelebration = useCallback(() => {
+    setCelebrating(false);
+    setCelebrationStage(null);
+  }, []);
+
+  return { timeLeft, phase, status, roundProgress, celebrating, celebrationStage, dismissCelebration, start, pause, resume, skip, reset };
 }

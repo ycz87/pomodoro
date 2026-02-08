@@ -18,6 +18,7 @@ import { sendNotification, requestNotificationPermission, startTickSound, stopTi
 import { getTodayKey } from './utils/time';
 import type { PomodoroRecord, PomodoroSettings } from './types';
 import { DEFAULT_SETTINGS, THEMES, getGrowthStage, GROWTH_EMOJI } from './types';
+import type { GrowthStage } from './types';
 
 function App() {
   const [currentTask, setCurrentTask] = useState('');
@@ -82,6 +83,10 @@ function App() {
       const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
       const phaseEmoji = timer.phase === 'work' ? '🍅' : timer.phase === 'longBreak' ? '🌙' : '☕';
       document.title = `${timeStr} ${phaseEmoji} 番茄时钟`;
+    } else if (timer.phase !== 'work') {
+      // Idle in break phase — show break label
+      const breakLabel = timer.phase === 'longBreak' ? '🌙 长休息' : '☕ 休息一下';
+      document.title = `${breakLabel} · 番茄时钟`;
     } else {
       document.title = '番茄时钟';
     }
@@ -98,8 +103,15 @@ function App() {
   const isWork = timer.phase === 'work';
   const isTimerRunning = timer.status === 'running';
 
+  // Celebration: determine growth stage for the work duration
+  const celebrationGrowthStage: GrowthStage | null = timer.celebrating ? getGrowthStage(settings.workMinutes) : null;
+  const celebrationIsRipe = settings.workMinutes >= 25;
+
   // 根据阶段和状态选择背景色
-  const bgColor = timer.status === 'idle' ? theme.bg : isWork ? theme.bgWork : theme.bgBreak;
+  // 工作阶段 idle 时用默认背景，休息阶段始终用休息背景（让用户一眼看出处于休息）
+  const bgColor = !isWork ? theme.bgBreak
+    : timer.status === 'idle' ? theme.bg
+    : theme.bgWork;
 
   return (
     <ThemeProvider value={theme}>
@@ -123,6 +135,10 @@ function App() {
           <Timer
             timeLeft={timer.timeLeft} totalDuration={totalDuration}
             phase={timer.phase} status={timer.status}
+            celebrating={timer.celebrating}
+            celebrationStage={celebrationGrowthStage}
+            celebrationIsRipe={celebrationIsRipe}
+            onCelebrationComplete={timer.dismissCelebration}
             onStart={timer.start} onPause={timer.pause}
             onResume={timer.resume} onSkip={timer.skip}
           />
