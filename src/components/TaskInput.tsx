@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 
 interface TaskInputProps {
   value: string;
@@ -8,12 +8,6 @@ interface TaskInputProps {
 
 export function TaskInput({ value, onChange, disabled }: TaskInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!disabled && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [disabled]);
 
   return (
     <div className="w-full max-w-xs sm:max-w-sm px-4">
