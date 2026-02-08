@@ -2,6 +2,53 @@
 
 ---
 
+## v0.2 — 音效系统大改版：自定义混音器 + 提醒音效升级（2026-02-08）
+
+### 自定义背景音混音器
+- 全新 `AmbienceMixerModal` 组件：弹窗式混音面板
+- 15 种背景音，全部 Web Audio API 实时合成，零音频文件：
+  - 🌧️ 自然类（7 种）：雨声、雷雨、海浪、溪流、鸟鸣、风声、虫鸣
+  - 🏠 环境类（4 种）：咖啡厅、壁炉、键盘敲击、图书馆
+  - 🎵 噪音类（4 种）：白噪音、粉噪音、棕噪音、双耳节拍
+- 每个音效独立开关 + 独立音量滑块
+- 支持多音效同时叠加组合
+- 总音量由设置面板的"背景音量"控制
+- 设置面板显示当前组合预览文字（如"雨声 + 白噪音"）+ 「自定义」按钮
+- 组合选择和各音效音量持久化到 localStorage
+
+### 提醒音效升级
+- 10 种提醒音效（原 3 种 + 新增 7 种）：
+  和弦、铃声、自然、木琴、钢琴、电子、水滴、鸟鸣、马林巴、锣声
+- 全部 Web Audio API 合成
+- `AlertPickerModal` 组件：弹窗选择 + 点击试听
+- "提醒时长"改为"循环次数"（1/2/3/5 次）
+- 音效按次数循环播放，每次间隔自动计算
+
+### 音频架构重构
+- 新建 `src/audio/` 模块，替代旧 `src/utils/notification.ts`
+- `context.ts`：共享 AudioContext 单例 + 主音量控制节点
+- `ambience/sounds.ts`：15 个 AmbienceSound 子类，基于 OOP 设计
+- `alerts/sounds.ts`：10 个 alert 生成函数
+- `mixer.ts`：混音器状态管理（启停、音量、配置应用）
+- `index.ts`：统一导出
+
+### 设置迁移
+- `migrateSettings()` 函数：自动兼容旧版设置格式
+- 旧 `sound` → `alertSound`，旧 `tickVolume` → `ambienceVolume`
+- `useLocalStorage` hook 新增 `migrate` 参数
+
+### 多语言
+- 所有新增文案同步提供中英文翻译
+- i18n `Messages` 接口新增：ambienceNames、alertNames、modalClose/Done 等
+
+### 改动统计
+- 新增文件：8 个（audio 模块 5 个 + 组件 2 个 + 类型更新）
+- 修改文件：7 个（types、i18n、Settings、App、useLocalStorage 等）
+- 删除文件：1 个（旧 notification.ts）
+- 构建产物：JS 从 254KB → 278KB（+24KB），零音频文件
+
+---
+
 ## v0.01 — MVP（2026-02-08）
 
 ### commit: 4c9a06a

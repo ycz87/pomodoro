@@ -1,3 +1,6 @@
+import type { AmbienceSoundId } from '../audio';
+import type { AlertSoundId } from '../audio';
+
 /** 翻译字典类型定义 */
 export interface Messages {
   appName: string;
@@ -33,34 +36,54 @@ export interface Messages {
   longBreakInterval: string;
   autoStartBreak: string;
   autoStartWork: string;
+
+  // Alert sound
   alertSound: string;
-  alertDuration: string;
+  alertRepeatCount: string;
   alertVolume: string;
-  focusBackground: string;
-  bgVolume: string;
+  alertCustomize: string;
+  repeatTimes: (n: number) => string;
+
+  // Ambience
+  focusAmbience: string;
+  ambienceVolume: string;
+  ambienceCustomize: string;
+  ambienceOff: string;
+  ambienceCategoryNature: string;
+  ambienceCategoryEnvironment: string;
+  ambienceCategoryNoise: string;
+
+  // Ambience sound names
+  ambienceNames: Record<AmbienceSoundId, string>;
+
+  // Alert sound names
+  alertNames: Record<AlertSoundId, string>;
+
+  // Modal
+  modalClose: string;
+  modalDone: string;
+
   theme: string;
   language: string;
   exportData: string;
   minutes: string;
   seconds: string;
-  soundChime: string;
-  soundBell: string;
-  soundNature: string;
-  tickNone: string;
-  tickClassic: string;
-  tickSoft: string;
-  tickMechanical: string;
-  tickWooden: string;
+
+  // Theme names
   themeDark: string;
   themeLight: string;
   themeForest: string;
   themeOcean: string;
   themeWarm: string;
+
+  // Growth stages
   stageSeed: string;
   stageSprout: string;
   stageBloom: string;
   stageGreen: string;
   stageRipe: string;
+
+  // Guide
   guideTitle: string;
   guidePomodoro: string;
   guidePomodoroDesc: string;
@@ -72,9 +95,13 @@ export interface Messages {
   guideSettings: string;
   guideSettingsDesc: string;
   guideStart: string;
+
+  // Install prompt
   installTitle: string;
   installDesc: string;
   installButton: string;
+
+  // History panel
   historyTab: string;
   statsTab: string;
   streakBanner: (days: number) => string;
@@ -82,6 +109,8 @@ export interface Messages {
   today: string;
   yesterday: string;
   dateFormat: (m: number, d: number) => string;
+
+  // Stats
   currentStreak: string;
   longestStreak: string;
   focusTrend: string;

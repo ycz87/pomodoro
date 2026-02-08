@@ -1,5 +1,8 @@
 import type { Locale } from './i18n';
 import { detectLocale } from './i18n';
+import type { AlertSoundId } from './audio';
+import type { AmbienceMixerConfig } from './audio';
+import { defaultMixerConfig } from './audio';
 
 /**
  * 西瓜钟记录 — 每完成一个工作阶段生成一条
@@ -11,10 +14,6 @@ export interface PomodoroRecord {
   completedAt: string;     // ISO 时间戳
   date: string;            // YYYY-MM-DD，用于按天筛选
 }
-
-// ─── 音效类型 ───
-export type SoundType = 'chime' | 'bell' | 'nature';
-export type TickType = 'none' | 'classic' | 'soft' | 'mechanical' | 'wooden';
 
 // ─── 主题系统 ───
 export type ThemeId = 'dark' | 'light' | 'forest' | 'ocean' | 'warm';
@@ -96,15 +95,18 @@ export interface PomodoroSettings {
   shortBreakMinutes: number;
   longBreakMinutes: number;
   pomodorosPerRound: number;
-  sound: SoundType;
-  alertDurationSeconds: number;
-  tickSound: TickType;
-  alertVolume: number;   // 0-100，提示音音量
-  tickVolume: number;    // 0-100，背景音音量
+  // Alert sound
+  alertSound: AlertSoundId;
+  alertRepeatCount: number;    // 循环次数: 1/2/3/5
+  alertVolume: number;         // 0-100
+  // Ambience
+  ambienceMixer: AmbienceMixerConfig;
+  ambienceVolume: number;      // 0-100, master ambience volume
+  // Theme & UI
   theme: ThemeId;
-  autoStartBreak: boolean;   // 工作结束后自动开始休息
-  autoStartWork: boolean;    // 休息结束后自动开始工作
-  language: Locale;          // 界面语言
+  autoStartBreak: boolean;
+  autoStartWork: boolean;
+  language: Locale;
 }
 
 export const DEFAULT_SETTINGS: PomodoroSettings = {
@@ -112,16 +114,60 @@ export const DEFAULT_SETTINGS: PomodoroSettings = {
   shortBreakMinutes: 5,
   longBreakMinutes: 15,
   pomodorosPerRound: 4,
-  sound: 'chime',
-  alertDurationSeconds: 3,
-  tickSound: 'none',
+  alertSound: 'chime',
+  alertRepeatCount: 2,
   alertVolume: 80,
-  tickVolume: 40,
+  ambienceMixer: defaultMixerConfig(),
+  ambienceVolume: 40,
   theme: 'dark',
   autoStartBreak: true,
   autoStartWork: false,
   language: detectLocale(),
 };
+
+// ─── Settings migration ───
+// Handle old settings format gracefully
+
+export function migrateSettings(raw: unknown): PomodoroSettings {
+  if (!raw || typeof raw !== 'object') return DEFAULT_SETTINGS;
+  const s = raw as Record<string, unknown>;
+
+  // Start from defaults, overlay known fields
+  const result = { ...DEFAULT_SETTINGS };
+
+  // Direct numeric/boolean fields
+  if (typeof s.workMinutes === 'number') result.workMinutes = s.workMinutes;
+  if (typeof s.shortBreakMinutes === 'number') result.shortBreakMinutes = s.shortBreakMinutes;
+  if (typeof s.longBreakMinutes === 'number') result.longBreakMinutes = s.longBreakMinutes;
+  if (typeof s.pomodorosPerRound === 'number') result.pomodorosPerRound = s.pomodorosPerRound;
+  if (typeof s.alertVolume === 'number') result.alertVolume = s.alertVolume;
+  if (typeof s.autoStartBreak === 'boolean') result.autoStartBreak = s.autoStartBreak;
+  if (typeof s.autoStartWork === 'boolean') result.autoStartWork = s.autoStartWork;
+  if (typeof s.theme === 'string' && s.theme in THEMES) result.theme = s.theme as ThemeId;
+  if (typeof s.language === 'string') result.language = s.language as Locale;
+
+  // New alert fields
+  if (typeof s.alertSound === 'string') result.alertSound = s.alertSound as AlertSoundId;
+  if (typeof s.alertRepeatCount === 'number') result.alertRepeatCount = s.alertRepeatCount;
+
+  // Migrate old 'sound' field → alertSound
+  if (typeof s.sound === 'string' && !s.alertSound) {
+    result.alertSound = s.sound as AlertSoundId;
+  }
+
+  // Migrate old tickVolume → ambienceVolume
+  if (typeof s.tickVolume === 'number' && !s.ambienceVolume) {
+    result.ambienceVolume = s.tickVolume;
+  }
+  if (typeof s.ambienceVolume === 'number') result.ambienceVolume = s.ambienceVolume;
+
+  // Ambience mixer
+  if (s.ambienceMixer && typeof s.ambienceMixer === 'object') {
+    result.ambienceMixer = { ...defaultMixerConfig(), ...(s.ambienceMixer as AmbienceMixerConfig) };
+  }
+
+  return result;
+}
 
 // ─── 西瓜生长阶段 ───
 export type GrowthStage = 'seed' | 'sprout' | 'bloom' | 'green' | 'ripe';

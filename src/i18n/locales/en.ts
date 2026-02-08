@@ -52,26 +52,65 @@ export const en: Messages = {
   longBreakInterval: 'Long Break Every',
   autoStartBreak: 'Auto-start Break',
   autoStartWork: 'Auto-start Work',
+
+  // Alert sound
   alertSound: 'Alert Sound',
-  alertDuration: 'Alert Length',
+  alertRepeatCount: 'Repeat',
   alertVolume: 'Alert Volume',
-  focusBackground: 'Focus Ambience',
-  bgVolume: 'Ambience Volume',
+  alertCustomize: 'Customize',
+  repeatTimes: (n: number) => `${n}×`,
+
+  // Ambience
+  focusAmbience: 'Focus Ambience',
+  ambienceVolume: 'Ambience Volume',
+  ambienceCustomize: 'Customize',
+  ambienceOff: 'Off',
+  ambienceCategoryNature: '🌧️ Nature',
+  ambienceCategoryEnvironment: '🏠 Environment',
+  ambienceCategoryNoise: '🎵 Noise',
+
+  // Ambience sound names
+  ambienceNames: {
+    rain: 'Rain',
+    thunderstorm: 'Thunderstorm',
+    ocean: 'Ocean Waves',
+    stream: 'Stream',
+    birds: 'Birds',
+    wind: 'Wind',
+    crickets: 'Crickets',
+    cafe: 'Café',
+    fireplace: 'Fireplace',
+    keyboard: 'Keyboard',
+    library: 'Library',
+    whiteNoise: 'White Noise',
+    pinkNoise: 'Pink Noise',
+    brownNoise: 'Brown Noise',
+    binauralBeats: 'Binaural Beats',
+  },
+
+  // Alert sound names
+  alertNames: {
+    chime: '🎵 Chime',
+    bell: '🔔 Bell',
+    nature: '🌿 Nature',
+    xylophone: '🎶 Xylophone',
+    piano: '🎹 Piano',
+    electronic: '⚡ Electronic',
+    waterdrop: '💧 Waterdrop',
+    birdsong: '🐦 Birdsong',
+    marimba: '🪘 Marimba',
+    gong: '🔊 Gong',
+  },
+
+  // Modal
+  modalClose: 'Close',
+  modalDone: 'Done',
+
   theme: 'Theme',
   language: 'Language',
   exportData: '📦 Export Data',
   minutes: 'min',
   seconds: 's',
-
-  // Sound labels
-  soundChime: '🎵 Chime',
-  soundBell: '🔔 Bell',
-  soundNature: '🌿 Nature',
-  tickNone: 'Off',
-  tickClassic: 'Classic',
-  tickSoft: 'Soft',
-  tickMechanical: 'Mechanical',
-  tickWooden: 'Wooden',
 
   // Theme names
   themeDark: 'Dark',
@@ -102,7 +141,7 @@ export const en: Messages = {
   guideGrowthDesc: 'The longer you focus, the bigger your watermelon grows:',
   guideGrowthStages: ['<10 min · Seed', '10–14 min · Sprout', '15–19 min · Bloom', '20–24 min · Unripe', '≥25 min · Ripe'],
   guideSettings: '⚙️ Settings',
-  guideSettingsDesc: 'Customize focus/break durations, auto-start, sounds, themes, and export your data from the gear icon.',
+  guideSettingsDesc: 'Customize focus/break durations, auto-start, alert sounds, ambience mixer, themes, and export your data from the gear icon.',
   guideStart: 'Get Started',
 
   // Install prompt
@@ -142,5 +181,5 @@ export const en: Messages = {
   weekdaysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
 
   // Month nav
-    monthFormat: (year: number, month: number) => `${year}/${month}`,
+  monthFormat: (year: number, month: number) => `${year}/${month}`,
 };
