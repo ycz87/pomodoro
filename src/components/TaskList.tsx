@@ -7,19 +7,19 @@ interface TaskListProps {
 export function TaskList({ records }: TaskListProps) {
   if (records.length === 0) {
     return (
-      <div className="text-center text-white/20 py-6">
-        <p className="text-base">还没有完成的番茄钟</p>
-        <p className="text-sm mt-1 text-white/15">开始你的第一个番茄钟吧</p>
+      <div className="text-center py-8">
+        <p className="text-white/20 text-[15px]">准备好了吗？</p>
+        <p className="text-white/12 text-sm mt-1.5">开始你的第一个番茄钟 🍅</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-sm sm:max-w-md space-y-1.5">
-      <h3 className="text-white/30 text-xs uppercase tracking-wider px-1 mb-2 font-medium">
+    <div className="w-full max-w-xs sm:max-w-sm space-y-1">
+      <h3 className="text-white/25 text-xs tracking-wider px-1 mb-2 font-medium uppercase">
         今日记录
       </h3>
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         {records.map((record, index) => {
           const time = new Date(record.completedAt);
           const timeStr = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}`;
@@ -27,16 +27,14 @@ export function TaskList({ records }: TaskListProps) {
           return (
             <div
               key={record.id}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] transition-colors hover:bg-white/[0.04]"
-              style={{
-                animationDelay: `${index * 50}ms`,
-              }}
+              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors hover:bg-white/[0.03] animate-fade-up"
+              style={{ animationDelay: `${index * 50}ms` }}
             >
-              <span className="text-red-500/40 text-sm">●</span>
-              <span className="flex-1 text-white/60 text-sm truncate">
+              <span className="text-xs">🍅</span>
+              <span className="flex-1 text-white/50 text-sm truncate">
                 {record.task || '未命名任务'}
               </span>
-              <span className="text-white/20 text-xs font-mono tabular-nums">{timeStr}</span>
+              <span className="text-white/15 text-xs font-timer tabular-nums">{timeStr}</span>
             </div>
           );
         })}

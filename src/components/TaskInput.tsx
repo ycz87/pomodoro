@@ -16,32 +16,33 @@ export function TaskInput({ value, onChange, disabled }: TaskInputProps) {
   }, [disabled]);
 
   return (
-    <div className="w-full max-w-sm sm:max-w-md px-2">
+    <div className="w-full max-w-xs sm:max-w-sm px-4">
       <div
-        className={`relative flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all duration-200 focus-within:border-white/30 focus-within:bg-white/10 ${
+        className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 ${
           disabled
-            ? 'border-white/5 bg-white/[0.02] opacity-60'
-            : 'border-white/10 bg-white/5'
+            ? 'bg-white/[0.02] opacity-50'
+            : 'bg-white/[0.04] focus-within:bg-white/[0.07]'
         }`}
       >
-        <span className="text-white/30 text-base shrink-0">📝</span>
         <input
           ref={inputRef}
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          placeholder="正在做什么？"
-          className="flex-1 bg-transparent text-white placeholder-white/25 outline-none text-base min-w-0"
+          placeholder="这个番茄钟要做什么？"
+          className="flex-1 bg-transparent text-white/90 placeholder-white/20 outline-none text-[15px] min-w-0"
           maxLength={100}
         />
         {value && !disabled && (
           <button
             onClick={() => onChange('')}
-            className="text-white/20 hover:text-white/50 transition-colors text-sm shrink-0 cursor-pointer"
+            className="text-white/15 hover:text-white/40 transition-colors shrink-0 cursor-pointer"
             aria-label="清除"
           >
-            ✕
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M3 3L11 11M11 3L3 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
           </button>
         )}
       </div>

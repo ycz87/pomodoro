@@ -57,22 +57,15 @@ function App() {
     <div
       className={`min-h-dvh flex flex-col items-center px-4 py-6 sm:py-8 transition-colors duration-700 ${
         timer.status === 'idle'
-          ? 'bg-[#0f0f13]'
+          ? 'bg-[#0c0c0f]'
           : isWork
-            ? 'bg-[#130f0f]'
-            : 'bg-[#0f1311]'
+            ? 'bg-[#100c0c]'
+            : 'bg-[#0c100e]'
       }`}
     >
       {/* Main content — vertically centered */}
       <div className="flex-1 flex flex-col items-center justify-center gap-6 sm:gap-8 w-full">
-        {/* Header */}
-        <header>
-          <h1 className="text-white/50 text-base font-light tracking-widest uppercase">
-            番茄时钟
-          </h1>
-        </header>
-
-        {/* Timer */}
+        {/* Timer — the visual center, no header above */}
         <Timer
           timeLeft={timer.timeLeft}
           phase={timer.phase}
@@ -92,7 +85,7 @@ function App() {
       </div>
 
       {/* Bottom section — stats and records */}
-      <div className="flex flex-col items-center gap-4 sm:gap-6 w-full max-w-sm sm:max-w-md pt-6 sm:pt-8 pb-4">
+      <div className="flex flex-col items-center gap-5 w-full max-w-xs sm:max-w-sm pt-4 sm:pt-6 pb-6">
         <TodayStats count={todayRecords.length} />
         <TaskList records={todayRecords} />
       </div>
