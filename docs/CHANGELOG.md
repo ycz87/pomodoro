@@ -25,6 +25,15 @@
 
 ---
 
+## v0.2.2 — Logo 全站替换（2026-02-08）
+
+- 新 logo 替换到所有位置：favicon、PWA、Tauri 桌面端、apple-touch-icon
+- 多尺寸 favicon（16/32/48 + .ico）
+- SVG 版本
+- 图标生成脚本 `scripts/generate-icons.mjs`
+
+---
+
 ## v0.2.1 — 音效修复（2026-02-08）
 
 ### Bug 修复

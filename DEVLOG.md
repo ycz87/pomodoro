@@ -2,6 +2,20 @@
 
 ---
 
+## v0.2.2 — Logo 全站替换（2026-02-08）
+
+### 图标更新
+- 从 `logo-source.png`（1024x1024）生成全部尺寸图标
+- `scripts/generate-icons.mjs`：一键生成脚本（sharp）
+- Favicon：16x16, 32x32, 48x48 PNG + 多尺寸 .ico
+- PWA：192x192, 512x512
+- Apple touch icon：180x180
+- Tauri 桌面端：32, 128, 256, 512 + .ico
+- SVG：PNG palette 嵌入，11KB
+- index.html 更新 favicon 引用
+
+---
+
 ## v0.2.1 — 音效系统 4 项修复（2026-02-08）
 
 ### Bug 修复
