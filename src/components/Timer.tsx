@@ -219,12 +219,12 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
         )}
         </div>
 
-        {/* Abandon link — subtle, only when running/paused */}
+        {/* Abandon button — visible but secondary, hover turns red */}
         {status !== 'idle' && (
           <button
             onClick={onAbandon}
-            className="text-xs transition-colors cursor-pointer hover:underline"
-            style={{ color: theme.textFaint }}
+            className="px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 cursor-pointer hover:border-red-400/50 hover:text-red-400/80 hover:bg-red-400/10 active:scale-95"
+            style={{ color: theme.textMuted, borderColor: theme.textFaint, backgroundColor: 'transparent' }}
           >
             放弃本次
           </button>
