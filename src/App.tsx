@@ -16,18 +16,23 @@ import { useTimer } from './hooks/useTimer';
 import type { TimerPhase } from './hooks/useTimer';
 import { ThemeProvider } from './hooks/useTheme';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { sendNotification, requestNotificationPermission, startTickSound, stopTickSound, setAlertVolume, setTickVolume } from './utils/notification';
+import {
+  requestNotificationPermission, sendBrowserNotification,
+  playAlertRepeated,
+  setMasterAlertVolume, setMasterAmbienceVolume,
+  applyMixerConfig, stopAllAmbience,
+} from './audio';
 import { getTodayKey } from './utils/time';
 import { getStreak } from './utils/stats';
 import { I18nProvider, getMessages } from './i18n';
 import type { PomodoroRecord, PomodoroSettings } from './types';
-import { DEFAULT_SETTINGS, THEMES, getGrowthStage, GROWTH_EMOJI } from './types';
+import { DEFAULT_SETTINGS, migrateSettings, THEMES, getGrowthStage, GROWTH_EMOJI } from './types';
 import type { GrowthStage } from './types';
 
 function App() {
   const [currentTask, setCurrentTask] = useState('');
   const [records, setRecords] = useLocalStorage<PomodoroRecord[]>('pomodoro-records', []);
-  const [settings, setSettings] = useLocalStorage<PomodoroSettings>('pomodoro-settings', DEFAULT_SETTINGS);
+  const [settings, setSettings] = useLocalStorage<PomodoroSettings>('pomodoro-settings', DEFAULT_SETTINGS, migrateSettings);
   const [showHistory, setShowHistory] = useState(false);
 
   const theme = THEMES[settings.theme]?.colors ?? THEMES.dark.colors;
@@ -41,8 +46,8 @@ function App() {
   // 初始化音量
   useEffect(() => {
     requestNotificationPermission();
-    setAlertVolume(settings.alertVolume);
-    setTickVolume(settings.tickVolume);
+    setMasterAlertVolume(settings.alertVolume);
+    setMasterAmbienceVolume(settings.ambienceVolume);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleTimerComplete = useCallback((phase: TimerPhase) => {
@@ -57,17 +62,20 @@ function App() {
         date: getTodayKey(),
       };
       setRecords((prev) => [record, ...prev]);
-      sendNotification(t.workComplete(emoji), `"${currentTask || t.unnamed}" · ${settings.workMinutes}${t.minutes}`, settings.sound, settings.alertDurationSeconds);
+      sendBrowserNotification(t.workComplete(emoji), `"${currentTask || t.unnamed}" · ${settings.workMinutes}${t.minutes}`);
+      playAlertRepeated(settings.alertSound, settings.alertRepeatCount);
     } else if (phase === 'longBreak') {
-      sendNotification(t.longBreakOver, t.longBreakOverBody, settings.sound, settings.alertDurationSeconds);
+      sendBrowserNotification(t.longBreakOver, t.longBreakOverBody);
+      playAlertRepeated(settings.alertSound, settings.alertRepeatCount);
     } else {
-      sendNotification(t.breakOver, t.breakOverBody, settings.sound, settings.alertDurationSeconds);
+      sendBrowserNotification(t.breakOver, t.breakOverBody);
+      playAlertRepeated(settings.alertSound, settings.alertRepeatCount);
     }
-  }, [currentTask, setRecords, settings.sound, settings.workMinutes, settings.alertDurationSeconds, t]);
+  }, [currentTask, setRecords, settings.alertSound, settings.alertRepeatCount, settings.workMinutes, t]);
 
   const handleSkipWork = useCallback((elapsedSeconds: number) => {
     const elapsedMinutes = Math.round(elapsedSeconds / 60);
-    if (elapsedMinutes < 1) return; // less than 1 minute, don't record
+    if (elapsedMinutes < 1) return;
     const stage = getGrowthStage(elapsedMinutes);
     const emoji = GROWTH_EMOJI[stage];
     const record: PomodoroRecord = {
@@ -78,20 +86,21 @@ function App() {
       date: getTodayKey(),
     };
     setRecords((prev) => [record, ...prev]);
-    sendNotification(t.skipComplete(emoji), `"${currentTask || t.unnamed}" 00b7 ${elapsedMinutes}${t.minutes}`, settings.sound, settings.alertDurationSeconds);
-  }, [currentTask, setRecords, settings.sound, settings.alertDurationSeconds, t]);
+    sendBrowserNotification(t.skipComplete(emoji), `"${currentTask || t.unnamed}" · ${elapsedMinutes}${t.minutes}`);
+    playAlertRepeated(settings.alertSound, 1);
+  }, [currentTask, setRecords, settings.alertSound, t]);
 
   const timer = useTimer({ settings, onComplete: handleTimerComplete, onSkipWork: handleSkipWork });
 
-  // 管理背景滴答声生命周期
+  // 管理背景音生命周期 — 工作阶段运行时播放混音器配置的音效
   useEffect(() => {
-    if (timer.status === 'running' && timer.phase === 'work' && settings.tickSound !== 'none') {
-      startTickSound(settings.tickSound);
+    if (timer.status === 'running' && timer.phase === 'work') {
+      applyMixerConfig(settings.ambienceMixer);
     } else {
-      stopTickSound();
+      stopAllAmbience();
     }
-    return () => stopTickSound();
-  }, [timer.status, timer.phase, settings.tickSound]);
+    return () => stopAllAmbience();
+  }, [timer.status, timer.phase, settings.ambienceMixer]);
 
   const todayKey = getTodayKey();
   const todayRecords = records.filter((r) => r.date === todayKey);
@@ -149,12 +158,10 @@ function App() {
 
   const isWork = timer.phase === 'work';
 
-  // Celebration: determine growth stage for the work duration
+  // Celebration
   const celebrationGrowthStage: GrowthStage | null = timer.celebrating ? getGrowthStage(settings.workMinutes) : null;
   const celebrationIsRipe = settings.workMinutes >= 25;
 
-  // 根据阶段和状态选择背景色
-  // 工作阶段 idle 时用默认背景，休息阶段始终用休息背景（让用户一眼看出处于休息）
   const bgColor = !isWork ? theme.bgBreak
     : timer.status === 'idle' ? theme.bg
     : theme.bgWork;
@@ -190,7 +197,7 @@ function App() {
           </div>
         </header>
 
-        {/* 主内容 — 垂直居中 */}
+        {/* 主内容 */}
         <div className="flex-1 flex flex-col items-center justify-center gap-5 sm:gap-7 w-full px-4">
           <Timer
             timeLeft={timer.timeLeft} totalDuration={totalDuration}
@@ -209,7 +216,7 @@ function App() {
           <TaskInput value={currentTask} onChange={setCurrentTask} disabled={timer.status !== 'idle'} />
         </div>
 
-        {/* 底部 — 统计和记录 */}
+        {/* 底部 */}
         <div className="flex flex-col items-center gap-5 w-full max-w-xs sm:max-w-sm px-4 pt-4 sm:pt-6 pb-6">
           <TodayStats records={todayRecords} />
           <TaskList records={todayRecords} onUpdate={handleUpdateRecord} onDelete={handleDeleteRecord} />

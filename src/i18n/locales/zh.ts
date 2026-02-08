@@ -52,26 +52,65 @@ export const zh: Messages = {
   longBreakInterval: '长休息间隔',
   autoStartBreak: '自动开始休息',
   autoStartWork: '自动开始工作',
+
+  // Alert sound
   alertSound: '提醒音效',
-  alertDuration: '提醒时长',
+  alertRepeatCount: '循环次数',
   alertVolume: '提醒音量',
-  focusBackground: '专注背景音',
-  bgVolume: '背景音量',
+  alertCustomize: '自定义',
+  repeatTimes: (n: number) => `${n}次`,
+
+  // Ambience
+  focusAmbience: '专注背景音',
+  ambienceVolume: '背景音量',
+  ambienceCustomize: '自定义',
+  ambienceOff: '未开启',
+  ambienceCategoryNature: '🌧️ 自然',
+  ambienceCategoryEnvironment: '🏠 环境',
+  ambienceCategoryNoise: '🎵 噪音',
+
+  // Ambience sound names
+  ambienceNames: {
+    rain: '雨声',
+    thunderstorm: '雷雨',
+    ocean: '海浪',
+    stream: '溪流',
+    birds: '鸟鸣',
+    wind: '风声',
+    crickets: '虫鸣',
+    cafe: '咖啡厅',
+    fireplace: '壁炉',
+    keyboard: '键盘敲击',
+    library: '图书馆',
+    whiteNoise: '白噪音',
+    pinkNoise: '粉噪音',
+    brownNoise: '棕噪音',
+    binauralBeats: '双耳节拍',
+  },
+
+  // Alert sound names
+  alertNames: {
+    chime: '🎵 和弦',
+    bell: '🔔 铃声',
+    nature: '🌿 自然',
+    xylophone: '🎶 木琴',
+    piano: '🎹 钢琴',
+    electronic: '⚡ 电子',
+    waterdrop: '💧 水滴',
+    birdsong: '🐦 鸟鸣',
+    marimba: '🪘 马林巴',
+    gong: '🔊 锣声',
+  },
+
+  // Modal
+  modalClose: '关闭',
+  modalDone: '完成',
+
   theme: '主题',
   language: '语言',
   exportData: '📦 导出数据',
   minutes: '分钟',
   seconds: '秒',
-
-  // Sound labels
-  soundChime: '🎵 和弦',
-  soundBell: '🔔 铃声',
-  soundNature: '🌿 自然',
-  tickNone: '关闭',
-  tickClassic: '经典钟摆',
-  tickSoft: '轻柔滴答',
-  tickMechanical: '机械钟表',
-  tickWooden: '木质钟声',
 
   // Theme names
   themeDark: '经典暗色',
@@ -102,7 +141,7 @@ export const zh: Messages = {
   guideGrowthDesc: '专注时长越长，西瓜长得越好：',
   guideGrowthStages: ['<10分钟 · 种子发芽', '10-14分钟 · 幼苗生长', '15-19分钟 · 开花期', '20-24分钟 · 小西瓜', '≥25分钟 · 成熟西瓜'],
   guideSettings: '⚙️ 设置',
-  guideSettingsDesc: '右上角齿轮可自定义：专注/休息时长、自动开始、提醒音效、背景音、音量、主题配色、数据导出。',
+  guideSettingsDesc: '右上角齿轮可自定义：专注/休息时长、自动开始、提醒音效、背景音混音器、音量、主题配色、数据导出。',
   guideStart: '开始使用',
 
   // Install prompt
