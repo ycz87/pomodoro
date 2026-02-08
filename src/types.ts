@@ -7,6 +7,7 @@ export interface PomodoroRecord {
 }
 
 export type SoundType = 'chime' | 'bell' | 'nature';
+export type TickType = 'none' | 'classic' | 'soft' | 'mechanical' | 'wooden';
 
 export interface PomodoroSettings {
   workMinutes: number;
@@ -14,6 +15,8 @@ export interface PomodoroSettings {
   longBreakMinutes: number;
   pomodorosPerRound: number;
   sound: SoundType;
+  alertDurationSeconds: number; // 1, 3, 5, 10
+  tickSound: TickType;
 }
 
 export const DEFAULT_SETTINGS: PomodoroSettings = {
@@ -22,6 +25,8 @@ export const DEFAULT_SETTINGS: PomodoroSettings = {
   longBreakMinutes: 15,
   pomodorosPerRound: 4,
   sound: 'chime',
+  alertDurationSeconds: 3,
+  tickSound: 'none',
 };
 
 // Growth stages based on focus duration

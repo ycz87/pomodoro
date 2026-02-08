@@ -58,8 +58,8 @@ export function Timer({ timeLeft, totalDuration, phase, status, onStart, onPause
       </div>
 
       {/* Circular timer */}
-      <div className="relative w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] flex items-center justify-center">
-        <svg className="absolute inset-0" viewBox={`0 0 ${size} ${size}`}>
+      <div className="relative w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] flex items-center justify-center overflow-visible">
+        <svg className="absolute inset-0 overflow-visible" viewBox={`0 0 ${size} ${size}`} overflow="visible">
           <defs>
             <linearGradient id="grad-progress" gradientUnits="userSpaceOnUse"
               x1={center} y1="0" x2={size} y2={size}>

@@ -8,7 +8,7 @@ import { Settings } from './components/Settings';
 import { useTimer } from './hooks/useTimer';
 import type { TimerPhase } from './hooks/useTimer';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { sendNotification, requestNotificationPermission } from './utils/notification';
+import { sendNotification, requestNotificationPermission, startTickSound, stopTickSound } from './utils/notification';
 import { getTodayKey } from './utils/time';
 import type { PomodoroRecord, PomodoroSettings } from './types';
 import { DEFAULT_SETTINGS, getGrowthStage, GROWTH_EMOJI } from './types';
@@ -38,15 +38,26 @@ function App() {
         `${emoji} 番茄钟完成！`,
         `"${currentTask || '未命名任务'}" · ${settings.workMinutes}分钟`,
         settings.sound,
+        settings.alertDurationSeconds,
       );
     } else if (phase === 'longBreak') {
-      sendNotification('🌙 长休息结束', '新一轮开始，准备好了吗？', settings.sound);
+      sendNotification('🌙 长休息结束', '新一轮开始，准备好了吗？', settings.sound, settings.alertDurationSeconds);
     } else {
-      sendNotification('☕ 休息结束', '准备好开始下一个番茄钟了吗？', settings.sound);
+      sendNotification('☕ 休息结束', '准备好开始下一个番茄钟了吗？', settings.sound, settings.alertDurationSeconds);
     }
-  }, [currentTask, setRecords, settings.sound, settings.workMinutes]);
+  }, [currentTask, setRecords, settings.sound, settings.workMinutes, settings.alertDurationSeconds]);
 
   const timer = useTimer({ settings, onComplete: handleTimerComplete });
+
+  // Manage tick-tock background sound
+  useEffect(() => {
+    if (timer.status === 'running' && timer.phase === 'work' && settings.tickSound !== 'none') {
+      startTickSound(settings.tickSound);
+    } else {
+      stopTickSound();
+    }
+    return () => stopTickSound();
+  }, [timer.status, timer.phase, settings.tickSound]);
 
   const todayKey = getTodayKey();
   const todayRecords = records.filter((r) => r.date === todayKey);
@@ -91,7 +102,6 @@ function App() {
             : 'bg-[#0c100e]'
       }`}
     >
-      {/* Header bar — lightweight, semi-transparent */}
       <header className="w-full flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-base">🍅</span>
@@ -104,9 +114,7 @@ function App() {
         />
       </header>
 
-      {/* Main content — vertically centered */}
       <div className="flex-1 flex flex-col items-center justify-center gap-5 sm:gap-7 w-full px-4">
-        {/* Timer */}
         <Timer
           timeLeft={timer.timeLeft}
           totalDuration={totalDuration}
@@ -118,14 +126,12 @@ function App() {
           onSkip={timer.skip}
         />
 
-        {/* Round progress indicator */}
         <RoundProgress
           current={timer.roundProgress}
           total={settings.pomodorosPerRound}
           idle={timer.status === 'idle'}
         />
 
-        {/* Task Input */}
         <TaskInput
           value={currentTask}
           onChange={setCurrentTask}
@@ -133,7 +139,6 @@ function App() {
         />
       </div>
 
-      {/* Bottom section — stats and records */}
       <div className="flex flex-col items-center gap-5 w-full max-w-xs sm:max-w-sm px-4 pt-4 sm:pt-6 pb-6">
         <TodayStats records={todayRecords} />
         <TaskList
