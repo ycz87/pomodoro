@@ -42,7 +42,7 @@ export function ProjectTaskBar({ projectName, view, onComplete, onContinueOverti
       )}
 
       {/* Overtime prompt */}
-      {view.isOvertime && (
+      {view.showOvertimePrompt && (
         <div className="flex items-center gap-2 mt-1">
           <span className="text-xs px-2 py-0.5 rounded-full animate-pulse"
             style={{ backgroundColor: '#ef444420', color: '#ef4444' }}>

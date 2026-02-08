@@ -305,6 +305,7 @@ function App() {
                     onSkip={project.skipCurrentTask}
                     onAbandon={project.abandonProject}
                     onChangeWorkMinutes={() => {}}
+                    overtime={pv.isOvertime ? { seconds: pv.overtimeSeconds } : undefined}
                   />
                 </div>
 

@@ -24,11 +24,14 @@ interface TimerProps {
   onSkip: () => void;
   onAbandon: () => void;
   onChangeWorkMinutes: (minutes: number) => void;
+  /** Overtime mode: show elapsed time counting up with red styling */
+  overtime?: { seconds: number };
 }
 
-export function Timer({ timeLeft, totalDuration, phase, status, celebrating, celebrationStage, celebrationIsRipe, workMinutes, onCelebrationComplete, onStart, onPause, onResume, onSkip, onAbandon, onChangeWorkMinutes }: TimerProps) {
+export function Timer({ timeLeft, totalDuration, phase, status, celebrating, celebrationStage, celebrationIsRipe, workMinutes, onCelebrationComplete, onStart, onPause, onResume, onSkip, onAbandon, onChangeWorkMinutes, overtime }: TimerProps) {
   const isWork = phase === 'work';
-  const progress = totalDuration > 0 ? (totalDuration - timeLeft) / totalDuration : 0;
+  const isOvertime = !!overtime;
+  const progress = isOvertime ? 1 : (totalDuration > 0 ? (totalDuration - timeLeft) / totalDuration : 0);
   const containerRef = useRef<HTMLDivElement>(null);
   const prevStatusRef = useRef<TimerStatus>(status);
   const [showQuickPicker, setShowQuickPicker] = useState(false);
@@ -59,9 +62,11 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
   // 根据主题和阶段选择颜色
   const workColors = { from: theme.accent, mid: theme.accentEnd, to: theme.accentEnd };
   const breakColors = { from: theme.breakAccent, mid: theme.breakAccentEnd, to: theme.breakAccentEnd };
-  const colors = isWork ? workColors : breakColors;
+  const overtimeColors = { from: '#ef4444', mid: '#f87171', to: '#fca5a5' };
+  const colors = isOvertime ? overtimeColors : isWork ? workColors : breakColors;
 
-  const phaseLabel = phase === 'work' ? t.phaseWork
+  const phaseLabel = isOvertime ? t.projectOvertime
+    : phase === 'work' ? t.phaseWork
     : phase === 'longBreak' ? t.phaseLongBreak
     : t.phaseShortBreak;
 
@@ -86,7 +91,7 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
 
       {/* Circular timer */}
       <div className="relative w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] flex items-center justify-center overflow-visible">
-        <svg className={`absolute inset-0 overflow-visible ${celebrating ? 'animate-ring-pulse' : ''}`} viewBox={`0 0 ${size} ${size}`} overflow="visible">
+        <svg className={`absolute inset-0 overflow-visible ${celebrating ? 'animate-ring-pulse' : ''} ${isOvertime ? 'animate-ring-pulse' : ''}`} viewBox={`0 0 ${size} ${size}`} overflow="visible">
           <defs>
             <linearGradient id="grad-progress" gradientUnits="userSpaceOnUse"
               x1={center} y1="0" x2={size} y2={size}>
@@ -145,14 +150,14 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
         <span
           className={`text-6xl sm:text-7xl font-timer tracking-tight select-none transition-opacity ${
             status === 'paused' ? 'animate-pulse' : ''
-          } ${status === 'idle' && isWork ? 'cursor-pointer hover:opacity-70' : ''}`}
-          style={{ fontWeight: 300, color: theme.text }}
+          } ${isOvertime ? 'animate-pulse' : ''} ${status === 'idle' && isWork && !isOvertime ? 'cursor-pointer hover:opacity-70' : ''}`}
+          style={{ fontWeight: 300, color: isOvertime ? '#ef4444' : theme.text }}
           onClick={() => {
-            if (status === 'idle' && isWork) setShowQuickPicker(!showQuickPicker);
+            if (status === 'idle' && isWork && !isOvertime) setShowQuickPicker(!showQuickPicker);
           }}
-          title={status === 'idle' && isWork ? t.quickTimeHint : undefined}
+          title={status === 'idle' && isWork && !isOvertime ? t.quickTimeHint : undefined}
         >
-          {formatTime(timeLeft)}
+          {isOvertime ? `+${formatTime(overtime!.seconds)}` : formatTime(timeLeft)}
         </span>
 
         {/* Quick duration picker */}

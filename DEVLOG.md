@@ -4,7 +4,18 @@
 
 ## v0.3 — 项目计时模式（2026-02-08）
 
-### commit: 39ebdfd + (fix/project-reuse-timer)
+### commit: 39ebdfd → cc104d1 → (fix/overtime-bugs)
+
+### Bug 修复：超时后"继续计时"无效
+- **根因：** `continueOvertime` 将 phase 从 `'overtime'` 改为 `'running'`，但 `timeLeft` 仍为 0，导致 tick 立即检测到 `timeLeft <= 0` 又切回 overtime，形成死循环
+- **修复：** 新增 `overtimeDismissed` 标志位。`continueOvertime` 不再改变 phase，只设置 `overtimeDismissed = true`，timer 继续在 overtime phase 中正常 tick
+- **timerView** 新增 `showOvertimePrompt`（overtime && !dismissed），控制提示显示
+
+### 超时视觉反馈增强
+- 进度环变红 + 脉冲动画（`animate-ring-pulse`）
+- 计时数字变红 + 脉冲 + 显示 "+MM:SS" 格式
+- 阶段标签显示"已超时"
+- Timer 组件新增可选 `overtime` prop：`{ seconds: number }`
 
 ### 重构：项目模式计时复用番茄钟 Timer
 Charles 反馈项目模式和番茄钟是两个完全不同的界面，体验割裂。重构为：

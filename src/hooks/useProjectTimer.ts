@@ -50,9 +50,11 @@ export interface ProjectTimerView {
   progressLabel: string;
   /** Progress fraction 0-1 */
   progressFraction: number;
-  /** Is overtime (timer counting up) */
+  /** Is in overtime (past estimated time) */
   isOvertime: boolean;
-  /** Overtime seconds (only when isOvertime) */
+  /** Show the overtime prompt (first time entering overtime, before user dismisses) */
+  showOvertimePrompt: boolean;
+  /** Overtime seconds elapsed beyond estimate */
   overtimeSeconds: number;
 }
 
@@ -135,7 +137,7 @@ export function useProjectTimer(
           if (newTimeLeft <= 0) {
             // Time's up — enter overtime
             onOvertimeRef.current();
-            return { ...prev, timeLeft: 0, elapsedSeconds: newElapsed, phase: 'overtime', lastTickAt: now };
+            return { ...prev, timeLeft: 0, elapsedSeconds: newElapsed, phase: 'overtime', overtimeDismissed: false, lastTickAt: now };
           }
           return { ...prev, timeLeft: newTimeLeft, elapsedSeconds: newElapsed, lastTickAt: now };
         }
@@ -181,6 +183,7 @@ export function useProjectTimer(
     const totalCount = state.tasks.length;
     const isOvertime = state.phase === 'overtime';
     const isBreak = state.phase === 'break';
+    const overtimeSeconds = isOvertime ? state.elapsedSeconds - (currentTask.estimatedMinutes * 60) : 0;
 
     // Map to Timer-compatible phase/status
     let phase: TimerPhase;
@@ -204,7 +207,7 @@ export function useProjectTimer(
       : currentTask.estimatedMinutes * 60;
 
     return {
-      timeLeft: isOvertime ? state.elapsedSeconds : state.timeLeft,
+      timeLeft: isOvertime ? overtimeSeconds : state.timeLeft,
       totalDuration,
       phase,
       status,
@@ -212,7 +215,8 @@ export function useProjectTimer(
       progressLabel: `${completedCount + (isBreak ? 1 : 0)}/${totalCount}`,
       progressFraction: totalCount > 0 ? completedCount / totalCount : 0,
       isOvertime,
-      overtimeSeconds: isOvertime ? state.elapsedSeconds : 0,
+      showOvertimePrompt: isOvertime && !state.overtimeDismissed,
+      overtimeSeconds,
     };
   })();
 
@@ -228,6 +232,7 @@ export function useProjectTimer(
       phase: 'setup',
       timeLeft: tasks[0]?.estimatedMinutes * 60 || 0,
       elapsedSeconds: 0,
+      overtimeDismissed: false,
       lastTickAt: new Date().toISOString(),
       startedAt: '',
     };
@@ -382,7 +387,8 @@ export function useProjectTimer(
   const continueOvertime = useCallback(() => {
     setState((prev) => {
       if (!prev || prev.phase !== 'overtime') return prev;
-      return { ...prev, phase: 'running', lastTickAt: new Date().toISOString() };
+      // Just dismiss the prompt — stay in overtime phase, timer keeps ticking
+      return { ...prev, overtimeDismissed: true };
     });
   }, []);
 
