@@ -4,6 +4,7 @@ import { formatTime } from '../utils/time';
 
 interface TimerProps {
   timeLeft: number;
+  totalDuration: number;
   phase: TimerPhase;
   status: TimerStatus;
   onStart: () => void;
@@ -12,10 +13,9 @@ interface TimerProps {
   onSkip: () => void;
 }
 
-export function Timer({ timeLeft, phase, status, onStart, onPause, onResume, onSkip }: TimerProps) {
+export function Timer({ timeLeft, totalDuration, phase, status, onStart, onPause, onResume, onSkip }: TimerProps) {
   const isWork = phase === 'work';
-  const totalDuration = isWork ? 25 * 60 : 5 * 60;
-  const progress = (totalDuration - timeLeft) / totalDuration;
+  const progress = totalDuration > 0 ? (totalDuration - timeLeft) / totalDuration : 0;
   const containerRef = useRef<HTMLDivElement>(null);
   const prevStatusRef = useRef<TimerStatus>(status);
 
@@ -34,15 +34,17 @@ export function Timer({ timeLeft, phase, status, onStart, onPause, onResume, onS
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference * (1 - progress);
 
-  // Position of the progress head for the glow dot
   const angle = progress * 2 * Math.PI - Math.PI / 2;
   const headX = center + radius * Math.cos(angle);
   const headY = center + radius * Math.sin(angle);
 
-  // Colors
   const workColors = { from: '#ef4444', mid: '#f97316', to: '#fb923c' };
   const breakColors = { from: '#34d399', mid: '#2dd4bf', to: '#5eead4' };
   const colors = isWork ? workColors : breakColors;
+
+  const phaseLabel = phase === 'work' ? '🍅 专注时间'
+    : phase === 'longBreak' ? '🌙 长休息'
+    : '☕ 短休息';
 
   return (
     <div ref={containerRef} className="flex flex-col items-center gap-4 sm:gap-6">
@@ -52,32 +54,24 @@ export function Timer({ timeLeft, phase, status, onStart, onPause, onResume, onS
           isWork ? 'text-red-400' : 'text-emerald-400'
         }`}
       >
-        {isWork ? '🍅 专注时间' : '☕ 休息时间'}
+        {phaseLabel}
       </div>
 
       {/* Circular timer */}
       <div className="relative w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] flex items-center justify-center">
-        <svg
-          className="absolute inset-0"
-          viewBox={`0 0 ${size} ${size}`}
-        >
+        <svg className="absolute inset-0" viewBox={`0 0 ${size} ${size}`}>
           <defs>
-            {/* Progress gradient */}
             <linearGradient id="grad-progress" gradientUnits="userSpaceOnUse"
               x1={center} y1="0" x2={size} y2={size}>
               <stop offset="0%" stopColor={colors.from} />
               <stop offset="50%" stopColor={colors.mid} />
               <stop offset="100%" stopColor={colors.to} />
             </linearGradient>
-
-            {/* Base ring gradient — clearly visible tint */}
             <linearGradient id="grad-base" gradientUnits="userSpaceOnUse"
               x1={center} y1="0" x2={size} y2={size}>
               <stop offset="0%" stopColor={colors.from} stopOpacity="0.35" />
               <stop offset="100%" stopColor={colors.mid} stopOpacity="0.15" />
             </linearGradient>
-
-            {/* Glow filter for the progress head dot */}
             <filter id="glow-head" x="-100%" y="-100%" width="300%" height="300%">
               <feGaussianBlur stdDeviation="10" result="blur" />
               <feFlood floodColor={colors.mid} floodOpacity="1" />
@@ -87,8 +81,6 @@ export function Timer({ timeLeft, phase, status, onStart, onPause, onResume, onS
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
-
-            {/* Inner radial glow */}
             <radialGradient id="inner-glow" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor={colors.from} stopOpacity="0.10" />
               <stop offset="50%" stopColor={colors.from} stopOpacity="0.04" />
@@ -96,28 +88,17 @@ export function Timer({ timeLeft, phase, status, onStart, onPause, onResume, onS
             </radialGradient>
           </defs>
 
-          {/* Inner radial glow fill */}
           <circle cx={center} cy={center} r={radius - 10} fill="url(#inner-glow)" />
 
-          {/* Base ring — clearly tinted, not gray */}
           <circle
-            cx={center}
-            cy={center}
-            r={radius}
-            fill="none"
-            stroke="url(#grad-base)"
-            strokeWidth="10"
+            cx={center} cy={center} r={radius}
+            fill="none" stroke="url(#grad-base)" strokeWidth="10"
             transform={`rotate(-90 ${center} ${center})`}
           />
 
-          {/* Progress arc — bright, thick gradient */}
           <circle
-            cx={center}
-            cy={center}
-            r={radius}
-            fill="none"
-            stroke="url(#grad-progress)"
-            strokeWidth="10"
+            cx={center} cy={center} r={radius}
+            fill="none" stroke="url(#grad-progress)" strokeWidth="10"
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
@@ -125,20 +106,15 @@ export function Timer({ timeLeft, phase, status, onStart, onPause, onResume, onS
             className="transition-all duration-1000 ease-linear"
           />
 
-          {/* Glowing dot at the head of the progress arc */}
           {progress > 0.005 && status !== 'idle' && (
             <circle
-              cx={headX}
-              cy={headY}
-              r="6"
-              fill={colors.to}
-              filter="url(#glow-head)"
+              cx={headX} cy={headY} r="6"
+              fill={colors.to} filter="url(#glow-head)"
               className={status === 'running' ? 'animate-glow-dot' : ''}
             />
           )}
         </svg>
 
-        {/* Time display */}
         <span
           className={`text-6xl sm:text-7xl font-timer text-white tracking-tight select-none transition-opacity ${
             status === 'paused' ? 'animate-pulse' : ''
