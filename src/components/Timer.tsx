@@ -59,7 +59,7 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
   const breakColors = { from: theme.breakAccent, mid: theme.breakAccentEnd, to: theme.breakAccentEnd };
   const colors = isWork ? workColors : breakColors;
 
-  const phaseLabel = phase === 'work' ? '🍅 专注时间'
+  const phaseLabel = phase === 'work' ? '🍉 专注时间'
     : phase === 'longBreak' ? '🌙 长休息'
     : '☕ 休息一下';
 

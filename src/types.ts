@@ -1,5 +1,5 @@
 /**
- * 番茄钟记录 — 每完成一个工作阶段生成一条
+ * 西瓜钟记录 — 每完成一个工作阶段生成一条
  */
 export interface PomodoroRecord {
   id: string;
@@ -118,7 +118,7 @@ export const DEFAULT_SETTINGS: PomodoroSettings = {
   autoStartWork: false,
 };
 
-// ─── 番茄生长阶段 ───
+// ─── 西瓜生长阶段 ───
 export type GrowthStage = 'seed' | 'sprout' | 'bloom' | 'green' | 'ripe';
 
 /** 根据专注时长返回生长阶段 */
@@ -130,10 +130,11 @@ export function getGrowthStage(minutes: number): GrowthStage {
   return 'ripe';
 }
 
+/** 通知文案用的 emoji fallback（系统通知不支持 SVG） */
 export const GROWTH_EMOJI: Record<GrowthStage, string> = {
-  seed: '🌱', sprout: '🌿', bloom: '🌸', green: '🫒', ripe: '🍅',
+  seed: '🌱', sprout: '🌿', bloom: '🌼', green: '🍈', ripe: '🍉',
 };
 
 export const GROWTH_LABEL: Record<GrowthStage, string> = {
-  seed: '发芽', sprout: '幼苗', bloom: '开花', green: '青果', ripe: '成熟',
+  seed: '发芽', sprout: '幼苗', bloom: '开花', green: '青瓜', ripe: '成熟',
 };

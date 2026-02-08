@@ -4,31 +4,33 @@
       <stop offset="0%" stop-color="#1a1a2e"/>
       <stop offset="100%" stop-color="#0c0c0f"/>
     </linearGradient>
-    <linearGradient id="tomato" x1="0.2" y1="0" x2="0.8" y2="1">
-      <stop offset="0%" stop-color="#ef4444"/>
-      <stop offset="100%" stop-color="#dc2626"/>
-    </linearGradient>
-    <linearGradient id="highlight" x1="0.3" y1="0" x2="0.7" y2="0.5">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.3"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
-    </linearGradient>
   </defs>
   <!-- Background -->
   <rect width="512" height="512" rx="108" fill="url(#bg)"/>
-  <!-- Tomato body -->
-  <ellipse cx="256" cy="280" rx="130" ry="125" fill="url(#tomato)"/>
-  <!-- Highlight -->
-  <ellipse cx="220" cy="240" rx="50" ry="40" fill="url(#highlight)" transform="rotate(-20 220 240)"/>
-  <!-- Stem -->
-  <path d="M256 155 C256 155 248 175 250 185 C252 195 260 195 262 185 C264 175 256 155 256 155Z" fill="#16a34a"/>
-  <!-- Leaf -->
-  <path d="M258 170 C270 150 300 140 310 155 C320 170 290 180 258 170Z" fill="#22c55e"/>
-  <path d="M254 170 C242 150 212 140 202 155 C192 170 222 180 254 170Z" fill="#22c55e"/>
-  <!-- Small clock circle hint -->
-  <circle cx="256" cy="285" r="55" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="3"/>
+  <!-- Watermelon rind (back half) -->
+  <path d="M280 100 C380 120 430 200 440 300 C430 400 370 450 280 460" fill="#22c55e"/>
+  <path d="M320 130 C325 200 325 360 320 430" stroke="#15803d" stroke-width="6" fill="none"/>
+  <path d="M380 160 C385 230 385 340 380 410" stroke="#15803d" stroke-width="5" fill="none"/>
+  <!-- Cut face (left half) -->
+  <path d="M280 100 C180 120 100 190 80 300 C100 410 180 455 280 460" fill="#ef4444"/>
+  <!-- Deeper red inner -->
+  <path d="M280 120 C190 135 115 200 100 300 C115 400 190 445 280 450" fill="#dc2626" opacity="0.3"/>
+  <!-- Rind edge -->
+  <path d="M280 100 C180 120 100 190 80 300 C100 410 180 455 280 460" stroke="#16a34a" stroke-width="14" fill="none"/>
+  <!-- White rind line -->
+  <path d="M280 108 C185 125 108 195 90 300 C108 405 185 448 280 455" stroke="#bbf7d0" stroke-width="5" fill="none"/>
+  <!-- Seeds -->
+  <ellipse cx="180" cy="220" rx="8" ry="12" fill="#1a1a1a" transform="rotate(-20 180 220)"/>
+  <ellipse cx="155" cy="300" rx="8" ry="12" fill="#1a1a1a" transform="rotate(10 155 300)"/>
+  <ellipse cx="200" cy="370" rx="8" ry="12" fill="#1a1a1a" transform="rotate(-5 200 370)"/>
+  <ellipse cx="230" cy="280" rx="8" ry="12" fill="#1a1a1a" transform="rotate(15 230 280)"/>
+  <ellipse cx="175" cy="400" rx="7" ry="10" fill="#1a1a1a" transform="rotate(-10 175 400)"/>
+  <ellipse cx="220" cy="180" rx="7" ry="10" fill="#1a1a1a" transform="rotate(5 220 180)"/>
+  <!-- Clock circle -->
+  <circle cx="230" cy="290" r="60" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="3"/>
   <!-- Clock hands -->
-  <line x1="256" y1="285" x2="256" y2="248" stroke="rgba(255,255,255,0.6)" stroke-width="3" stroke-linecap="round"/>
-  <line x1="256" y1="285" x2="280" y2="285" stroke="rgba(255,255,255,0.4)" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="230" y1="290" x2="230" y2="248" stroke="rgba(255,255,255,0.6)" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="230" y1="290" x2="258" y2="290" stroke="rgba(255,255,255,0.4)" stroke-width="3" stroke-linecap="round"/>
   <!-- Center dot -->
-  <circle cx="256" cy="285" r="3.5" fill="rgba(255,255,255,0.7)"/>
+  <circle cx="230" cy="290" r="4" fill="rgba(255,255,255,0.7)"/>
 </svg>

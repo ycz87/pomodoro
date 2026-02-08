@@ -11,9 +11,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: '番茄时钟',
-        short_name: '番茄钟',
-        description: '简洁优雅的番茄工作法计时器',
+        name: '西瓜时钟',
+        short_name: '西瓜钟',
+        description: '简洁优雅的西瓜时钟，基于番茄工作法',
         theme_color: '#0c0c0f',
         background_color: '#0c0c0f',
         display: 'standalone',

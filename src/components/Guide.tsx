@@ -3,6 +3,7 @@
  */
 import { useState, useEffect } from 'react';
 import { useTheme } from '../hooks/useTheme';
+import { GrowthIcon } from './GrowthIcon';
 
 interface GuideProps {
   onClose: () => void;
@@ -19,38 +20,39 @@ function Guide({ onClose }: GuideProps) {
         style={{ backgroundColor: t.surface, color: t.text }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-semibold mb-4">🍅 番茄时钟使用指南</h2>
+        <h2 className="text-lg font-semibold mb-4">🍉 西瓜时钟使用指南</h2>
 
         <div className="space-y-4 text-sm" style={{ color: t.textMuted }}>
           <section>
             <h3 className="font-medium mb-1" style={{ color: t.text }}>番茄工作法</h3>
-            <p>专注工作 25 分钟 → 短休息 5 分钟 → 重复 4 轮 → 长休息 15 分钟。简单但有效的时间管理方法。</p>
+            <p>西瓜时钟采用番茄工作法（Pomodoro Technique）计时，帮助你高效专注。专注工作 25 分钟 → 短休息 5 分钟 → 重复 4 轮 → 长休息 15 分钟。</p>
           </section>
 
           <section>
             <h3 className="font-medium mb-1" style={{ color: t.text }}>基本操作</h3>
             <ul className="space-y-1 list-disc list-inside">
-              <li>点击 <span className="inline-block w-4 h-4 rounded-full bg-red-500 align-middle" /> 开始专注</li>
-              <li>计时中可暂停，暂停后可修改设置</li>
+              <li>点击播放按钮开始专注</li>
+              <li>计时中可暂停或放弃</li>
               <li>完成后自动进入休息，每 4 轮触发长休息</li>
+              <li>idle 时点击时间数字可快速调整时长</li>
             </ul>
           </section>
 
           <section>
-            <h3 className="font-medium mb-1" style={{ color: t.text }}>🌱 番茄生长</h3>
-            <p>专注时长越长，番茄长得越好：</p>
-            <div className="grid grid-cols-2 gap-1 mt-1.5 text-xs">
-              <span>🌱 &lt;10分钟 · 种子</span>
-              <span>🌿 10-14分钟 · 幼苗</span>
-              <span>🌸 15-19分钟 · 开花</span>
-              <span>🫒 20-24分钟 · 青果</span>
-              <span>🍅 ≥25分钟 · 成熟</span>
+            <h3 className="font-medium mb-1" style={{ color: t.text }}>🌱 西瓜生长</h3>
+            <p>专注时长越长，西瓜长得越好：</p>
+            <div className="flex flex-col gap-1.5 mt-2">
+              <div className="flex items-center gap-2"><GrowthIcon stage="seed" size={18} /><span>&lt;10分钟 · 种子发芽</span></div>
+              <div className="flex items-center gap-2"><GrowthIcon stage="sprout" size={18} /><span>10-14分钟 · 幼苗生长</span></div>
+              <div className="flex items-center gap-2"><GrowthIcon stage="bloom" size={18} /><span>15-19分钟 · 开花期</span></div>
+              <div className="flex items-center gap-2"><GrowthIcon stage="green" size={18} /><span>20-24分钟 · 小西瓜</span></div>
+              <div className="flex items-center gap-2"><GrowthIcon stage="ripe" size={18} /><span>≥25分钟 · 成熟西瓜</span></div>
             </div>
           </section>
 
           <section>
             <h3 className="font-medium mb-1" style={{ color: t.text }}>⚙️ 设置</h3>
-            <p>右上角齿轮可自定义：专注/休息时长、提醒音效和时长、背景滴答声、音量、主题配色。</p>
+            <p>右上角齿轮可自定义：专注/休息时长、自动开始、提醒音效、背景音、音量、主题配色、数据导出。</p>
           </section>
         </div>
 

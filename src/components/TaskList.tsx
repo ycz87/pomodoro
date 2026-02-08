@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { PomodoroRecord } from '../types';
-import { getGrowthStage, GROWTH_EMOJI } from '../types';
+import { getGrowthStage } from '../types';
 import { useTheme } from '../hooks/useTheme';
+import { GrowthIcon } from './GrowthIcon';
 
 interface TaskListProps {
   records: PomodoroRecord[];
@@ -19,7 +20,7 @@ export function TaskList({ records, onUpdate, onDelete }: TaskListProps) {
     return (
       <div className="text-center py-8">
         <p className="text-[15px]" style={{ color: theme.textMuted }}>准备好了吗？</p>
-        <p className="text-sm mt-1.5" style={{ color: theme.textFaint }}>开始你的第一个番茄钟 🌱</p>
+        <p className="text-sm mt-1.5" style={{ color: theme.textFaint }}>开始你的第一个西瓜钟 🍉</p>
       </div>
     );
   }
@@ -73,9 +74,7 @@ export function TaskList({ records, onUpdate, onDelete }: TaskListProps) {
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
               {/* Growth stage icon */}
-              <span className="text-sm shrink-0" title={`${duration}分钟`}>
-                {GROWTH_EMOJI[stage]}
-              </span>
+              <GrowthIcon stage={stage} size={20} className="shrink-0" />
 
               {/* Task name — editable */}
               {isEditing ? (

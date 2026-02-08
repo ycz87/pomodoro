@@ -1,16 +1,16 @@
 /**
- * CelebrationOverlay — 番茄钟完成时的庆祝动画
- * 包含：弹跳生长 emoji、粒子/纸屑效果、文字提示
+ * CelebrationOverlay — 西瓜钟完成时的庆祝动画
+ * 包含：弹跳生长图标、粒子/纸屑效果、文字提示
  * 2.5 秒后自动消失
  */
 import { useEffect, useState, useMemo } from 'react';
 import type { GrowthStage } from '../types';
-import { GROWTH_EMOJI } from '../types';
 import { useTheme } from '../hooks/useTheme';
+import { GrowthIcon } from './GrowthIcon';
 
 interface CelebrationOverlayProps {
   stage: GrowthStage;
-  isRipe: boolean; // ≥25min 的红番茄，庆祝感更强
+  isRipe: boolean; // ≥25min 的成熟西瓜，庆祝感更强
   onComplete: () => void;
 }
 
@@ -48,7 +48,6 @@ export function CelebrationOverlay({ stage, isRipe, onComplete }: CelebrationOve
   const [phase, setPhase] = useState<'enter' | 'show' | 'exit'>('enter');
   const theme = useTheme();
 
-  const emoji = GROWTH_EMOJI[stage];
   const text = useMemo(() => {
     const pool = isRipe ? CELEBRATION_TEXTS : CELEBRATION_TEXTS_SHORT;
     return pool[Math.floor(Math.random() * pool.length)];
@@ -112,12 +111,11 @@ export function CelebrationOverlay({ stage, isRipe, onComplete }: CelebrationOve
         })}
       </div>
 
-      {/* Bouncing emoji */}
+      {/* Bouncing growth icon */}
       <div
         className={`celebration-emoji ${isRipe ? 'celebration-emoji-ripe' : ''}`}
-        style={{ fontSize: isRipe ? '5rem' : '3.5rem' }}
       >
-        {emoji}
+        <GrowthIcon stage={stage} size={isRipe ? 80 : 56} />
       </div>
 
       {/* Text */}

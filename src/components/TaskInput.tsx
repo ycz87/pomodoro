@@ -24,7 +24,7 @@ export function TaskInput({ value, onChange, disabled }: TaskInputProps) {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          placeholder="这个番茄钟要做什么？"
+          placeholder="这个西瓜钟要做什么？"
           className="flex-1 bg-transparent text-white/90 placeholder-white/20 outline-none text-[15px] min-w-0"
           maxLength={100}
         />

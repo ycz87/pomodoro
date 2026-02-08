@@ -1,5 +1,5 @@
 /**
- * App — 番茄时钟主应用
+ * App — 西瓜时钟主应用
  * 管理计时器状态、记录、设置，串联所有组件
  */
 import { useState, useCallback, useEffect } from 'react';
@@ -47,11 +47,11 @@ function App() {
         date: getTodayKey(),
       };
       setRecords((prev) => [record, ...prev]);
-      sendNotification(`${emoji} 番茄钟完成！`, `"${currentTask || '未命名任务'}" · ${settings.workMinutes}分钟`, settings.sound, settings.alertDurationSeconds);
+      sendNotification(`${emoji} 西瓜钟完成！`, `"${currentTask || '未命名任务'}" · ${settings.workMinutes}分钟`, settings.sound, settings.alertDurationSeconds);
     } else if (phase === 'longBreak') {
       sendNotification('🌙 长休息结束', '新一轮开始，准备好了吗？', settings.sound, settings.alertDurationSeconds);
     } else {
-      sendNotification('☕ 休息结束', '准备好开始下一个番茄钟了吗？', settings.sound, settings.alertDurationSeconds);
+      sendNotification('☕ 休息结束', '准备好开始下一个西瓜钟了吗？', settings.sound, settings.alertDurationSeconds);
     }
   }, [currentTask, setRecords, settings.sound, settings.workMinutes, settings.alertDurationSeconds]);
 
@@ -98,14 +98,14 @@ function App() {
       const minutes = Math.floor(timer.timeLeft / 60);
       const seconds = timer.timeLeft % 60;
       const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-      const phaseEmoji = timer.phase === 'work' ? '🍅' : timer.phase === 'longBreak' ? '🌙' : '☕';
-      document.title = `${timeStr} ${phaseEmoji} 番茄时钟`;
+      const phaseEmoji = timer.phase === 'work' ? '🍉' : timer.phase === 'longBreak' ? '🌙' : '☕';
+      document.title = `${timeStr} ${phaseEmoji} 西瓜时钟`;
     } else if (timer.phase !== 'work') {
       // Idle in break phase — show break label
       const breakLabel = timer.phase === 'longBreak' ? '🌙 长休息' : '☕ 休息一下';
-      document.title = `${breakLabel} · 番茄时钟`;
+      document.title = `${breakLabel} · 西瓜时钟`;
     } else {
-      document.title = '番茄时钟';
+      document.title = '西瓜时钟';
     }
   }, [timer.timeLeft, timer.phase, timer.status]);
 
@@ -129,7 +129,7 @@ function App() {
     const a = document.createElement('a');
     const dateStr = new Date().toISOString().slice(0, 10);
     a.href = url;
-    a.download = `pomodoro-export-${dateStr}.json`;
+    a.download = `watermelon-clock-export-${dateStr}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }, [settings, records]);
@@ -158,8 +158,8 @@ function App() {
         {/* Header */}
         <header className="w-full flex items-center justify-between px-3 sm:px-6 py-2 sm:py-4 shrink-0 z-40 relative">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-base shrink-0">🍅</span>
-            <span className="text-sm font-medium tracking-wide truncate" style={{ color: theme.textMuted }}>番茄时钟</span>
+            <span className="text-base shrink-0">🍉</span>
+            <span className="text-sm font-medium tracking-wide truncate" style={{ color: theme.textMuted }}>西瓜时钟</span>
           </div>
           <div className="flex items-center gap-0.5 shrink-0">
             <GuideButton />

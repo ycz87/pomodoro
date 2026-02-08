@@ -1,6 +1,7 @@
 import type { PomodoroRecord } from '../types';
-import { getGrowthStage, GROWTH_EMOJI } from '../types';
+import { getGrowthStage } from '../types';
 import { useTheme } from '../hooks/useTheme';
+import { GrowthIcon } from './GrowthIcon';
 
 interface TodayStatsProps {
   records: PomodoroRecord[];
@@ -33,11 +34,11 @@ export function TodayStats({ records }: TodayStatsProps) {
           return (
             <span
               key={record.id}
-              className="text-base animate-bounce-in"
+              className="animate-bounce-in"
               style={{ animationDelay: `${i * 60}ms` }}
               title={`${record.task || '未命名'} · ${record.durationMinutes || 25}分钟`}
             >
-              {GROWTH_EMOJI[stage]}
+              <GrowthIcon stage={stage} size={20} />
             </span>
           );
         })}
