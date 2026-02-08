@@ -2,6 +2,55 @@
 
 ---
 
+## v0.2.4 — 专注中修改背景音即时生效 + 4 种新时钟音效（2026-02-08）
+
+### commit: abe1f30
+
+### Bug 修复：专注中修改背景音不生效
+- **问题：** 专注计时中打开混音器修改背景音，关闭弹窗后新的背景音不播放，需暂停再继续才生效
+- **根因：** 混音器弹窗关闭时退出 preview 模式，但 App.tsx 的 `useEffect` 不会重新触发（`ambienceMixerKey` 在弹窗打开期间已更新，关闭时无变化）
+- **修复：** `AmbienceMixerModal` 中用 `useRef` 追踪最新 config 和 `keepOnClose` 状态，弹窗卸载时若计时器在运行，主动调用 `applyMixerConfig(latestConfig)` 重新同步声音状态
+- **涉及文件：** `AmbienceMixerModal.tsx`（核心修复）、`App.tsx`（ambienceMixerKey 序列化 + isWorkRunning prop）、`Settings.tsx`（传递 keepOnClose）
+
+### 新增 4 种时钟音效（共 8 种）
+上一轮已实现的 4 个 Sound 类正式接入混音器系统：
+1. 🕰️ **老式座钟**（Grandfather Clock）— 低沉基频 300→150Hz + 180Hz 箱体共鸣，衰减 0.25s
+2. ⌚ **怀表**（Pocket Watch）— 2800/2400Hz tick-tock 交替 + 高频金属泛音，500ms 间隔（比普通钟快一倍）
+3. 🎵 **电子节拍器**（Metronome）— 1500/1000Hz 正弦脉冲，4 拍一循环，首拍重音
+4. 💧 **水滴计时**（Water Drop）— 500-700Hz 下行滑音 + 延迟涟漪泛音
+
+### 接入工作
+- `mixer.ts`：`AmbienceSoundId` 类型新增 4 个 ID、`ALL_AMBIENCE_SOUNDS` 注册、`createSound` 工厂函数
+- `i18n`：中英文翻译完整（老式座钟/Grandfather Clock 等）
+
+### 改动统计
+7 files changed, 192 insertions(+), 7 deletions(-)
+
+---
+
+## v0.2.3 — 4 项 Bug 修复 + 6 种新背景音（2026-02-08）
+
+### commit: 5959fb6 → 3d09003
+
+### Bug 修复
+1. **Header Logo 替换**：从 emoji 改为实际产品 logo 图片（`favicon-32x32.png`）
+2. **设置面板误关闭**：点击 Modal 内部（混音器/提醒音选择器）时设置面板不再关闭。添加 `data-modal-overlay` 属性 + `closest()` 检测
+3. **时钟滴答声音量过小**：4 种时钟音效音量提升 3-4 倍
+4. **咖啡厅音效重做**：完全重新设计 — 双层人声嘈杂（低频男声 + 高频女声）+ 陶瓷杯碟碰撞（含二次谐波）+ 意式咖啡机蒸汽声
+
+### 新增 6 种背景音（总计 25 种）
+- 🏕️ **篝火**（Campfire）— 低频温暖底噪 + 密集噼啪声 + 偶尔木头爆裂
+- 🎹 **轻音乐**（Soft Piano）— 五声音阶随机音符，正弦波 + 二次泛音
+- 🐱 **猫咪呼噜**（Cat Purr）— 25Hz 锯齿波 + 50Hz 正弦波，呼吸节奏调制
+- 🌙 **夜晚**（Night）— 轻柔风声 + 远处蟋蟀 + 偶尔猫头鹰
+- 🚂 **火车**（Train）— 低频车轮轰鸣 + 节奏性铁轨咔嗒声（双击模式）
+- 🫧 **水下**（Underwater）— 深度低通滤波噪声 + 随机气泡上浮
+
+### 改动统计
+8 files changed, 469 insertions(+), 46 deletions(-)
+
+---
+
 ## v0.2.2 — Logo 全站替换（2026-02-08）
 
 ### 图标更新
