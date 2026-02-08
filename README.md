@@ -31,10 +31,22 @@
 - **自动开始休息**（默认开启）— 工作结束后自动进入休息倒计时
 - **自动开始工作**（默认关闭）— 休息结束后自动开始下一个西瓜钟
 
-### 音效
-- 3 种提醒音效（和弦 / 铃声 / 自然）
-- 5 种专注背景音（经典钟摆 / 轻柔滴答 / 机械钟表 / 木质钟声）
-- 独立音量控制 + 提醒时长可调
+### 音效系统
+全部 Web Audio API 实时合成，零音频文件：
+
+**25 种专注背景音**，支持多音效同时叠加（如"雨声 + 壁炉 + 棕噪音"）：
+- 🌧️ 自然类（8 种）：雨声、雷雨、海浪、溪流、鸟鸣、风声、虫鸣、夜晚
+- 🏠 环境类（7 种）：咖啡厅、壁炉、键盘敲击、图书馆、篝火、火车、水下
+- 🎵 噪音类（5 种）：白噪音、粉噪音、棕噪音、双耳节拍、轻音乐
+- 🐱 特色：猫咪呼噜
+- 🕐 时钟类（8 种）：经典钟摆、轻柔滴答、机械钟表、木质钟声、老式座钟、怀表、电子节拍器、水滴计时
+
+**10 种提醒音效**：和弦、铃声、自然、木琴、钢琴、电子、水滴、鸟鸣、马林巴、锣声
+
+- 自定义混音器弹窗：每个音效独立开关 + 独立音量滑块
+- 专注中修改背景音即时生效，无需暂停
+- 提醒音效循环次数可调（1/2/3/5 次）
+- 提醒音量和背景音量独立控制
 
 ### 主题
 5 套主题，全局适配：
@@ -58,11 +70,21 @@
 - 主页 header 显示当前连续天数
 - 统计面板展示：当前连续天数 + 历史最长连续天数
 
+### 多语言
+- 🌐 中文（默认）和英文双语支持
+- 自动检测浏览器语言，设置面板可手动切换
+- 切换无需刷新，所有文案即时更新
+
 ### PWA
 - 📱 可安装到手机/电脑桌面，standalone 模式运行
 - 📶 离线可用（Service Worker 预缓存所有静态资源 + Google Fonts）
 - 🍎 iOS Safari "添加到主屏幕"支持
 - 友好的安装提示横幅（关闭后不再弹出）
+
+### 桌面应用
+- 🖥️ Tauri 2.x 打包，支持 Windows（.msi / .exe）和 Linux（.deb / .AppImage）
+- 体积远小于 Electron（使用系统 WebView）
+- GitHub Actions 自动构建 + 发布到 Releases
 
 ### 其他
 - 浏览器通知提醒
@@ -75,6 +97,7 @@
 - [React](https://react.dev/) 19 + [TypeScript](https://www.typescriptlang.org/)
 - [Vite](https://vite.dev/) 7
 - [Tailwind CSS](https://tailwindcss.com/) 4
+- [Tauri](https://tauri.app/) 2.x — 桌面应用打包
 - [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) — Service Worker + Web App Manifest
 - [Vercel](https://vercel.com/) — 部署
 
@@ -102,9 +125,11 @@ src/
 │   ├── Timer.tsx              # 核心计时器（圆形进度环 + 控制按钮）
 │   ├── CelebrationOverlay.tsx # 完成庆祝动画（粒子 + 弹跳图标）
 │   ├── GrowthIcon.tsx         # 西瓜生长阶段 SVG 图标（5 阶段）
-│   ├── HistoryPanel.tsx        # 历史记录 + 统计图表面板
-│   ├── MiniCalendar.tsx        # 月历日期选择器
-│   ├── BarChart.tsx            # 纯 SVG 柱状图
+│   ├── HistoryPanel.tsx       # 历史记录 + 统计图表面板
+│   ├── MiniCalendar.tsx       # 月历日期选择器
+│   ├── BarChart.tsx           # 纯 SVG 柱状图
+│   ├── AmbienceMixerModal.tsx # 背景音混音器弹窗
+│   ├── AlertPickerModal.tsx   # 提醒音效选择弹窗
 │   ├── TaskInput.tsx          # 任务输入框
 │   ├── TodayStats.tsx         # 今日完成统计
 │   ├── TaskList.tsx           # 完成任务列表（编辑/删除）
@@ -112,18 +137,29 @@ src/
 │   ├── Settings.tsx           # 设置面板（时长/音效/主题/导出）
 │   ├── InstallPrompt.tsx      # PWA 安装提示横幅
 │   └── Guide.tsx              # 新手引导弹窗
+├── audio/
+│   ├── context.ts             # 共享 AudioContext + 主音量控制
+│   ├── mixer.ts               # 混音器状态管理（启停/音量/配置）
+│   ├── ambience/sounds.ts     # 33 种背景音 AmbienceSound 子类
+│   ├── alerts/sounds.ts       # 10 种提醒音效生成函数
+│   └── index.ts               # 统一导出
 ├── hooks/
 │   ├── useTimer.ts            # 计时逻辑（阶段切换/自动开始/庆祝）
 │   ├── useLocalStorage.ts     # localStorage 封装
 │   └── useTheme.ts            # 主题上下文
+├── i18n/
+│   ├── types.ts               # 翻译类型定义
+│   ├── locales/zh.ts          # 中文翻译
+│   ├── locales/en.ts          # 英文翻译
+│   └── index.ts               # i18n Context + useI18n hook
 ├── utils/
-│   ├── notification.ts        # 音效 + 浏览器通知
 │   ├── time.ts                # 时间格式化
 │   └── stats.ts               # 统计计算（打卡/分组/汇总）
 ├── types.ts                   # 类型定义 + 主题配色 + 生长阶段
 ├── App.tsx                    # 主应用
 ├── index.css                  # 全局样式 + 动画
 └── main.tsx                   # 入口
+src-tauri/                     # Tauri 桌面应用（Rust）
 ```
 
 ## License
