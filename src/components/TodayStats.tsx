@@ -1,35 +1,50 @@
+import type { PomodoroRecord } from '../types';
+import { getGrowthStage, GROWTH_EMOJI } from '../types';
+
 interface TodayStatsProps {
-  count: number;
+  records: PomodoroRecord[];
 }
 
-export function TodayStats({ count }: TodayStatsProps) {
-  if (count === 0) return null;
+export function TodayStats({ records }: TodayStatsProps) {
+  if (records.length === 0) return null;
 
-  // Show tomato icons for count (max 10 visible, then show +N)
-  const maxVisible = 10;
-  const visibleCount = Math.min(count, maxVisible);
-  const overflow = count - maxVisible;
+  const totalMinutes = records.reduce((sum, r) => sum + (r.durationMinutes || 25), 0);
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  const timeStr = hours > 0 ? `${hours}小时${mins > 0 ? ` ${mins}分钟` : ''}` : `${mins}分钟`;
+
+  // Show growth icons (max 12 visible, then +N)
+  const maxVisible = 12;
+  const visibleRecords = records.slice(0, maxVisible);
+  const overflow = records.length - maxVisible;
 
   return (
     <div className="flex flex-col items-center gap-3">
       <div className="text-white/30 text-xs tracking-wider font-medium uppercase">
         今日收获
       </div>
-      <div className="flex items-center gap-1.5 flex-wrap justify-center">
-        {Array.from({ length: visibleCount }).map((_, i) => (
-          <span
-            key={i}
-            className="text-lg animate-bounce-in"
-            style={{ animationDelay: `${i * 80}ms` }}
-          >
-            🍅
-          </span>
-        ))}
+      <div className="flex items-center gap-1 flex-wrap justify-center">
+        {visibleRecords.map((record, i) => {
+          const stage = getGrowthStage(record.durationMinutes || 25);
+          return (
+            <span
+              key={record.id}
+              className="text-base animate-bounce-in"
+              style={{ animationDelay: `${i * 60}ms` }}
+              title={`${record.task || '未命名'} · ${record.durationMinutes || 25}分钟`}
+            >
+              {GROWTH_EMOJI[stage]}
+            </span>
+          );
+        })}
         {overflow > 0 && (
           <span className="text-white/30 text-sm font-medium ml-1">
             +{overflow}
           </span>
         )}
+      </div>
+      <div className="text-white/20 text-xs">
+        共专注 {timeStr}
       </div>
     </div>
   );
