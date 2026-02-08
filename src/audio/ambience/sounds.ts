@@ -1390,3 +1390,149 @@ export class UnderwaterSound extends AmbienceSound {
     return gain;
   }
 }
+
+// ─── 🕐 Additional clock tick sounds ───
+
+/** Grandfather Clock — deep resonant tick with body resonance */
+export class TickGrandfatherSound extends AmbienceSound {
+  create(dest: AudioNode): GainNode {
+    const ctx = getCtx();
+    const gain = ctx.createGain();
+    gain.connect(dest);
+    this.nodes.push(gain);
+
+    const tick = () => {
+      if (!this._running) return;
+      const now = ctx.currentTime;
+      // Deep fundamental
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(300, now);
+      osc.frequency.exponentialRampToValueAtTime(150, now + 0.06);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.3, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc.connect(g); g.connect(gain);
+      osc.start(now); osc.stop(now + 0.15);
+      // Body resonance
+      const osc2 = ctx.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.value = 180;
+      const g2 = ctx.createGain();
+      g2.gain.setValueAtTime(0.12, now + 0.02);
+      g2.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc2.connect(g2); g2.connect(gain);
+      osc2.start(now + 0.02); osc2.stop(now + 0.25);
+    };
+    tick();
+    this.loopTimer = setInterval(tick, 1000);
+    return gain;
+  }
+}
+
+/** Pocket Watch — crisp, delicate high-frequency tick */
+export class TickPocketWatchSound extends AmbienceSound {
+  create(dest: AudioNode): GainNode {
+    const ctx = getCtx();
+    const gain = ctx.createGain();
+    gain.connect(dest);
+    this.nodes.push(gain);
+
+    let alt = false;
+    const tick = () => {
+      if (!this._running) return;
+      const now = ctx.currentTime;
+      alt = !alt;
+      const freq = alt ? 2800 : 2400; // alternating pitch for tick-tock
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.12, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+      osc.connect(g); g.connect(gain);
+      osc.start(now); osc.stop(now + 0.025);
+      // Tiny metallic ring
+      const osc2 = ctx.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.value = freq * 3;
+      const g2 = ctx.createGain();
+      g2.gain.setValueAtTime(0.04, now);
+      g2.gain.exponentialRampToValueAtTime(0.001, now + 0.015);
+      osc2.connect(g2); g2.connect(gain);
+      osc2.start(now); osc2.stop(now + 0.02);
+    };
+    tick();
+    this.loopTimer = setInterval(tick, 500); // pocket watches tick faster
+    return gain;
+  }
+}
+
+/** Metronome — clean electronic click */
+export class TickMetronomeSound extends AmbienceSound {
+  create(dest: AudioNode): GainNode {
+    const ctx = getCtx();
+    const gain = ctx.createGain();
+    gain.connect(dest);
+    this.nodes.push(gain);
+
+    let beat = 0;
+    const click = () => {
+      if (!this._running) return;
+      const now = ctx.currentTime;
+      beat = (beat + 1) % 4;
+      const isAccent = beat === 0;
+      const freq = isAccent ? 1500 : 1000;
+      const vol = isAccent ? 0.35 : 0.2;
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(vol, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+      osc.connect(g); g.connect(gain);
+      osc.start(now); osc.stop(now + 0.035);
+    };
+    click();
+    this.loopTimer = setInterval(click, 1000);
+    return gain;
+  }
+}
+
+/** Water Drop Timer — rhythmic water drops as clock ticks */
+export class TickWaterDropSound extends AmbienceSound {
+  create(dest: AudioNode): GainNode {
+    const ctx = getCtx();
+    const gain = ctx.createGain();
+    gain.connect(dest);
+    this.nodes.push(gain);
+
+    const drop = () => {
+      if (!this._running) return;
+      const now = ctx.currentTime;
+      const freq = 500 + Math.random() * 200;
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.4, now + 0.12);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.25, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc.connect(g); g.connect(gain);
+      osc.start(now); osc.stop(now + 0.15);
+      // Tiny ripple
+      const osc2 = ctx.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(freq * 1.5, now + 0.05);
+      osc2.frequency.exponentialRampToValueAtTime(freq * 0.6, now + 0.12);
+      const g2 = ctx.createGain();
+      g2.gain.setValueAtTime(0.06, now + 0.05);
+      g2.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc2.connect(g2); g2.connect(gain);
+      osc2.start(now + 0.05); osc2.stop(now + 0.13);
+    };
+    drop();
+    this.loopTimer = setInterval(drop, 1000);
+    return gain;
+  }
+}

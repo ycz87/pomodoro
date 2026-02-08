@@ -92,6 +92,9 @@ function App() {
 
   const timer = useTimer({ settings, onComplete: handleTimerComplete, onSkipWork: handleSkipWork });
 
+  // Serialize mixer config for effect dependency (object reference comparison won't work)
+  const ambienceMixerKey = JSON.stringify(settings.ambienceMixer);
+
   // 管理背景音生命周期 — 工作阶段运行时播放混音器配置的音效
   useEffect(() => {
     if (timer.status === 'running' && timer.phase === 'work') {
@@ -100,7 +103,8 @@ function App() {
       stopAllAmbience();
     }
     return () => stopAllAmbience();
-  }, [timer.status, timer.phase, settings.ambienceMixer]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timer.status, timer.phase, ambienceMixerKey]);
 
   const todayKey = getTodayKey();
   const todayRecords = records.filter((r) => r.date === todayKey);
@@ -193,7 +197,7 @@ function App() {
               📅
             </button>
             <GuideButton />
-            <Settings settings={settings} onChange={setSettings} disabled={timer.status !== 'idle'} onExport={handleExport} />
+            <Settings settings={settings} onChange={setSettings} disabled={timer.status !== 'idle'} isWorkRunning={timer.status === 'running' && timer.phase === 'work'} onExport={handleExport} />
           </div>
         </header>
 

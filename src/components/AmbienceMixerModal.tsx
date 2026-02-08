@@ -3,25 +3,32 @@
  * 列出所有可用背景音，每个有开关 + 独立音量滑块
  * 支持多音效同时叠加
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../i18n';
 import type { AmbienceMixerConfig, AmbienceSoundId } from '../audio';
 import {
   ALL_AMBIENCE_SOUNDS, startAmbienceSound, stopAmbienceSound, setAmbienceSoundVolume,
-  enterPreviewMode, exitPreviewMode,
+  applyMixerConfig, enterPreviewMode, exitPreviewMode,
 } from '../audio';
 
 interface Props {
   config: AmbienceMixerConfig;
   onChange: (config: AmbienceMixerConfig) => void;
   onClose: () => void;
+  /** If true, keep sounds playing on close (timer is running) */
+  keepOnClose?: boolean;
 }
 
-export function AmbienceMixerModal({ config, onChange, onClose }: Props) {
+export function AmbienceMixerModal({ config, onChange, onClose, keepOnClose }: Props) {
   const theme = useTheme();
   const i18n = useI18n();
   const [local, setLocal] = useState<AmbienceMixerConfig>({ ...config });
+  // Track latest config via ref so cleanup can access it
+  const localRef = useRef(local);
+  localRef.current = local;
+  const keepOnCloseRef = useRef(keepOnClose);
+  keepOnCloseRef.current = keepOnClose;
 
   // Enter preview mode on mount, exit on unmount
   useEffect(() => {
@@ -33,7 +40,15 @@ export function AmbienceMixerModal({ config, onChange, onClose }: Props) {
         startAmbienceSound(meta.id, cfg.volume);
       }
     }
-    return () => exitPreviewMode(true);
+    return () => {
+      const keep = keepOnCloseRef.current;
+      exitPreviewMode(!keep);
+      // When keeping sounds (timer running), re-apply the latest config
+      // so the mixer state is properly synchronized after leaving preview mode
+      if (keep) {
+        applyMixerConfig(localRef.current);
+      }
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync changes to parent + audio engine in real-time

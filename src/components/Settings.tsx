@@ -17,6 +17,7 @@ interface SettingsProps {
   settings: PomodoroSettings;
   onChange: (settings: PomodoroSettings) => void;
   disabled: boolean;
+  isWorkRunning: boolean;
   onExport: () => void;
 }
 
@@ -98,7 +99,7 @@ const REPEAT_OPTIONS = [1, 2, 3, 5];
 const ROUND_OPTIONS = [2, 3, 4, 5, 6];
 const LOCALE_LABELS: Record<Locale, string> = { zh: '中文', en: 'EN' };
 
-export function Settings({ settings, onChange, disabled, onExport }: SettingsProps) {
+export function Settings({ settings, onChange, disabled, isWorkRunning, onExport }: SettingsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showAmbienceModal, setShowAmbienceModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
@@ -305,6 +306,7 @@ export function Settings({ settings, onChange, disabled, onExport }: SettingsPro
           config={settings.ambienceMixer}
           onChange={(mixer: AmbienceMixerConfig) => update({ ambienceMixer: mixer })}
           onClose={() => setShowAmbienceModal(false)}
+          keepOnClose={isWorkRunning}
         />
       )}
       {showAlertModal && (

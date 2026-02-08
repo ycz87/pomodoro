@@ -11,6 +11,7 @@ import {
   CafeSound, FireplaceSound, KeyboardSound, LibrarySound,
   WhiteNoiseSound, PinkNoiseSound, BrownNoiseSound, BinauralBeatsSound,
   TickClassicSound, TickSoftSound, TickMechanicalSound, TickWoodenSound,
+  TickGrandfatherSound, TickPocketWatchSound, TickMetronomeSound, TickWaterDropSound,
   CampfireSound, SoftPianoSound, CatPurrSound, NightSound, TrainSound, UnderwaterSound,
 } from './ambience/sounds';
 
@@ -20,6 +21,7 @@ export type AmbienceSoundId =
   | 'cafe' | 'fireplace' | 'keyboard' | 'library'
   | 'whiteNoise' | 'pinkNoise' | 'brownNoise' | 'binauralBeats'
   | 'tickClassic' | 'tickSoft' | 'tickMechanical' | 'tickWooden'
+  | 'tickGrandfather' | 'tickPocketWatch' | 'tickMetronome' | 'tickWaterDrop'
   | 'campfire' | 'softPiano' | 'catPurr' | 'night' | 'train' | 'underwater';
 
 export interface AmbienceSoundMeta {
@@ -53,6 +55,10 @@ export const ALL_AMBIENCE_SOUNDS: AmbienceSoundMeta[] = [
   { id: 'tickSoft', emoji: '🕑', category: 'clock' },
   { id: 'tickMechanical', emoji: '⚙️', category: 'clock' },
   { id: 'tickWooden', emoji: '🪵', category: 'clock' },
+  { id: 'tickGrandfather', emoji: '🕰️', category: 'clock' },
+  { id: 'tickPocketWatch', emoji: '⌚', category: 'clock' },
+  { id: 'tickMetronome', emoji: '🎵', category: 'clock' },
+  { id: 'tickWaterDrop', emoji: '💧', category: 'clock' },
   // Extra
   { id: 'campfire', emoji: '🏕️', category: 'environment' },
   { id: 'softPiano', emoji: '🎹', category: 'noise' },
@@ -84,6 +90,10 @@ function createSound(id: AmbienceSoundId): AmbienceSound {
     case 'tickSoft': return new TickSoftSound();
     case 'tickMechanical': return new TickMechanicalSound();
     case 'tickWooden': return new TickWoodenSound();
+    case 'tickGrandfather': return new TickGrandfatherSound();
+    case 'tickPocketWatch': return new TickPocketWatchSound();
+    case 'tickMetronome': return new TickMetronomeSound();
+    case 'tickWaterDrop': return new TickWaterDropSound();
     case 'campfire': return new CampfireSound();
     case 'softPiano': return new SoftPianoSound();
     case 'catPurr': return new CatPurrSound();
