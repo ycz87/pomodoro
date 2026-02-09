@@ -281,6 +281,13 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
               >
                 {i18n.exportData}
               </button>
+
+              {/* 版本号 */}
+              <div className="text-center pt-1 pb-0.5">
+                <span className="text-[11px]" style={{ color: theme.textFaint }}>
+                  v{__APP_VERSION__}
+                </span>
+              </div>
             </div>
           </div>
         )}

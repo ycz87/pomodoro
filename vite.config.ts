@@ -2,9 +2,11 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { readFileSync } from 'fs'
 
 const host = process.env.TAURI_DEV_HOST;
 const isTauri = !!process.env.TAURI_ENV_PLATFORM;
+const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
 
 export default defineConfig({
   plugins: [
@@ -87,6 +89,10 @@ export default defineConfig({
   },
 
   envPrefix: ['VITE_', 'TAURI_ENV_*'],
+
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
 
   build: {
     target:

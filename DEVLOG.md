@@ -2,6 +2,22 @@
 
 ---
 
+## v0.4.2 — 设置菜单显示版本号（2026-02-09）
+
+### 需求背景
+Charles 需要从界面上直接看到当前版本号，判断是不是最新版本。
+
+### 改动
+- `package.json` — version 从 `0.0.0` 更新为 `0.4.0`
+- `vite.config.ts` — 读取 package.json version，通过 `define: { __APP_VERSION__ }` 注入
+- `src/vite-env.d.ts` — 新增，声明 `__APP_VERSION__` 全局常量的 TypeScript 类型
+- `src/components/Settings.tsx` — 设置面板最底部（导出按钮下方）显示 `v{__APP_VERSION__}`，11px 浅色小字
+
+### 技术方案
+用 Vite 的 `define` 在构建时将 package.json 的 version 注入为全局常量 `__APP_VERSION__`。这样以后只需改 package.json 一处，界面自动同步。
+
+---
+
 ## v0.4.1 — UI 视觉升级（2026-02-09）
 
 ### 需求背景
