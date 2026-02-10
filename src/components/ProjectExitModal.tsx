@@ -40,6 +40,9 @@ export function ProjectExitModal({
   const theme = useTheme();
   const t = useI18n();
 
+  // Use breakAccent during break phase for visual consistency
+  const phaseAccent = isBreak ? theme.breakAccent : theme.accent;
+
   // Always reset to step 1 when the modal mounts (re-opens)
   useEffect(() => {
     setStep('confirm');
@@ -78,7 +81,7 @@ export function ProjectExitModal({
               disabled={locked}
               onClick={() => withLock(() => { onExitTask(); setStep('choose'); })}
               className="w-full min-h-[44px] py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer disabled:opacity-50"
-              style={{ backgroundColor: `${theme.accent}20`, color: theme.accent }}>
+              style={{ backgroundColor: `${phaseAccent}20`, color: phaseAccent }}>
               {t.projectExitConfirm}
             </button>
             <button
@@ -120,7 +123,7 @@ export function ProjectExitModal({
               disabled={locked}
               onClick={() => withLock(onRestart)}
               className="w-full min-h-[44px] py-3 rounded-xl text-sm font-medium transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
-              style={{ backgroundColor: `${theme.accent}15`, color: theme.accent }}>
+              style={{ backgroundColor: `${phaseAccent}15`, color: phaseAccent }}>
               🔄 {t.projectExitRestart}
             </button>
           )}
@@ -128,7 +131,7 @@ export function ProjectExitModal({
             disabled={locked}
             onClick={() => withLock(onNext)}
             className="w-full min-h-[44px] py-3 rounded-xl text-sm font-medium transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
-            style={{ backgroundColor: isBreak ? `${theme.accent}15` : theme.inputBg, color: isBreak ? theme.accent : theme.text }}>
+            style={{ backgroundColor: isBreak ? `${phaseAccent}15` : theme.inputBg, color: isBreak ? phaseAccent : theme.text }}>
             ⏭️ {isLastTask ? t.projectExitFinish : t.projectExitNext}
           </button>
           {!isFirstTask && (

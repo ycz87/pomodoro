@@ -12,6 +12,8 @@ interface Props {
 
 export function ProjectTaskBar({ projectName, view }: Props) {
   const theme = useTheme();
+  const isBreak = view.phase === 'break';
+  const progressColor = isBreak ? theme.breakAccent : theme.accent;
 
   return (
     <div className="w-full max-w-xs sm:max-w-sm flex flex-col items-center gap-2">
@@ -23,7 +25,7 @@ export function ProjectTaskBar({ projectName, view }: Props) {
         <div className="flex-1 h-1 rounded-full overflow-hidden"
           style={{ backgroundColor: theme.inputBg }}>
           <div className="h-full rounded-full transition-all duration-500"
-            style={{ width: `${view.progressFraction * 100}%`, backgroundColor: theme.accent }} />
+            style={{ width: `${view.progressFraction * 100}%`, backgroundColor: progressColor }} />
         </div>
         <span className="text-xs shrink-0 tabular-nums" style={{ color: theme.textMuted }}>
           {view.progressLabel}
