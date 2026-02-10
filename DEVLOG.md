@@ -2,6 +2,21 @@
 
 ---
 
+## v0.4.3 — UI 打磨第二轮（2026-02-10）
+
+### 需求背景
+上一轮 UI 改版验收后的细节优化，继续按 Apple HIG 标准打磨。
+
+### 改动文件
+- `src/components/Timer.tsx` — 播放按钮 shadow 减弱、三角图标缩小 2px
+- `src/components/TaskInput.tsx` — 边框 0.08→0.12、加 inset shadow
+- `src/index.css` — placeholder 颜色 0.25→0.35
+- `src/components/TaskList.tsx` — 空状态加 🌱 emoji
+- `src/components/Settings.tsx` — Stepper w-7→w-8、Theme padding 增大
+- `src/App.tsx` — 统计卡片 pt-6→pt-4 减少底部空白
+
+---
+
 ## v0.4.2 — UI 系统性改版（2026-02-09）
 
 ### 需求背景

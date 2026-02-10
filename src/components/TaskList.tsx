@@ -21,7 +21,7 @@ export function TaskList({ records, onUpdate, onDelete }: TaskListProps) {
   if (records.length === 0) {
     return (
       <div className="text-center py-4">
-        <p className="text-xs" style={{ color: theme.textFaint }}>{t.emptyTodayHint}</p>
+        <p className="text-xs" style={{ color: theme.textFaint }}>🌱 {t.emptyTodayHint}</p>
       </div>
     );
   }

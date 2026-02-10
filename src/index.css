@@ -168,5 +168,5 @@ body {
 
 /* Task input placeholder color */
 .task-input-placeholder::placeholder {
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.35);
 }

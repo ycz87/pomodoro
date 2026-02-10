@@ -204,8 +204,8 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
         {status === 'idle' && (
           <button onClick={onStart}
             className="w-[52px] h-[52px] rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
-            style={{ background: `linear-gradient(135deg, ${colors.from}, ${colors.to})`, boxShadow: `0 2px 16px ${colors.from}40` }}>
-            <svg width="20" height="24" viewBox="0 0 20 24" fill="none" className="ml-0.5">
+            style={{ background: `linear-gradient(135deg, ${colors.from}, ${colors.to})`, boxShadow: `0 2px 12px ${colors.from}30` }}>
+            <svg width="18" height="22" viewBox="0 0 20 24" fill="none" className="ml-0.5">
               <path d="M2 2L18 12L2 22V2Z" fill="white" />
             </svg>
           </button>
@@ -227,8 +227,8 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
         {status === 'paused' && (
           <button onClick={onResume}
             className="w-[52px] h-[52px] rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
-            style={{ background: `linear-gradient(135deg, ${colors.from}, ${colors.to})`, boxShadow: `0 2px 16px ${colors.from}40` }}>
-            <svg width="20" height="24" viewBox="0 0 20 24" fill="none" className="ml-0.5">
+            style={{ background: `linear-gradient(135deg, ${colors.from}, ${colors.to})`, boxShadow: `0 2px 12px ${colors.from}30` }}>
+            <svg width="18" height="22" viewBox="0 0 20 24" fill="none" className="ml-0.5">
               <path d="M2 2L18 12L2 22V2Z" fill="white" />
             </svg>
           </button>

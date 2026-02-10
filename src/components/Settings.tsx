@@ -75,16 +75,16 @@ function NumberStepper({ label, value, onChange, min, max, step = 1, unit, disab
       <div className="text-sm" style={{ color: t.textMuted }}>{label}</div>
       <div className={`flex items-center gap-1 ${disabled ? 'opacity-40 pointer-events-none' : ''}`}>
         <button onClick={() => onChange(clamp(value - step))}
-          className="w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer text-sm"
+          className="w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer text-sm"
           style={{ backgroundColor: t.inputBg, color: t.textMuted }}>−</button>
         <input ref={inputRef} type="number" value={value}
           onChange={(e) => { const v = parseInt(e.target.value, 10); if (!isNaN(v)) onChange(clamp(v)); }}
           onBlur={() => { if (inputRef.current) { const v = parseInt(inputRef.current.value, 10); if (isNaN(v) || v < min) onChange(min); else if (v > max) onChange(max); } }}
           min={min} max={max}
-          className="w-12 h-7 rounded-lg text-center text-sm outline-none transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="w-12 h-8 rounded-lg text-center text-sm outline-none transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           style={{ backgroundColor: t.inputBg, color: t.text }} />
         <button onClick={() => onChange(clamp(value + step))}
-          className="w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer text-sm"
+          className="w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer text-sm"
           style={{ backgroundColor: t.inputBg, color: t.textMuted }}>+</button>
         <span className="text-xs ml-0.5 w-8" style={{ color: t.textFaint }}>{unit}</span>
       </div>
@@ -258,7 +258,7 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
                   <div className="grid grid-cols-3 gap-1.5">
                     {(Object.keys(THEMES) as ThemeId[]).map((id) => (
                       <button key={id} onClick={() => update({ theme: id })}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer"
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs transition-all cursor-pointer"
                         style={{
                           backgroundColor: settings.theme === id ? `${THEMES[id].colors.accent}30` : theme.inputBg,
                           color: settings.theme === id ? THEMES[id].colors.accent : theme.textMuted,

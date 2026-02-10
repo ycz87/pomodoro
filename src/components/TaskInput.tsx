@@ -21,7 +21,8 @@ export function TaskInput({ value, onChange, disabled }: TaskInputProps) {
         }`}
         style={{
           backgroundColor: disabled ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.06)',
-          borderColor: disabled ? 'transparent' : 'rgba(255,255,255,0.08)',
+          borderColor: disabled ? 'transparent' : 'rgba(255,255,255,0.12)',
+          boxShadow: disabled ? 'none' : 'inset 0 1px 2px rgba(0,0,0,0.2)',
         }}
       >
         <input
@@ -40,7 +41,7 @@ export function TaskInput({ value, onChange, disabled }: TaskInputProps) {
           }}
           onBlur={(e) => {
             const parent = e.currentTarget.parentElement;
-            if (parent) parent.style.borderColor = 'rgba(255,255,255,0.08)';
+            if (parent) parent.style.borderColor = 'rgba(255,255,255,0.12)';
           }}
         />
         {value && !disabled && (

@@ -362,7 +362,7 @@ function App() {
                     />
                   </div>
                 </div>
-                <div className="w-full max-w-xs sm:max-w-sm px-4 pt-6 pb-6">
+                <div className="w-full max-w-xs sm:max-w-sm px-4 pt-4 pb-6">
                   <div className="rounded-2xl p-5 border" style={{ backgroundColor: theme.surface, borderColor: 'rgba(255,255,255,0.06)' }}>
                     <TodayStats records={todayRecords} />
                   </div>
@@ -393,7 +393,7 @@ function App() {
                     <TaskInput value={currentTask} onChange={setCurrentTask} disabled={timer.status !== 'idle'} />
                   </div>
                 </div>
-                <div className="w-full max-w-xs sm:max-w-sm px-4 pt-6 pb-6">
+                <div className="w-full max-w-xs sm:max-w-sm px-4 pt-4 pb-6">
                   <div className="rounded-2xl p-5 border" style={{ backgroundColor: theme.surface, borderColor: 'rgba(255,255,255,0.06)' }}>
                     <div className="flex flex-col items-center gap-5">
                       <TodayStats records={todayRecords} idle={timer.status === 'idle'} />
