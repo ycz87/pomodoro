@@ -7,6 +7,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../i18n';
 import { MiniCalendar } from './MiniCalendar';
 import { BarChart } from './BarChart';
+import { WeekTrendChart } from './WeekTrendChart';
 import { GrowthIcon } from './GrowthIcon';
 import { formatDateKey, getRecentDays, getDayMinutes, getStreak, getSummary } from '../utils/stats';
 import type { PomodoroRecord } from '../types';
@@ -102,6 +103,9 @@ export function HistoryPanel({ records, projectRecords = [], onClose }: HistoryP
         <div className="px-5 pb-8">
           {tab === 'history' ? (
             <div className="space-y-5">
+              {/* Week trend chart */}
+              <WeekTrendChart records={records} />
+
               {/* Streak banner */}
               {streak.current > 0 && (
                 <div className="flex items-center justify-center gap-2 py-2 rounded-xl text-sm"

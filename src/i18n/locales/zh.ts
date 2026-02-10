@@ -310,4 +310,12 @@ export const zh: Messages = {
   streakShort: (days) => `🔥 连续 ${days} 天`,
   streakMedium: (days) => `🔥 连续 ${days} 天，习惯正在养成`,
   streakLong: (days) => `🔥 连续 ${days} 天！了不起的坚持`,
+
+  // Week trend chart
+  weekTrend: '本周专注',
+  weekTotal: (time) => `本周共 ${time}`,
+
+  // Long-press buttons
+  holdToFinish: '长按以提前完成',
+  holdToGiveUp: '长按以放弃',
 };

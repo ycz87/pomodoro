@@ -172,6 +172,16 @@ body {
   animation: gentle-breathe 3s ease-in-out infinite;
 }
 
+/* Final countdown pulse — last 10 seconds, subtle scale pulse */
+@keyframes final-countdown-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.animate-final-countdown {
+  animation: final-countdown-pulse 0.8s ease-in-out infinite;
+}
+
 /* Task input placeholder color — set via CSS variable from component */
 .task-input-placeholder::placeholder {
   color: var(--placeholder-color, rgba(255, 255, 255, 0.35));

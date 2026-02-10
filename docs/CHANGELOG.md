@@ -2,6 +2,37 @@
 
 ---
 
+## v0.6.1 — 周趋势图 + 专注模式增强（2026-02-10）
+
+### 新功能：周趋势图
+- 历史面板顶部新增本周专注柱状图（Mon–Sun）
+- 今天的柱子用 accent 色高亮，其他天半透明
+- 无数据的天显示极矮底线（不完全空白）
+- 点击柱子显示具体时长 tooltip
+- 底部显示"本周共 Xh Xm"
+- 纯 div/CSS 实现，零图表库
+- 中英文 i18n 完整覆盖
+
+### 新功能：最后冲刺提示
+- 最后 60 秒：进度环颜色从主题色渐变为金色（#FFD700），数字也变金色
+- 最后 10 秒：时钟数字轻微脉冲动画（scale 1.0→1.05→1.0，0.8s 循环）
+- 效果微妙不打断专注，仅在 work 阶段 running 状态生效
+
+### 新功能：长按完成/放弃（防冲动操作）
+- ✓（Done）和 ✗（Give Up）按钮改为长按 1.5 秒确认
+- 长按时按钮有 SVG 环形进度动画（从 0% 到 100% 画一圈）
+- 短按显示 toast 提示："长按以提前完成" / "长按以放弃"
+- 计时自然结束时不需要长按（正常流转到休息）
+- Toast 1.5 秒后自动消失
+
+### 技术实现
+- `WeekTrendChart` 组件（`src/components/WeekTrendChart.tsx`）
+- `Timer.tsx` 新增 `isFinalSprint`/`isFinalCountdown` 检测 + `startLongPress`/`cancelLongPress` 逻辑
+- `index.css` 新增 `animate-final-countdown` 动画
+- i18n 新增 `weekTrend`、`weekTotal`、`holdToFinish`、`holdToGiveUp`
+
+---
+
 ## v0.6.0 — 智能鼓励文案 + 专注数据增强（2026-02-10）
 
 ### 新功能：智能鼓励文案

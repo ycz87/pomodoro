@@ -310,4 +310,12 @@ export const en: Messages = {
   streakShort: (days) => `🔥 ${days}-day streak`,
   streakMedium: (days) => `🔥 ${days}-day streak, building a habit`,
   streakLong: (days) => `🔥 ${days}-day streak! Incredible!`,
+
+  // Week trend chart
+  weekTrend: 'This Week',
+  weekTotal: (time) => `Total: ${time}`,
+
+  // Long-press buttons
+  holdToFinish: 'Hold to finish early',
+  holdToGiveUp: 'Hold to give up',
 };

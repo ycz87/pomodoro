@@ -2,6 +2,32 @@
 
 ---
 
+## v0.6.1 — 周趋势图 + 专注模式增强（2026-02-10）
+
+### 需求背景
+Charles 确认继续推进阶段二：周趋势图 + 专注模式增强（最后冲刺 + 长按确认）。
+
+### 周趋势图
+- 纯 div/CSS 实现，不引入图表库
+- `getCurrentWeekDays()` 计算本周一到周日的日期 key
+- 柱子高度按比例，最高天占满 80px 高度
+- 点击柱子 toggle tooltip（`tappedIndex` state）
+- 空天显示 3% 高度的底线
+
+### 最后冲刺
+- `isFinalSprint = isWork && running && timeLeft <= 60`：切换到金色色系
+- `isFinalCountdown = isWork && running && timeLeft <= 10`：数字脉冲动画
+- 颜色过渡用 CSS `transition: color 0.5s`，进度环通过 SVG gradient 即时切换
+
+### 长按确认
+- `startLongPress(target, action)` 启动 16ms interval 更新进度
+- `cancelLongPress(toastMsg)` 取消并可选显示 toast
+- SVG 环形进度：`strokeDashoffset = circumference * (1 - progress)`
+- 同时支持 mouse 和 touch 事件
+- 短按（progress < 0.3）才显示 toast，避免长按中途松手也弹提示
+
+---
+
 ## v0.6.0 — 智能鼓励文案 + 专注数据增强（2026-02-10）
 
 ### 需求背景

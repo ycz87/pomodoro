@@ -39,6 +39,9 @@ const QUICK_DURATIONS = [5, 10, 15, 20, 25, 30, 45, 60];
 /** Debounce window (ms) for ✓/✗ button actions to prevent double-tap race conditions */
 const ACTION_DEBOUNCE_MS = 300;
 
+/** Long-press duration (ms) for ✓/✗ buttons */
+const LONG_PRESS_MS = 1500;
+
 interface TimerProps {
   timeLeft: number;
   totalDuration: number;
@@ -90,6 +93,56 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
     setTimeout(() => setDigitBounce(false), 200);
   }, []);
 
+  // ─── Long-press for ✓/✗ buttons ───
+  const [longPressProgress, setLongPressProgress] = useState(0); // 0-1
+  const [longPressTarget, setLongPressTarget] = useState<'skip' | 'abandon' | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const longPressStartRef = useRef(0);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const startLongPress = useCallback((target: 'skip' | 'abandon', action: () => void) => {
+    longPressStartRef.current = Date.now();
+    setLongPressTarget(target);
+    setLongPressProgress(0);
+
+    longPressTimerRef.current = setInterval(() => {
+      const elapsed = Date.now() - longPressStartRef.current;
+      const p = Math.min(elapsed / LONG_PRESS_MS, 1);
+      setLongPressProgress(p);
+      if (p >= 1) {
+        clearInterval(longPressTimerRef.current);
+        setLongPressTarget(null);
+        setLongPressProgress(0);
+        action();
+      }
+    }, 16);
+  }, []);
+
+  const cancelLongPress = useCallback((showToastMsg?: string) => {
+    if (longPressTimerRef.current) clearInterval(longPressTimerRef.current);
+    const wasActive = longPressTarget !== null;
+    setLongPressTarget(null);
+    setLongPressProgress(0);
+    // Show toast only if it was a short tap (not a completed long press)
+    if (wasActive && showToastMsg && longPressProgress < 0.3) {
+      setToast(showToastMsg);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = setTimeout(() => setToast(null), 1500);
+    }
+  }, [longPressTarget, longPressProgress]);
+
+  useEffect(() => {
+    return () => {
+      if (longPressTimerRef.current) clearInterval(longPressTimerRef.current);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
+  // ─── Final sprint detection ───
+  const isFinalSprint = isWork && status === 'running' && !isOvertime && timeLeft <= 60 && timeLeft > 0;
+  const isFinalCountdown = isWork && status === 'running' && !isOvertime && timeLeft <= 10 && timeLeft > 0;
+
   // Bug 2 fix: debounce ✓ and ✗ to prevent race conditions
   const actionLockRef = useRef(false);
   const actionLockTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -134,10 +187,12 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
   // 根据主题和阶段选择颜色
   // ─── Phase-dependent color sets ───
   // Work: theme accent gradient; Break: cool tones; Overtime: red warning
+  // Final sprint (last 60s): gold gradient
   const workColors = { from: theme.accent, mid: theme.accentEnd, to: theme.accentEnd };
+  const sprintColors = { from: '#FFD700', mid: '#FFC107', to: '#FFB300' };
   const breakColors = { from: theme.breakAccent, mid: theme.breakAccentEnd, to: theme.breakAccentEnd };
   const overtimeColors = { from: '#ef4444', mid: '#f87171', to: '#fca5a5' };
-  const colors = isOvertime ? overtimeColors : isWork ? workColors : breakColors;
+  const colors = isOvertime ? overtimeColors : isFinalSprint ? sprintColors : isWork ? workColors : breakColors;
 
   const phaseLabel = isOvertime ? t.projectOvertime
     : phase === 'work' ? t.phaseWork
@@ -248,8 +303,8 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
             <span
               className={`text-6xl sm:text-7xl font-timer tracking-tight select-none transition-all ${
                 status === 'paused' ? 'animate-pulse' : ''
-              } ${isOvertime ? 'animate-pulse' : ''} ${canQuickPick || canToggle ? 'cursor-pointer hover:opacity-70' : ''} ${digitBounce ? 'scale-95' : 'scale-100'}`}
-              style={{ fontWeight: 300, color: isOvertime ? '#ef4444' : theme.text, fontVariantNumeric: 'tabular-nums', transition: 'transform 0.15s ease-out, opacity 0.2s' }}
+              } ${isOvertime ? 'animate-pulse' : ''} ${isFinalCountdown ? 'animate-final-countdown' : ''} ${canQuickPick || canToggle ? 'cursor-pointer hover:opacity-70' : ''} ${digitBounce ? 'scale-95' : 'scale-100'}`}
+              style={{ fontWeight: 300, color: isOvertime ? '#ef4444' : isFinalSprint ? '#FFD700' : theme.text, fontVariantNumeric: 'tabular-nums', transition: 'transform 0.15s ease-out, opacity 0.2s, color 0.5s' }}
               onClick={() => {
                 if (canToggle) {
                   toggleDisplayMode();
@@ -287,13 +342,28 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
       {/* Controls */}
       <div className="flex items-center gap-3 sm:gap-4 h-16 mt-6">
 
-        {/* ✗ Abandon/Skip (left) — hidden during idle and break */}
+        {/* ✗ Abandon/Skip (left) — hidden during idle and break, long-press required */}
         {status !== 'idle' && isWork && (
-          <button onClick={() => guardedAction(onAbandon)}
-            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
+          <button
+            onMouseDown={() => startLongPress('abandon', () => guardedAction(onAbandon))}
+            onMouseUp={() => cancelLongPress(t.holdToGiveUp)}
+            onMouseLeave={() => cancelLongPress()}
+            onTouchStart={() => startLongPress('abandon', () => guardedAction(onAbandon))}
+            onTouchEnd={() => cancelLongPress(t.holdToGiveUp)}
+            onTouchCancel={() => cancelLongPress()}
+            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer relative overflow-hidden"
             style={{ backgroundColor: `${theme.textMuted}15`, color: theme.textMuted }}
             title={t.abandon}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            {/* Long-press ring progress */}
+            {longPressTarget === 'abandon' && (
+              <svg className="absolute inset-0" viewBox="0 0 44 44">
+                <circle cx="22" cy="22" r="20" fill="none" stroke={theme.textMuted} strokeWidth="2.5"
+                  strokeDasharray={2 * Math.PI * 20}
+                  strokeDashoffset={2 * Math.PI * 20 * (1 - longPressProgress)}
+                  transform="rotate(-90 22 22)" strokeLinecap="round" opacity="0.6" />
+              </svg>
+            )}
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="relative z-10">
               <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </button>
@@ -333,18 +403,43 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
           </button>
         )}
 
-        {/* ✓ Complete/Skip (right) — hidden during idle */}
+        {/* ✓ Complete/Skip (right) — hidden during idle, long-press required */}
         {status !== 'idle' && (
-          <button onClick={() => guardedAction(onSkip)}
-            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
+          <button
+            onMouseDown={() => startLongPress('skip', () => guardedAction(onSkip))}
+            onMouseUp={() => cancelLongPress(t.holdToFinish)}
+            onMouseLeave={() => cancelLongPress()}
+            onTouchStart={() => startLongPress('skip', () => guardedAction(onSkip))}
+            onTouchEnd={() => cancelLongPress(t.holdToFinish)}
+            onTouchCancel={() => cancelLongPress()}
+            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer relative overflow-hidden"
             style={{ backgroundColor: `${colors.from}20`, color: colors.from }}
             title={t.projectMarkDone}>
-            <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+            {/* Long-press ring progress */}
+            {longPressTarget === 'skip' && (
+              <svg className="absolute inset-0" viewBox="0 0 44 44">
+                <circle cx="22" cy="22" r="20" fill="none" stroke={colors.from} strokeWidth="2.5"
+                  strokeDasharray={2 * Math.PI * 20}
+                  strokeDashoffset={2 * Math.PI * 20 * (1 - longPressProgress)}
+                  transform="rotate(-90 22 22)" strokeLinecap="round" opacity="0.6" />
+              </svg>
+            )}
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="relative z-10">
               <path d="M1.5 6L6 10.5L14.5 1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         )}
       </div>
+
+      {/* Toast for short-tap hint */}
+      {toast && (
+        <div
+          className="absolute -bottom-2 text-xs font-medium px-3 py-1.5 rounded-full animate-fade-up"
+          style={{ backgroundColor: `${theme.surface}ee`, color: theme.textMuted, border: `1px solid ${theme.border}` }}
+        >
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

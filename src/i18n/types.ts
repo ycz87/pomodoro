@@ -217,4 +217,12 @@ export interface Messages {
   streakShort: (days: number) => string;
   streakMedium: (days: number) => string;
   streakLong: (days: number) => string;
+
+  // Week trend chart
+  weekTrend: string;
+  weekTotal: (time: string) => string;
+
+  // Long-press buttons
+  holdToFinish: string;
+  holdToGiveUp: string;
 }
