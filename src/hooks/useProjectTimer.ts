@@ -462,7 +462,11 @@ export function useProjectTimer(
       if (prev.phase === 'break') {
         return { ...prev, phase: 'exited', lastTickAt: new Date().toISOString() };
       }
-      // Record current task as abandoned
+      // Record current task as abandoned (only in state.results, NOT triggering App callback yet).
+      // The callback is deferred until the user makes a final choice:
+      // - restartCurrentTask: removes the abandoned result (no callback needed)
+      // - goToNextTask: fires the callback for the abandoned result
+      // - goToPreviousTask: removes the abandoned result (no callback needed)
       const task = prev.tasks[prev.currentTaskIndex];
       const result: ProjectTaskResult = {
         taskId: task.id,
@@ -472,7 +476,6 @@ export function useProjectTimer(
         status: 'abandoned',
         completedAt: new Date().toISOString(),
       };
-      onTaskCompleteRef.current(result);
       return {
         ...prev,
         results: [...prev.results, result],
@@ -504,10 +507,17 @@ export function useProjectTimer(
     });
   }, []);
 
-  /** Step 2b: Go to next task (or finish if last) */
+  /** Step 2b: Go to next task (or finish if last) — fires abandoned callback */
   const goToNextTask = useCallback(() => {
     setState((prev) => {
       if (!prev || prev.phase !== 'exited') return prev;
+
+      // Now that the user confirmed moving on, fire the callback for the abandoned task
+      const abandonedResult = prev.results[prev.results.length - 1];
+      if (abandonedResult && abandonedResult.status === 'abandoned') {
+        onTaskCompleteRef.current(abandonedResult);
+      }
+
       const nextIndex = prev.currentTaskIndex + 1;
       if (nextIndex >= prev.tasks.length) {
         // Last task — go to summary
@@ -618,9 +628,17 @@ export function useProjectTimer(
   }, [state]);
 
   const abandonProject = useCallback(() => {
+    // Fire callback for any pending abandoned result before clearing state
+    const current = state;
+    if (current && current.phase === 'exited') {
+      const abandonedResult = current.results[current.results.length - 1];
+      if (abandonedResult && abandonedResult.status === 'abandoned') {
+        onTaskCompleteRef.current(abandonedResult);
+      }
+    }
     localStorage.removeItem(STORAGE_KEY);
     setState(null);
-  }, []);
+  }, [state]);
 
   return {
     state,
