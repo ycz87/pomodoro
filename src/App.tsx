@@ -325,7 +325,7 @@ function App() {
         >
           {/* Left: logo + brand name + streak */}
           <div className="flex items-center gap-2 min-w-0 flex-1">
-            <img src="/icon.svg" alt={t.appName} className="w-7 h-7 sm:w-8 sm:h-8 shrink-0" style={{ filter: 'drop-shadow(0 0 6px rgba(34, 197, 94, 0.4))' }} />
+            <img src="/icon-192.png" alt={t.appName} className="w-7 h-7 sm:w-8 sm:h-8 shrink-0" style={{ filter: 'drop-shadow(0 0 6px rgba(34, 197, 94, 0.4))' }} />
             <span className="hidden sm:inline text-sm font-semibold truncate" style={{ color: theme.text }}>
               {t.appName}
             </span>
