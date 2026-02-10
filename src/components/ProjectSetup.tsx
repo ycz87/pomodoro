@@ -120,16 +120,22 @@ export function ProjectSetup({ onStart, onCancel }: Props) {
               {/* Actions */}
               <div className="flex items-center gap-0.5 shrink-0">
                 <button onClick={() => moveTask(index, -1)}
-                  className="w-6 h-6 rounded flex items-center justify-center text-xs cursor-pointer transition-colors"
+                  className="w-7 h-7 rounded flex items-center justify-center text-xs cursor-pointer transition-all"
                   style={{ color: theme.textMuted, opacity: index === 0 ? 0.5 : 1 }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.inputBg}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   disabled={index === 0}>↑</button>
                 <button onClick={() => moveTask(index, 1)}
-                  className="w-6 h-6 rounded flex items-center justify-center text-xs cursor-pointer transition-colors"
+                  className="w-7 h-7 rounded flex items-center justify-center text-xs cursor-pointer transition-all"
                   style={{ color: theme.textMuted, opacity: index === tasks.length - 1 ? 0.5 : 1 }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.inputBg}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   disabled={index === tasks.length - 1}>↓</button>
                 <button onClick={() => removeTask(task.id)}
-                  className="w-6 h-6 rounded flex items-center justify-center text-xs cursor-pointer transition-colors"
+                  className="w-7 h-7 rounded flex items-center justify-center text-xs cursor-pointer transition-all"
                   style={{ color: theme.textMuted, opacity: tasks.length <= 1 ? 0.5 : 1 }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.inputBg}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   disabled={tasks.length <= 1}>✕</button>
               </div>
             </div>
@@ -186,7 +192,7 @@ export function ProjectSetup({ onStart, onCancel }: Props) {
         </button>
         <button onClick={handleStart}
           className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${canStart ? 'cursor-pointer' : 'opacity-40'}`}
-          style={{ backgroundColor: `${theme.accent}20`, color: theme.accent }}
+          style={{ backgroundColor: theme.accent, color: '#ffffff' }}
           disabled={!canStart}>
           {t.projectStart}
         </button>
