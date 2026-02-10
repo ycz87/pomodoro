@@ -254,7 +254,7 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
         {status !== 'idle' && (
           <button onClick={() => guardedAction(onSkip)}
             className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
-            style={{ backgroundColor: `${theme.accent}20`, color: theme.accent }}
+            style={{ backgroundColor: `${colors.from}20`, color: colors.from }}
             title={t.projectMarkDone}>
             <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
               <path d="M1.5 6L6 10.5L14.5 1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
