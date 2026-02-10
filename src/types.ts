@@ -34,6 +34,7 @@ export interface ThemeColors {
   breakAccentEnd: string;
   ring: string;         // 进度环基底色 opacity
   inputBg: string;      // 输入框背景
+  border: string;       // 分割线/边框色
 }
 
 export const THEMES: Record<ThemeId, { name: string; colors: ThemeColors }> = {
@@ -41,50 +42,55 @@ export const THEMES: Record<ThemeId, { name: string; colors: ThemeColors }> = {
     name: '经典暗色',
     colors: {
       bg: '#111114', bgWork: '#141012', bgBreak: '#101218',
-      surface: '#1c1c24', text: 'rgba(255,255,255,0.9)', textMuted: 'rgba(255,255,255,0.4)',
-      textFaint: 'rgba(255,255,255,0.15)', accent: '#f43f5e', accentEnd: '#e11d48',
+      surface: '#1c1c24', text: 'rgba(255,255,255,0.9)', textMuted: 'rgba(255,255,255,0.55)',
+      textFaint: 'rgba(255,255,255,0.3)', accent: '#f43f5e', accentEnd: '#e11d48',
       breakAccent: '#6366f1', breakAccentEnd: '#818cf8', ring: '0.35',
       inputBg: 'rgba(255,255,255,0.04)',
+      border: 'rgba(255,255,255,0.08)',
     },
   },
   light: {
     name: '纯净亮色',
     colors: {
       bg: '#f8f8fa', bgWork: '#fef2f2', bgBreak: '#eef2ff',
-      surface: '#ffffff', text: 'rgba(0,0,0,0.85)', textMuted: 'rgba(0,0,0,0.45)',
-      textFaint: 'rgba(0,0,0,0.12)', accent: '#dc2626', accentEnd: '#f97316',
+      surface: '#ffffff', text: 'rgba(0,0,0,0.87)', textMuted: 'rgba(0,0,0,0.55)',
+      textFaint: 'rgba(0,0,0,0.25)', accent: '#dc2626', accentEnd: '#f97316',
       breakAccent: '#4f46e5', breakAccentEnd: '#818cf8', ring: '0.15',
-      inputBg: 'rgba(0,0,0,0.04)',
+      inputBg: 'rgba(0,0,0,0.06)',
+      border: 'rgba(0,0,0,0.08)',
     },
   },
   forest: {
     name: '森林绿',
     colors: {
       bg: '#0a120e', bgWork: '#0f1510', bgBreak: '#0a0e14',
-      surface: '#141f18', text: 'rgba(220,240,220,0.9)', textMuted: 'rgba(180,210,180,0.5)',
-      textFaint: 'rgba(180,210,180,0.15)', accent: '#22c55e', accentEnd: '#86efac',
+      surface: '#141f18', text: 'rgba(220,240,220,0.9)', textMuted: 'rgba(180,210,180,0.65)',
+      textFaint: 'rgba(180,210,180,0.3)', accent: '#22c55e', accentEnd: '#86efac',
       breakAccent: '#38bdf8', breakAccentEnd: '#7dd3fc', ring: '0.3',
       inputBg: 'rgba(180,210,180,0.06)',
+      border: 'rgba(180,210,180,0.1)',
     },
   },
   ocean: {
     name: '海洋蓝',
     colors: {
       bg: '#0a0e14', bgWork: '#0c1018', bgBreak: '#0e0a14',
-      surface: '#141a24', text: 'rgba(200,220,255,0.9)', textMuted: 'rgba(160,190,230,0.5)',
-      textFaint: 'rgba(160,190,230,0.15)', accent: '#3b82f6', accentEnd: '#818cf8',
+      surface: '#141a24', text: 'rgba(200,220,255,0.9)', textMuted: 'rgba(160,190,230,0.65)',
+      textFaint: 'rgba(160,190,230,0.3)', accent: '#3b82f6', accentEnd: '#818cf8',
       breakAccent: '#a78bfa', breakAccentEnd: '#c4b5fd', ring: '0.3',
       inputBg: 'rgba(160,190,230,0.06)',
+      border: 'rgba(160,190,230,0.1)',
     },
   },
   warm: {
     name: '暖橙色',
     colors: {
       bg: '#12100c', bgWork: '#161210', bgBreak: '#100e14',
-      surface: '#201c16', text: 'rgba(255,235,210,0.9)', textMuted: 'rgba(230,200,160,0.5)',
-      textFaint: 'rgba(230,200,160,0.15)', accent: '#f97316', accentEnd: '#fbbf24',
+      surface: '#201c16', text: 'rgba(255,235,210,0.9)', textMuted: 'rgba(230,200,160,0.65)',
+      textFaint: 'rgba(230,200,160,0.3)', accent: '#f97316', accentEnd: '#fbbf24',
       breakAccent: '#a3e635', breakAccentEnd: '#d9f99d', ring: '0.3',
       inputBg: 'rgba(230,200,160,0.06)',
+      border: 'rgba(230,200,160,0.1)',
     },
   },
 };

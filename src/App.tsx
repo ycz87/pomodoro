@@ -289,7 +289,7 @@ function App() {
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
             backgroundColor: `${theme.surface}cc`,
-            borderColor: 'rgba(255,255,255,0.06)',
+            borderColor: theme.border,
           }}
         >
           {/* Left: logo + streak */}
@@ -363,7 +363,7 @@ function App() {
                   </div>
                 </div>
                 <div className="w-full max-w-xs sm:max-w-sm px-4 pt-4 pb-6">
-                  <div className="rounded-2xl p-5 border" style={{ backgroundColor: theme.surface, borderColor: 'rgba(255,255,255,0.06)' }}>
+                  <div className="rounded-2xl p-5 border" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
                     <TodayStats records={todayRecords} />
                   </div>
                 </div>
@@ -394,7 +394,7 @@ function App() {
                   </div>
                 </div>
                 <div className="w-full max-w-xs sm:max-w-sm px-4 pt-4 pb-6">
-                  <div className="rounded-2xl p-5 border" style={{ backgroundColor: theme.surface, borderColor: 'rgba(255,255,255,0.06)' }}>
+                  <div className="rounded-2xl p-5 border" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
                     <div className="flex flex-col items-center gap-5">
                       <TodayStats records={todayRecords} idle={timer.status === 'idle'} />
                       <TaskList records={todayRecords} onUpdate={handleUpdateRecord} onDelete={handleDeleteRecord} />

@@ -2,6 +2,28 @@
 
 ---
 
+## v0.4.4 — 全主题对比度修复（2026-02-10）
+
+### 需求背景
+Charles 反馈亮色主题下文字看不清，项目模式里休息时间、分钟数也看不清。经审查所有 5 套主题的 textMuted/textFaint 对比度都不达标（WCAG AA）。
+
+### 改动文件
+- `src/types.ts` — 5 套主题 textMuted/textFaint 提高对比度，新增 `border` token
+- `src/App.tsx` — 硬编码 borderColor→theme.border
+- `src/components/ModeSwitch.tsx` — 硬编码白色→theme.inputBg/border/text
+- `src/components/Timer.tsx` — 数字颜色硬编码白色→theme.text，quick picker border→theme.border
+- `src/components/TaskInput.tsx` — 边框/背景→theme.border/inputBg，placeholder→CSS 变量跟随 textMuted
+- `src/components/Settings.tsx` — DIVIDER_COLOR→theme.border
+- `src/components/ProjectSetup.tsx` — 序号/单位/休息时间 textFaint→textMuted，add 按钮 border→theme.border
+- `src/components/ProjectTaskBar.tsx` — 进度标签 textFaint→textMuted
+- `src/components/ProjectExitModal.tsx` — border→theme.border
+- `src/components/InstallPrompt.tsx` — border→theme.border
+- `src/components/AmbienceMixerModal.tsx` — border→theme.border
+- `src/components/HistoryPanel.tsx` — 次要信息 textFaint→textMuted
+- `src/index.css` — placeholder 改为 CSS 变量驱动
+
+---
+
 ## v0.4.3 — UI 打磨第二轮（2026-02-10）
 
 ### 需求背景

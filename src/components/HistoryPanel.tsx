@@ -131,7 +131,7 @@ export function HistoryPanel({ records, projectRecords = [], onClose }: HistoryP
                 </div>
 
                 {selectedRecords.length === 0 ? (
-                  <div className="text-center py-6 text-sm" style={{ color: theme.textFaint }}>
+                  <div className="text-center py-6 text-sm" style={{ color: theme.textMuted }}>
                     {t.noRecords}
                   </div>
                 ) : (
@@ -148,8 +148,8 @@ export function HistoryPanel({ records, projectRecords = [], onClose }: HistoryP
                           <span className="flex-1 text-sm truncate" style={{ color: theme.textMuted }}>
                             {record.task || t.unnamed}
                           </span>
-                          <span className="text-xs" style={{ color: theme.textFaint }}>{duration}min</span>
-                          <span className="text-xs font-mono" style={{ color: theme.textFaint }}>{timeStr}</span>
+                          <span className="text-xs" style={{ color: theme.textMuted }}>{duration}min</span>
+                          <span className="text-xs font-mono" style={{ color: theme.textMuted }}>{timeStr}</span>
                         </div>
                       );
                     })}
@@ -177,11 +177,11 @@ export function HistoryPanel({ records, projectRecords = [], onClose }: HistoryP
                                 <span className="text-sm truncate flex-1" style={{ color: theme.textMuted }}>
                                   {proj.name}
                                 </span>
-                                <span className="text-xs shrink-0" style={{ color: theme.textFaint }}>
+                                <span className="text-xs shrink-0" style={{ color: theme.textMuted }}>
                                   {proj.tasks.length} {t.projectCompleted}
                                 </span>
                               </div>
-                              <div className="flex gap-3 mt-1 text-xs" style={{ color: theme.textFaint }}>
+                              <div className="flex gap-3 mt-1 text-xs" style={{ color: theme.textMuted }}>
                                 <span>{t.projectHistoryEstimated}: {estMin}min</span>
                                 <span>{t.projectHistoryActual}: {actMin}min</span>
                               </div>

@@ -166,7 +166,7 @@ body {
   animation: gentle-breathe 3s ease-in-out infinite;
 }
 
-/* Task input placeholder color */
+/* Task input placeholder color — set via CSS variable from component */
 .task-input-placeholder::placeholder {
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--placeholder-color, rgba(255, 255, 255, 0.35));
 }

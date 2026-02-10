@@ -88,7 +88,7 @@ export function ProjectSetup({ onStart, onCancel }: Props) {
             <div className="flex items-center gap-2">
               {/* Index */}
               <span className="text-xs font-medium w-5 text-center shrink-0"
-                style={{ color: theme.textFaint }}>
+                style={{ color: theme.textMuted }}>
                 {index + 1}
               </span>
 
@@ -114,7 +114,7 @@ export function ProjectSetup({ onStart, onCancel }: Props) {
                   className="w-12 px-1 py-1 rounded-lg text-xs text-center outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   style={{ backgroundColor: `${theme.surface}`, color: theme.text }}
                 />
-                <span className="text-xs" style={{ color: theme.textFaint }}>{t.minutes}</span>
+                <span className="text-xs" style={{ color: theme.textMuted }}>{t.minutes}</span>
               </div>
 
               {/* Actions */}
@@ -140,7 +140,7 @@ export function ProjectSetup({ onStart, onCancel }: Props) {
                 <button
                   onClick={() => setEditingBreak(editingBreak === task.id ? null : task.id)}
                   className="text-xs cursor-pointer transition-colors"
-                  style={{ color: theme.textFaint }}>
+                  style={{ color: theme.textMuted }}>
                   ☕ {task.breakMinutes}{t.minutes}
                 </button>
                 {editingBreak === task.id && (
@@ -164,7 +164,7 @@ export function ProjectSetup({ onStart, onCancel }: Props) {
         {/* Add task button */}
         <button onClick={addTask}
           className="w-full py-2 rounded-xl text-sm transition-all cursor-pointer border border-dashed"
-          style={{ borderColor: theme.textFaint, color: theme.textMuted }}>
+          style={{ borderColor: theme.border, color: theme.textMuted }}>
           + {t.projectAddTask}
         </button>
       </div>

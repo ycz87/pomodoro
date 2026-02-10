@@ -2,6 +2,35 @@
 
 ---
 
+## v0.4.4 — 全主题对比度修复（2026-02-10）
+
+### 主题颜色 token 调整（WCAG AA 标准）
+- Dark: textMuted 0.4→0.55, textFaint 0.15→0.3
+- Light: text 0.85→0.87, textMuted 0.45→0.55, textFaint 0.12→0.25, inputBg 0.04→0.06
+- Forest: textMuted 0.5→0.65, textFaint 0.15→0.3
+- Ocean: textMuted 0.5→0.65, textFaint 0.15→0.3
+- Warm: textMuted 0.5→0.65, textFaint 0.15→0.3
+
+### 新增 `border` 颜色 token
+- 所有主题新增 `border` token，替代硬编码的 `rgba(255,255,255,0.06)`
+- Light 主题使用 `rgba(0,0,0,0.08)`，深色主题使用各自色系的 0.08-0.1
+
+### 亮色主题兼容修复
+- ModeSwitch: 硬编码白色背景→theme.inputBg/theme.border
+- Timer 数字: 硬编码白色→theme.text
+- TaskInput: 硬编码白色边框/背景→theme.border/theme.inputBg
+- placeholder 颜色改为 CSS 变量，跟随 theme.textMuted
+
+### 项目模式对比度修复
+- ProjectSetup: 任务序号、"min" 单位、休息时间 textFaint→textMuted
+- ProjectTaskBar: 进度标签 textFaint→textMuted
+- HistoryPanel: 时长、时间等次要信息 textFaint→textMuted
+
+### 分割线统一
+- 所有组件的 borderColor 从 theme.textFaint→theme.border
+
+---
+
 ## v0.4.3 — UI 打磨第二轮（2026-02-10）
 
 ### 播放按钮再克制

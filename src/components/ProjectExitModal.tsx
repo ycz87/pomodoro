@@ -55,7 +55,7 @@ export function ProjectExitModal({
               style={{ backgroundColor: theme.inputBg, color: theme.textMuted }}>
               {t.cancel}
             </button>
-            <div className="border-t my-1" style={{ borderColor: theme.textFaint }} />
+            <div className="border-t my-1" style={{ borderColor: theme.border }} />
             <button
               onClick={onAbandonProject}
               className="w-full py-2 rounded-xl text-xs transition-all cursor-pointer"

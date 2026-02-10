@@ -25,7 +25,7 @@ export function ProjectTaskBar({ projectName, view }: Props) {
           <div className="h-full rounded-full transition-all duration-500"
             style={{ width: `${view.progressFraction * 100}%`, backgroundColor: theme.accent }} />
         </div>
-        <span className="text-xs shrink-0 tabular-nums" style={{ color: theme.textFaint }}>
+        <span className="text-xs shrink-0 tabular-nums" style={{ color: theme.textMuted }}>
           {view.progressLabel}
         </span>
       </div>

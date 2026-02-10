@@ -156,7 +156,7 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
           className={`text-6xl sm:text-7xl font-timer tracking-tight select-none transition-opacity ${
             status === 'paused' ? 'animate-pulse' : ''
           } ${isOvertime ? 'animate-pulse' : ''} ${status === 'idle' && isWork && !isOvertime ? 'cursor-pointer hover:opacity-70' : ''}`}
-          style={{ fontWeight: 300, color: isOvertime ? '#ef4444' : 'rgba(255,255,255,0.95)', fontVariantNumeric: 'tabular-nums' }}
+          style={{ fontWeight: 300, color: isOvertime ? '#ef4444' : theme.text, fontVariantNumeric: 'tabular-nums' }}
           onClick={() => {
             if (status === 'idle' && isWork && !isOvertime) setShowQuickPicker(!showQuickPicker);
           }}
@@ -168,7 +168,7 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
         {/* Quick duration picker */}
         {showQuickPicker && status === 'idle' && isWork && (
           <div className="absolute -bottom-2 translate-y-full flex flex-wrap justify-center gap-1.5 px-4 py-2.5 rounded-2xl border animate-fade-up z-10"
-            style={{ backgroundColor: `${theme.surface}f0`, borderColor: theme.textFaint }}>
+            style={{ backgroundColor: `${theme.surface}f0`, borderColor: theme.border }}>
             {QUICK_DURATIONS.map((m) => (
               <button key={m}
                 onClick={() => { onChangeWorkMinutes(m); setShowQuickPicker(false); }}

@@ -105,11 +105,11 @@ export function AmbienceMixerModal({ config, onChange, onClose, keepOnClose }: P
 
       {/* Modal */}
       <div className="relative w-full max-w-md max-h-[80vh] rounded-2xl border shadow-2xl overflow-hidden flex flex-col animate-fade-up"
-        style={{ backgroundColor: theme.surface, borderColor: theme.textFaint }}>
+        style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b shrink-0"
-          style={{ borderColor: theme.textFaint }}>
+          style={{ borderColor: theme.border }}>
           <h2 className="text-base font-medium" style={{ color: theme.text }}>
             🎧 {i18n.focusAmbience}
           </h2>
@@ -181,7 +181,7 @@ export function AmbienceMixerModal({ config, onChange, onClose, keepOnClose }: P
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t shrink-0" style={{ borderColor: theme.textFaint }}>
+        <div className="px-5 py-3 border-t shrink-0" style={{ borderColor: theme.border }}>
           <button onClick={onClose}
             className="w-full py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer"
             style={{ backgroundColor: `${theme.accent}20`, color: theme.accent }}>

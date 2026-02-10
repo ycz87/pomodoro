@@ -113,7 +113,7 @@ function VolumeSlider({ label, value, onChange }: {
 
 const REPEAT_OPTIONS = [1, 2, 3, 5];
 const LOCALE_LABELS: Record<Locale, string> = { zh: '中文', en: 'EN' };
-const DIVIDER_COLOR = 'rgba(255,255,255,0.06)';
+// Divider color is now theme-aware via theme.border
 
 export function Settings({ settings, onChange, disabled, isWorkRunning, onExport, onShowGuide }: SettingsProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -173,7 +173,7 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
 
         {isOpen && (
           <div className="absolute right-0 top-12 w-[calc(100vw-1.5rem)] sm:w-80 p-4 sm:p-5 rounded-2xl border shadow-2xl z-50 animate-fade-up max-h-[75vh] overflow-y-auto"
-            style={{ backgroundColor: theme.surface, borderColor: DIVIDER_COLOR }}>
+            style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
             <div className="flex flex-col">
               {disabled && (
                 <div className="text-xs mb-4" style={{ color: '#fbbf24' }}>{i18n.timerRunningHint}</div>
@@ -193,7 +193,7 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
               </div>
 
               {/* ── 🔔 提醒 ── */}
-              <div className="border-t mt-6 pt-6" style={{ borderColor: DIVIDER_COLOR }}>
+              <div className="border-t mt-6 pt-6" style={{ borderColor: theme.border }}>
                 <SectionHeader title={i18n.sectionAlerts} />
                 <div className="flex flex-col gap-4 mt-3">
                   <div className="flex items-center justify-between gap-3">
@@ -251,7 +251,7 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
               </div>
 
               {/* ── 🎨 外观 ── */}
-              <div className="border-t mt-6 pt-6" style={{ borderColor: DIVIDER_COLOR }}>
+              <div className="border-t mt-6 pt-6" style={{ borderColor: theme.border }}>
                 <SectionHeader title={i18n.sectionAppearance} />
                 <div className="flex flex-col gap-4 mt-3">
                   {/* 主题选择 — 3 列网格 */}
@@ -286,7 +286,7 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
               </div>
 
               {/* ── ⚙ 通用 ── */}
-              <div className="border-t mt-6 pt-6" style={{ borderColor: DIVIDER_COLOR }}>
+              <div className="border-t mt-6 pt-6" style={{ borderColor: theme.border }}>
                 <SectionHeader title={i18n.sectionGeneral} />
                 <div className="flex flex-col gap-3 mt-3">
                   <button

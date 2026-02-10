@@ -74,7 +74,7 @@ export function InstallPrompt() {
         className="flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-2xl backdrop-blur-sm"
         style={{
           backgroundColor: `${theme.surface}ee`,
-          borderColor: theme.textFaint,
+          borderColor: theme.border,
         }}
       >
         <span className="text-2xl shrink-0">📱</span>

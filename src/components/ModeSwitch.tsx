@@ -18,13 +18,13 @@ export function ModeSwitch({ mode, onChange, disabled }: Props) {
   return (
     <div
       className="relative flex items-center rounded-full p-[3px]"
-      style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
+      style={{ backgroundColor: theme.inputBg }}
     >
       {/* Sliding indicator */}
       <div
         className="absolute top-[3px] bottom-[3px] rounded-full transition-all duration-200 ease-out"
         style={{
-          backgroundColor: 'rgba(255,255,255,0.12)',
+          backgroundColor: theme.border,
           width: 'calc(50% - 3px)',
           left: mode === 'pomodoro' ? '3px' : 'calc(50%)',
         }}
@@ -33,7 +33,7 @@ export function ModeSwitch({ mode, onChange, disabled }: Props) {
         onClick={() => !disabled && onChange('pomodoro')}
         className={`relative z-10 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 ${disabled ? 'opacity-50' : 'cursor-pointer'}`}
         style={{
-          color: mode === 'pomodoro' ? 'rgba(255,255,255,0.9)' : theme.textMuted,
+          color: mode === 'pomodoro' ? theme.text : theme.textMuted,
         }}
       >
         🍉 {t.modePomodoro}
@@ -42,7 +42,7 @@ export function ModeSwitch({ mode, onChange, disabled }: Props) {
         onClick={() => !disabled && onChange('project')}
         className={`relative z-10 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 ${disabled ? 'opacity-50' : 'cursor-pointer'}`}
         style={{
-          color: mode === 'project' ? 'rgba(255,255,255,0.9)' : theme.textMuted,
+          color: mode === 'project' ? theme.text : theme.textMuted,
         }}
       >
         📋 {t.modeProject}

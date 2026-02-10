@@ -20,8 +20,8 @@ export function TaskInput({ value, onChange, disabled }: TaskInputProps) {
           disabled ? 'opacity-50' : ''
         }`}
         style={{
-          backgroundColor: disabled ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.06)',
-          borderColor: disabled ? 'transparent' : 'rgba(255,255,255,0.12)',
+          backgroundColor: disabled ? 'transparent' : theme.inputBg,
+          borderColor: disabled ? 'transparent' : theme.border,
           boxShadow: disabled ? 'none' : 'inset 0 1px 2px rgba(0,0,0,0.2)',
         }}
       >
@@ -33,7 +33,7 @@ export function TaskInput({ value, onChange, disabled }: TaskInputProps) {
           disabled={disabled}
           placeholder={t.taskPlaceholder}
           className="flex-1 bg-transparent outline-none text-[15px] min-w-0 task-input-placeholder"
-          style={{ color: theme.text }}
+          style={{ color: theme.text, '--placeholder-color': theme.textMuted } as React.CSSProperties}
           maxLength={100}
           onFocus={(e) => {
             const parent = e.currentTarget.parentElement;
@@ -41,7 +41,7 @@ export function TaskInput({ value, onChange, disabled }: TaskInputProps) {
           }}
           onBlur={(e) => {
             const parent = e.currentTarget.parentElement;
-            if (parent) parent.style.borderColor = 'rgba(255,255,255,0.12)';
+            if (parent) parent.style.borderColor = theme.border;
           }}
         />
         {value && !disabled && (
