@@ -41,6 +41,43 @@ export const en: Messages = {
   celebrationRipe: ['Amazing! 🎉', 'Well done! ✨', 'Perfect focus! 🔥', 'Keep it up! 💪'],
   celebrationShort: ['Nice! 👍', 'Done! ✨', 'Good start! 🌱'],
 
+  // Per-stage celebration text (v0.7.1)
+  celebrateSeed: [
+    'Every seed holds a watermelon field 🌱',
+    'A small start, a big possibility ✨',
+    'The seed is in your hands now',
+    'Your first step of focus, taken 🌱',
+    'Plant the seed, wait for the bloom',
+  ],
+  celebrateSprout: [
+    'A sprout breaks through — your focus is taking root 🌿',
+    'Look, your effort is sprouting',
+    'Keep going, it\'ll grow into something amazing 🌿',
+    'Every minute of focus is sunshine and rain',
+    'The sprout is here, good things are coming 🌿',
+  ],
+  celebrateBloom: [
+    'The flower blooms — can the fruit be far behind? 🌼',
+    'Not just a flower blooming, but your focus too',
+    'Blossom season, good things ahead 🌼',
+    'Just a little more, and fruit will come',
+    'Your focus is blooming 🌼',
+  ],
+  celebrateGreen: [
+    'The melon is forming — harvest is near 🍈',
+    'So close to a perfect watermelon!',
+    'Your focus has borne fruit 🍈',
+    'A little more next time, and it\'s a big one!',
+    'The fruit of your focus is showing 🍈',
+  ],
+  celebrateRipe: [
+    'A perfect watermelon! You\'re amazing 🍉🎉',
+    'This melon is the sweetest fruit of focus',
+    'Harvest time! You deserve this celebration 🍉',
+    '25 minutes of focus for the sweetest reward 🎉',
+    'Big harvest! This is the power of focus 🍉',
+  ],
+
   // Settings
   settings: 'Settings',
   timerRunningHint: '⏳ Timer is running — adjust after it stops',

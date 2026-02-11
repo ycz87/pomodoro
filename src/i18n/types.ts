@@ -26,6 +26,12 @@ export interface Messages {
   breakOverBody: string;
   celebrationRipe: readonly string[];
   celebrationShort: readonly string[];
+  // Per-stage celebration text pools (v0.7.1)
+  celebrateSeed: readonly string[];
+  celebrateSprout: readonly string[];
+  celebrateBloom: readonly string[];
+  celebrateGreen: readonly string[];
+  celebrateRipe: readonly string[];
   settings: string;
   timerRunningHint: string;
   workDuration: string;

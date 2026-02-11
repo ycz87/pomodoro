@@ -2,6 +2,42 @@
 
 ---
 
+## v0.7.1 — 庆祝系统升级（2026-02-11）
+
+### 需求背景
+Charles 要求庆祝画面要隆重，让用户真的感觉到自己在被庆祝。设计文档：`docs/CELEBRATION-DESIGN-v1.md`。
+
+### 架构设计
+四层结构：BackgroundLayer → GlowRings + Icon → ParticleLayer + SpecialEffectLayer → Text
+
+每个阶段有独立的 `StageConfig`，控制粒子数、时长、图标大小、光晕层数/强度、颜色池、是否有礼花/纸屑/特效。
+
+### 粒子系统
+5 种粒子类型：`dot`（基础光点）、`leaf`（叶片）、`petal`（花瓣）、`confetti`（纸屑）、`firework`（礼花火花）。
+每种有不同的 CSS 形状（borderRadius/clipPath）和运动轨迹（rise/fall/burst）。
+
+### Ripe 随机特效池
+4 种特效随机选一种：
+1. `firework-burst`：5 个位置各 8 个火花向外绽放
+2. `confetti-storm`：30 片纸屑从顶部暴风雨般落下
+3. `melon-drop`：5 个小西瓜从天而降 + 弹跳
+4. `melon-roll`：两个大西瓜从两侧滚入
+
+### CSS 动画
+新增 15+ 个 @keyframes，全部用 transform/opacity 做 GPU 加速。
+firework spark 用 CSS 三角函数 `cos()/sin()` 计算方向（现代浏览器支持）。
+
+### 改动文件
+- `src/components/CelebrationOverlay.tsx` — 完全重写
+- `src/index.css` — 新增庆祝动画
+- `src/i18n/types.ts` — 新增 5 个文案池类型
+- `src/i18n/locales/zh.ts` — 25 条中文阶段文案
+- `src/i18n/locales/en.ts` — 25 条英文阶段文案
+- `package.json` — 0.7.0 → 0.7.1
+- 四个文档同步更新
+
+---
+
 ## v0.7.0 — 品牌视觉升级：西瓜化（2026-02-11）
 
 ### 需求背景

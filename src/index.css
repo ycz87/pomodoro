@@ -211,3 +211,154 @@ body {
 .task-input-placeholder::placeholder {
   color: var(--placeholder-color, rgba(255, 255, 255, 0.35));
 }
+
+/* ─── Celebration system v0.7.1 ─── */
+
+/* Background breathe (seed/sprout/bloom/green) */
+@keyframes celeb-bg-breathe {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+.celeb-bg-breathe {
+  animation: celeb-bg-breathe 2s ease-in-out infinite;
+}
+
+/* Ripe background flash */
+@keyframes celeb-bg-ripe-flash {
+  0%, 100% { opacity: 0.7; }
+  30% { opacity: 1; }
+  60% { opacity: 0.5; }
+  80% { opacity: 0.9; }
+}
+.celeb-bg-ripe-flash {
+  animation: celeb-bg-ripe-flash 1.5s ease-in-out infinite;
+}
+
+/* Ripe strobe overlay */
+@keyframes celeb-bg-ripe-strobe {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+.celeb-bg-ripe-strobe {
+  animation: celeb-bg-ripe-strobe 0.8s ease-in-out infinite;
+}
+
+/* Glow pulse for rings behind icon */
+@keyframes celeb-glow-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+.celeb-glow-pulse {
+  animation: celeb-glow-pulse 2s ease-in-out infinite;
+}
+
+/* Radial rays rotation (bloom+) */
+@keyframes celeb-rays-rotate {
+  0% { transform: rotate(0deg); opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { transform: rotate(180deg); opacity: 0.6; }
+}
+.celeb-rays-rotate {
+  animation: celeb-rays-rotate 4s linear infinite;
+}
+
+/* Particle: rise (seed — golden dots float up) */
+@keyframes celeb-particle-rise {
+  0% { transform: translate(0, 0) scale(1); opacity: 0; }
+  15% { opacity: 0.9; }
+  70% { opacity: 0.7; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0.3); opacity: 0; }
+}
+.celeb-particle-rise {
+  animation: celeb-particle-rise 2s ease-out forwards;
+}
+
+/* Particle: fall (leaves, petals, confetti) */
+@keyframes celeb-particle-fall {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 0; }
+  10% { opacity: 0.9; }
+  80% { opacity: 0.6; }
+  100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(0.5); opacity: 0; }
+}
+.celeb-particle-fall {
+  animation: celeb-particle-fall 2.5s ease-out forwards;
+}
+
+/* Particle: burst (firework sparks) */
+@keyframes celeb-particle-burst {
+  0% { transform: translate(0, 0) scale(0); opacity: 0; }
+  20% { transform: translate(0, 0) scale(1.2); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+.celeb-particle-burst {
+  animation: celeb-particle-burst 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Firework burst (ripe special) */
+@keyframes celeb-fw-spark {
+  0% { transform: translate(0, 0) scale(0); opacity: 0; }
+  20% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% {
+    transform: translate(
+      calc(cos(var(--fw-angle)) * var(--fw-dist)),
+      calc(sin(var(--fw-angle)) * var(--fw-dist))
+    ) scale(0);
+    opacity: 0;
+  }
+}
+.celeb-fw-spark {
+  animation: celeb-fw-spark 1s ease-out forwards;
+}
+.celeb-firework-burst {
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+/* Confetti storm (ripe special) */
+@keyframes celeb-confetti-fall-anim {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(120vh) rotate(720deg); opacity: 0.3; }
+}
+.celeb-confetti-fall {
+  animation: celeb-confetti-fall-anim 2.5s ease-in forwards;
+}
+
+/* Melon drop (ripe special) */
+@keyframes celeb-melon-drop-anim {
+  0% { transform: translateY(0) scale(0.5); opacity: 0; }
+  15% { opacity: 1; scale: 1; }
+  60% { transform: translateY(60vh); }
+  70% { transform: translateY(50vh) scale(1.1); }
+  80% { transform: translateY(55vh); }
+  90% { transform: translateY(52vh) scale(1.05); }
+  100% { transform: translateY(54vh) scale(1); opacity: 0.5; }
+}
+.celeb-melon-drop {
+  animation: celeb-melon-drop-anim 1.8s ease-in forwards;
+}
+
+/* Melon roll from sides (ripe special) */
+@keyframes celeb-melon-roll-left-anim {
+  0% { transform: translateX(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  50% { transform: translateX(45vw) rotate(360deg); }
+  65% { transform: translateX(40vw) rotate(300deg); }
+  80% { transform: translateX(42vw) rotate(340deg); }
+  100% { transform: translateX(41vw) rotate(320deg); opacity: 0.5; }
+}
+@keyframes celeb-melon-roll-right-anim {
+  0% { transform: translateX(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  50% { transform: translateX(-45vw) rotate(-360deg); }
+  65% { transform: translateX(-40vw) rotate(-300deg); }
+  80% { transform: translateX(-42vw) rotate(-340deg); }
+  100% { transform: translateX(-41vw) rotate(-320deg); opacity: 0.5; }
+}
+.celeb-melon-roll-left {
+  animation: celeb-melon-roll-left-anim 2s ease-out forwards;
+}
+.celeb-melon-roll-right {
+  animation: celeb-melon-roll-right-anim 2s ease-out forwards;
+}
