@@ -427,7 +427,7 @@ function App() {
               style={{ color: theme.textMuted }}
               aria-label={t.warehouseTitle}
             >
-              🎒
+              🏠
             </button>
             <button
               onClick={() => setShowHistory(true)}

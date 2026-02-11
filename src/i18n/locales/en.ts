@@ -86,7 +86,7 @@ export const en: Messages = {
   ],
 
   // Warehouse & Synthesis
-  warehouseTitle: '🎒 My Warehouse',
+  warehouseTitle: '🏠 My Melon Shed',
   warehouseTotal: 'Total Collected',
   warehouseHighest: 'Highest Tier',
   warehouseLocked: '🔒',
@@ -98,7 +98,7 @@ export const en: Messages = {
   synthesisSynthesize: 'Synthesize',
   synthesisSynthesizeAll: 'Synthesize All',
   synthesisSuccess: (name) => `Success! Got ${name}`,
-  warehouseEmpty: 'No items yet — start focusing! 🍉',
+  warehouseEmpty: 'Your shed is empty — start focusing! 🍉',
   stageNameSeed: 'Seed',
   stageNameSprout: 'Sprout',
   stageNameBloom: 'Flower',

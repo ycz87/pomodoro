@@ -86,7 +86,7 @@ export const zh: Messages = {
   ],
 
   // Warehouse & Synthesis
-  warehouseTitle: '🎒 我的仓库',
+  warehouseTitle: '🏠 我的瓜棚',
   warehouseTotal: '总收获',
   warehouseHighest: '最高阶',
   warehouseLocked: '🔒',
@@ -98,7 +98,7 @@ export const zh: Messages = {
   synthesisSynthesize: '合成',
   synthesisSynthesizeAll: '合成全部',
   synthesisSuccess: (name) => `合成成功！获得 ${name}`,
-  warehouseEmpty: '还没有收获物，开始专注吧 🍉',
+  warehouseEmpty: '瓜棚还是空的，开始专注吧 🍉',
   stageNameSeed: '种子',
   stageNameSprout: '幼苗',
   stageNameBloom: '花',
