@@ -127,7 +127,7 @@ body {
 
 .celebration-text {
   animation: celebration-text-in 0.5s 0.3s ease-out both;
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: 0.02em;
 }

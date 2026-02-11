@@ -36,32 +36,32 @@ interface StageConfig {
 
 const STAGE_CONFIG: Record<GrowthStage, StageConfig> = {
   seed: {
-    particleCount: 12, duration: 2000, enterMs: 300, exitMs: 500,
-    iconSize: 56, glowLayers: 2, glowIntensity: 0.3,
+    particleCount: 18, duration: 3500, enterMs: 500, exitMs: 700,
+    iconSize: 80, glowLayers: 3, glowIntensity: 0.5,
     colors: ['#fbbf24', '#f59e0b'],
     hasFireworks: false, hasConfetti: false, hasSpecialEffect: false,
   },
   sprout: {
-    particleCount: 20, duration: 2500, enterMs: 300, exitMs: 500,
-    iconSize: 60, glowLayers: 3, glowIntensity: 0.4,
+    particleCount: 28, duration: 4000, enterMs: 500, exitMs: 700,
+    iconSize: 88, glowLayers: 4, glowIntensity: 0.6,
     colors: ['#fbbf24', '#4ade80', '#f59e0b'],
     hasFireworks: false, hasConfetti: false, hasSpecialEffect: false,
   },
   bloom: {
-    particleCount: 30, duration: 3000, enterMs: 300, exitMs: 700,
-    iconSize: 64, glowLayers: 4, glowIntensity: 0.5,
+    particleCount: 40, duration: 4500, enterMs: 500, exitMs: 900,
+    iconSize: 96, glowLayers: 5, glowIntensity: 0.7,
     colors: ['#fbbf24', '#f59e0b', '#f472b6', '#4ade80'],
     hasFireworks: true, hasConfetti: true, hasSpecialEffect: false,
   },
   green: {
-    particleCount: 40, duration: 3500, enterMs: 300, exitMs: 1000,
-    iconSize: 72, glowLayers: 5, glowIntensity: 0.65,
+    particleCount: 55, duration: 5000, enterMs: 500, exitMs: 1200,
+    iconSize: 108, glowLayers: 6, glowIntensity: 0.8,
     colors: ['#fbbf24', '#f59e0b', '#f472b6', '#a78bfa', '#4ade80'],
     hasFireworks: true, hasConfetti: true, hasSpecialEffect: false,
   },
   ripe: {
-    particleCount: 60, duration: 4000, enterMs: 300, exitMs: 1200,
-    iconSize: 80, glowLayers: 6, glowIntensity: 0.85,
+    particleCount: 80, duration: 6000, enterMs: 500, exitMs: 1500,
+    iconSize: 120, glowLayers: 8, glowIntensity: 1.0,
     colors: ['#fbbf24', '#f59e0b', '#f472b6', '#a78bfa', '#34d399', '#ef4444'],
     hasFireworks: true, hasConfetti: true, hasSpecialEffect: true,
   },
@@ -471,7 +471,7 @@ export function CelebrationOverlay({ stage, isRipe, onComplete }: CelebrationOve
 
       {/* Layer 4: Text */}
       <div
-        className="celebration-text mt-4 px-6 text-center"
+        className="celebration-text mt-5 px-6 text-center text-base sm:text-lg"
         style={{ color: theme.text }}
       >
         {text}
