@@ -21,6 +21,11 @@ interface SettingsProps {
   isWorkRunning: boolean;
   onExport: () => void;
   onShowGuide?: () => void;
+  testMode?: {
+    addItems: (stage: import('../types').GrowthStage, count: number) => void;
+    resetWarehouse: () => void;
+    resetMigration: () => void;
+  };
 }
 
 const TOGGLE_GREEN = '#34C759';
@@ -116,7 +121,7 @@ const REPEAT_OPTIONS = [1, 2, 3, 5, 0];
 const LOCALE_LABELS: Record<Locale, string> = { zh: '中文', en: 'EN' };
 // Divider color is now theme-aware via theme.border
 
-export function Settings({ settings, onChange, disabled, isWorkRunning, onExport, onShowGuide }: SettingsProps) {
+export function Settings({ settings, onChange, disabled, isWorkRunning, onExport, onShowGuide, testMode }: SettingsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showAmbienceModal, setShowAmbienceModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
@@ -309,6 +314,50 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
                   )}
                 </div>
               </div>
+
+              {/* 🧪 Test Mode */}
+              {testMode && (
+                <div className="mt-4 p-3 rounded-xl border" style={{ borderColor: theme.border, backgroundColor: theme.inputBg }}>
+                  <div className="text-xs font-semibold mb-2" style={{ color: theme.textMuted }}>🧪 Test Mode</div>
+                  {([
+                    ['seed', '🌱', [1, 10, 50]],
+                    ['sprout', '🌿', [1, 10]],
+                    ['bloom', '🌼', [1, 10]],
+                    ['green', '🍈', [1, 5]],
+                    ['ripe', '🍉', [1, 5]],
+                    ['legendary', '👑', [1]],
+                  ] as const).map(([stage, emoji, counts]) => (
+                    <div key={stage} className="flex items-center gap-1 mb-1">
+                      {counts.map((n) => (
+                        <button
+                          key={n}
+                          onClick={() => testMode.addItems(stage, n)}
+                          className="px-2 py-0.5 rounded text-[11px] cursor-pointer transition-colors"
+                          style={{ backgroundColor: `${theme.accent}15`, color: theme.accent }}
+                        >
+                          {emoji} +{n}
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+                  <div className="flex gap-2 mt-2 pt-2 border-t" style={{ borderColor: theme.border }}>
+                    <button
+                      onClick={testMode.resetWarehouse}
+                      className="px-2 py-1 rounded text-[11px] cursor-pointer"
+                      style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444' }}
+                    >
+                      清空瓜棚
+                    </button>
+                    <button
+                      onClick={testMode.resetMigration}
+                      className="px-2 py-1 rounded text-[11px] cursor-pointer"
+                      style={{ backgroundColor: 'rgba(239,68,68,0.1)', color: '#ef4444' }}
+                    >
+                      重置迁移标记
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* 版本号 */}
               <div className="text-center pt-4 pb-1">

@@ -144,13 +144,36 @@ export function useWarehouse() {
     return null;
   }, [warehouse.items]);
 
+  /** 批量添加收获物（测试用） */
+  const addItems = useCallback((stage: GrowthStage, count: number) => {
+    if (count <= 0) return;
+    setWarehouse((prev) => ({
+      ...prev,
+      items: { ...prev.items, [stage]: prev.items[stage] + count },
+      totalCollected: prev.totalCollected + count,
+    }));
+  }, [setWarehouse]);
+
+  /** 清空瓜棚（测试用） */
+  const resetWarehouse = useCallback(() => {
+    setWarehouse({ ...DEFAULT_WAREHOUSE });
+  }, [setWarehouse]);
+
+  /** 重置迁移标记（测试用） */
+  const resetMigration = useCallback(() => {
+    try { localStorage.removeItem(MIGRATED_KEY); } catch { /* noop */ }
+  }, []);
+
   return {
     warehouse,
     addItem,
+    addItems,
     updatePity,
     synthesize,
     synthesizeAll,
     getHighestStage,
+    resetWarehouse,
+    resetMigration,
     recipes: SYNTHESIS_RECIPES,
   };
 }
