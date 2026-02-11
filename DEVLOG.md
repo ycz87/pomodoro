@@ -2,6 +2,43 @@
 
 ---
 
+## v0.8.0 — 仓库与合成系统（2026-02-11）
+
+### 需求背景
+用户每次专注完成后获得收获物，但只是庆祝画面一闪而过。引入仓库系统让收获物可以被收集、查看、合成。设计文档：`docs/WAREHOUSE-DESIGN-v1.md`。
+
+### 阈值调整
+旧版 <10/10-15/15-20/20-25/≥25 间隔太密，新版拉大间隔让每个阶段有明确身份感。bloom（25-44min）区间最宽，覆盖经典番茄钟时长。
+
+### 金西瓜概率系统
+- `rollLegendary(pityCount)` 函数：10% 概率 + 保底（≥20 次必出）
+- 保底计数器存在 Warehouse.legendaryPity
+- `resolveStageAndStore()` 统一处理阶段判定 + 概率 + 存仓库 + 记录 lastRolledStage
+
+### 仓库数据
+- `useWarehouse` hook 封装所有仓库操作
+- localStorage key: `watermelon-warehouse`
+- 带 migration 函数，兼容未来字段扩展
+
+### 合成系统
+- 合成代价约为直接专注的 3-5 倍（故意不划算，鼓励长专注）
+- `synthesize(recipe, count)` 和 `synthesizeAll(recipe)` 两个操作
+- 合成动画用简单的背景色变化（600ms delay）
+
+### 改动文件
+- `src/types.ts` — legendary 阶段 + rollLegendary + Warehouse + SynthesisRecipe
+- `src/components/GrowthIcon.tsx` — 金西瓜 SVG
+- `src/components/CelebrationOverlay.tsx` — legendary 庆祝配置
+- `src/hooks/useWarehouse.ts` — 新建，仓库 hook
+- `src/components/WarehousePage.tsx` — 新建，仓库页面
+- `src/App.tsx` — 接入仓库 + 🎒 按钮 + resolveStageAndStore
+- `src/i18n/types.ts` — 新增 20+ 个文案字段
+- `src/i18n/locales/zh.ts` / `en.ts` — 仓库/合成/金西瓜文案
+- `package.json` — 0.7.1 → 0.8.0
+- 四个文档同步更新
+
+---
+
 ## v0.7.1 — 庆祝系统升级（2026-02-11）
 
 ### 需求背景

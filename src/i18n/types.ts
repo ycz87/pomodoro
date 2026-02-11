@@ -32,6 +32,29 @@ export interface Messages {
   celebrateBloom: readonly string[];
   celebrateGreen: readonly string[];
   celebrateRipe: readonly string[];
+  celebrateLegendary: readonly string[];
+
+  // Warehouse & Synthesis (v0.8.0)
+  warehouseTitle: string;
+  warehouseTotal: string;
+  warehouseHighest: string;
+  warehouseLocked: string;
+  warehouseLockedName: string;
+  synthesisTitle: string;
+  synthesisYouHave: (n: number) => string;
+  synthesisCanMake: (n: number, name: string) => string;
+  synthesisNotEnough: string;
+  synthesisSynthesize: string;
+  synthesisSynthesizeAll: string;
+  synthesisSuccess: (name: string) => string;
+  warehouseEmpty: string;
+  stageNameSeed: string;
+  stageNameSprout: string;
+  stageNameBloom: string;
+  stageNameGreen: string;
+  stageNameRipe: string;
+  stageNameLegendary: string;
+  legendaryUnlocked: string;
   settings: string;
   timerRunningHint: string;
   workDuration: string;

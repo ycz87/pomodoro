@@ -34,9 +34,11 @@ import { ProjectRecoveryModal } from './components/ProjectRecoveryModal';
 import { ConfirmModal } from './components/ConfirmModal';
 import { ProjectExitModal } from './components/ProjectExitModal';
 import { EncouragementBanner } from './components/EncouragementBanner';
+import { WarehousePage } from './components/WarehousePage';
 import { useTimer } from './hooks/useTimer';
 import type { TimerPhase } from './hooks/useTimer';
 import { useProjectTimer } from './hooks/useProjectTimer';
+import { useWarehouse } from './hooks/useWarehouse';
 import { ThemeProvider } from './hooks/useTheme';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useDragScroll } from './hooks/useDragScroll';
@@ -50,7 +52,7 @@ import { getTodayKey } from './utils/time';
 import { getStreak } from './utils/stats';
 import { I18nProvider, getMessages } from './i18n';
 import type { PomodoroRecord, PomodoroSettings } from './types';
-import { DEFAULT_SETTINGS, migrateSettings, THEMES, getGrowthStage, GROWTH_EMOJI } from './types';
+import { DEFAULT_SETTINGS, migrateSettings, THEMES, getGrowthStage, GROWTH_EMOJI, rollLegendary } from './types';
 import type { GrowthStage } from './types';
 import type { AppMode } from './types/project';
 import type { ProjectRecord } from './types/project';
@@ -61,11 +63,16 @@ function App() {
   const [projectRecords, setProjectRecords] = useLocalStorage<ProjectRecord[]>('pomodoro-project-records', []);
   const [settings, setSettings] = useLocalStorage<PomodoroSettings>('pomodoro-settings', DEFAULT_SETTINGS, migrateSettings);
   const [showHistory, setShowHistory] = useState(false);
+  const [showWarehouse, setShowWarehouse] = useState(false);
   const [mode, setMode] = useState<AppMode>('pomodoro');
   const [showGuide, setShowGuide] = useState(false);
+  const [lastRolledStage, setLastRolledStage] = useState<GrowthStage | null>(null);
 
   // PC drag-to-scroll (mouse drag = touch scroll)
   useDragScroll();
+
+  // Warehouse
+  const { warehouse, addItem, updatePity, synthesize, synthesizeAll, getHighestStage } = useWarehouse();
 
   // Modal states
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
@@ -109,11 +116,29 @@ function App() {
     };
   }, []);
 
+  /** Determine final growth stage including legendary roll, store to warehouse */
+  const resolveStageAndStore = useCallback((minutes: number): GrowthStage => {
+    if (minutes < 5) {
+      // <5min: no item stored, return seed for display only
+      setLastRolledStage('seed');
+      return 'seed';
+    }
+    let stage = getGrowthStage(minutes);
+    if (minutes >= 90) {
+      const gotLegendary = rollLegendary(warehouse.legendaryPity);
+      updatePity(gotLegendary);
+      if (gotLegendary) stage = 'legendary';
+    }
+    addItem(stage);
+    setLastRolledStage(stage);
+    return stage;
+  }, [warehouse.legendaryPity, updatePity, addItem]);
+
   const handleTimerComplete = useCallback((phase: TimerPhase) => {
     try {
       if (phase === 'work') {
         const taskName = currentTask.trim() || t.defaultTaskName(records.filter((r) => r.date === getTodayKey()).length + 1);
-        const stage = getGrowthStage(settings.workMinutes);
+        const stage = resolveStageAndStore(settings.workMinutes);
         const emoji = GROWTH_EMOJI[stage];
         const record: PomodoroRecord = {
           id: Date.now().toString(),
@@ -134,14 +159,14 @@ function App() {
       // Prevent timer completion errors from crashing the app
       console.error('[Timer] onComplete error:', err);
     }
-  }, [currentTask, records, setRecords, settings.alertSound, settings.alertRepeatCount, settings.workMinutes, t]);
+  }, [currentTask, records, setRecords, settings.alertSound, settings.alertRepeatCount, settings.workMinutes, t, resolveStageAndStore]);
 
   const handleSkipWork = useCallback((elapsedSeconds: number) => {
     try {
       const elapsedMinutes = Math.round(elapsedSeconds / 60);
       if (elapsedMinutes < 1) return;
       const taskName = currentTask.trim() || t.defaultTaskName(records.filter((r) => r.date === getTodayKey()).length + 1);
-      const stage = getGrowthStage(elapsedMinutes);
+      const stage = resolveStageAndStore(elapsedMinutes);
       const emoji = GROWTH_EMOJI[stage];
       const record: PomodoroRecord = {
         id: Date.now().toString(),
@@ -157,7 +182,7 @@ function App() {
     } catch (err) {
       console.error('[Timer] onSkipWork error:', err);
     }
-  }, [currentTask, records, setRecords, settings.alertSound, t]);
+  }, [currentTask, records, setRecords, settings.alertSound, t, resolveStageAndStore]);
 
   const timer = useTimer({ settings, onComplete: handleTimerComplete, onSkipWork: handleSkipWork });
 
@@ -215,8 +240,8 @@ function App() {
           return [{ id: Date.now().toString(), task: result.name, durationMinutes: incrementalMinutes, completedAt: result.completedAt, date: getTodayKey(), status: pomodoroStatus }, ...prev];
         });
       } else {
-        // Normal: create a new record
-        const stage = getGrowthStage(totalMinutes);
+        // Normal: create a new record + store to warehouse
+        const stage = result.status === 'completed' ? resolveStageAndStore(totalMinutes) : getGrowthStage(totalMinutes);
         const emoji = GROWTH_EMOJI[stage];
         const record: PomodoroRecord = {
           id: Date.now().toString(),
@@ -233,7 +258,7 @@ function App() {
       }
     }
     playAlertRepeated(settings.alertSound, 1);
-  }, [setRecords, settings.alertSound, t]);
+  }, [setRecords, settings.alertSound, t, resolveStageAndStore]);
 
   const handleProjectComplete = useCallback((record: ProjectRecord) => {
     setProjectRecords((prev) => [record, ...prev]);
@@ -349,9 +374,11 @@ function App() {
 
   const isWork = timer.phase === 'work';
 
-  // Celebration
-  const celebrationGrowthStage: GrowthStage | null = timer.celebrating ? getGrowthStage(settings.workMinutes) : null;
-  const celebrationIsRipe = settings.workMinutes >= 25;
+  // Celebration — use lastRolledStage if available (includes legendary), fallback to getGrowthStage
+  const celebrationGrowthStage: GrowthStage | null = timer.celebrating
+    ? (lastRolledStage ?? getGrowthStage(settings.workMinutes))
+    : null;
+  const celebrationIsRipe = celebrationGrowthStage === 'ripe' || celebrationGrowthStage === 'legendary';
 
   const isProjectActive = project.state !== null && project.state.phase !== 'setup';
   const bgColor = isProjectActive
@@ -392,8 +419,16 @@ function App() {
           {/* Center: Segmented Control */}
           <ModeSwitch mode={mode} onChange={setMode} disabled={isAnyTimerActive} />
 
-          {/* Right: history + settings */}
+          {/* Right: warehouse + history + settings */}
           <div className="flex items-center gap-0.5 flex-1 justify-end">
+            <button
+              onClick={() => setShowWarehouse(true)}
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer text-sm"
+              style={{ color: theme.textMuted }}
+              aria-label={t.warehouseTitle}
+            >
+              🎒
+            </button>
             <button
               onClick={() => setShowHistory(true)}
               className="w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer text-sm"
@@ -561,6 +596,17 @@ function App() {
 
         {/* Guide modal — triggered from settings */}
         <GuideButton externalShow={showGuide} onExternalClose={() => setShowGuide(false)} />
+
+        {/* Warehouse page */}
+        {showWarehouse && (
+          <WarehousePage
+            warehouse={warehouse}
+            onSynthesize={synthesize}
+            onSynthesizeAll={synthesizeAll}
+            highestStage={getHighestStage()}
+            onClose={() => setShowWarehouse(false)}
+          />
+        )}
       </div>
     </ThemeProvider>
     </I18nProvider>

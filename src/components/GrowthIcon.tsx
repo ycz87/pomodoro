@@ -115,12 +115,52 @@ function RipeIcon({ size }: { size: number }) {
   );
 }
 
+/** 金西瓜 — 金色西瓜 + 皇冠 + 金光 */
+function LegendaryIcon({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      {/* 金色光芒 */}
+      <circle cx="12" cy="13" r="10" fill="url(#legendary-glow)" opacity="0.3" />
+      <defs>
+        <radialGradient id="legendary-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="#fbbf24" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      {/* 整瓜（右半，背景）— 金色 */}
+      <path d="M14 5 C19 6 22 10 22 15 C22 20 18 23 14 23 C14 23 14 5 14 5Z" fill="#f59e0b" />
+      <path d="M16 6.5 C16.5 10 16.5 17 16 21" stroke="#d97706" strokeWidth="0.8" fill="none" />
+      <path d="M19 8.5 C19.5 11 19.5 16 19 20" stroke="#d97706" strokeWidth="0.8" fill="none" />
+      {/* 切面（左半）— 深金色 */}
+      <path d="M14 5 C9 6 4 9.5 3 15 C4 21 9 23 14 23 C14 23 14 5 14 5Z" fill="#fbbf24" />
+      <path d="M14 6.5 C10 7.5 5.5 10.5 5 15 C5.5 20 10 22 14 22.5" fill="#f59e0b" opacity="0.3" />
+      {/* 金色瓜皮边缘 */}
+      <path d="M14 5 C9 6 4 9.5 3 15 C4 21 9 23 14 23" stroke="#b45309" strokeWidth="1.8" fill="none" />
+      {/* 白色瓤皮 */}
+      <path d="M14 6 C9.5 7 5 10 4 15 C5 20.5 9.5 22.5 14 23" stroke="#fef3c7" strokeWidth="0.8" fill="none" />
+      {/* 金色西瓜籽 */}
+      <ellipse cx="9" cy="11.5" rx="0.8" ry="1.2" fill="#92400e" transform="rotate(-20 9 11.5)" />
+      <ellipse cx="7.5" cy="15" rx="0.8" ry="1.2" fill="#92400e" transform="rotate(10 7.5 15)" />
+      <ellipse cx="10" cy="18" rx="0.8" ry="1.2" fill="#92400e" transform="rotate(-5 10 18)" />
+      <ellipse cx="11.5" cy="14" rx="0.8" ry="1.2" fill="#92400e" transform="rotate(15 11.5 14)" />
+      {/* 皇冠 */}
+      <path d="M7 5 L8.5 2 L10.5 4 L12 1 L13.5 4 L15.5 2 L17 5 Z" fill="#fbbf24" />
+      <path d="M7 5 L8.5 2 L10.5 4 L12 1 L13.5 4 L15.5 2 L17 5" stroke="#d97706" strokeWidth="0.5" fill="none" />
+      {/* 皇冠宝石 */}
+      <circle cx="10.5" cy="3.8" r="0.5" fill="#ef4444" />
+      <circle cx="12" cy="2.5" r="0.6" fill="#ef4444" />
+      <circle cx="13.5" cy="3.8" r="0.5" fill="#ef4444" />
+    </svg>
+  );
+}
+
 const ICON_MAP: Record<GrowthStage, React.FC<{ size: number }>> = {
   seed: SeedIcon,
   sprout: SproutIcon,
   bloom: BloomIcon,
   green: GreenIcon,
   ripe: RipeIcon,
+  legendary: LegendaryIcon,
 };
 
 export function GrowthIcon({ stage, size = 22, className }: GrowthIconProps) {

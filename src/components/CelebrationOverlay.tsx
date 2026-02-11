@@ -65,6 +65,12 @@ const STAGE_CONFIG: Record<GrowthStage, StageConfig> = {
     colors: ['#fbbf24', '#f59e0b', '#f472b6', '#a78bfa', '#34d399', '#ef4444'],
     hasFireworks: true, hasConfetti: true, hasSpecialEffect: true,
   },
+  legendary: {
+    particleCount: 100, duration: 8000, enterMs: 600, exitMs: 2000,
+    iconSize: 130, glowLayers: 10, glowIntensity: 1.0,
+    colors: ['#fbbf24', '#f59e0b', '#fde68a', '#d97706', '#fef3c7', '#ef4444'],
+    hasFireworks: true, hasConfetti: true, hasSpecialEffect: true,
+  },
 };
 
 // ─── Particle types ───
@@ -315,6 +321,22 @@ function BackgroundLayer({ stage }: { stage: GrowthStage }) {
           }} />
         </div>
       );
+    case 'legendary':
+      return (
+        <div className={base}>
+          <div className="absolute inset-0 celeb-bg-ripe-flash" style={{
+            background: `
+              radial-gradient(ellipse 60% 60% at 50% 50%, rgba(251,191,36,0.4) 0%, transparent 60%),
+              radial-gradient(ellipse 40% 50% at 20% 60%, rgba(251,191,36,0.3) 0%, transparent 70%),
+              radial-gradient(ellipse 40% 50% at 80% 60%, rgba(251,191,36,0.3) 0%, transparent 70%),
+              radial-gradient(ellipse 50% 40% at 50% 30%, rgba(239,68,68,0.15) 0%, transparent 60%)
+            `,
+          }} />
+          <div className="absolute inset-0 celeb-bg-ripe-strobe" style={{
+            background: 'radial-gradient(ellipse 90% 70% at 50% 50%, rgba(251,191,36,0.15) 0%, transparent 60%)',
+          }} />
+        </div>
+      );
   }
 }
 
@@ -412,6 +434,7 @@ export function CelebrationOverlay({ stage, isRipe, onComplete }: CelebrationOve
       bloom: t.celebrateBloom,
       green: t.celebrateGreen,
       ripe: t.celebrateRipe,
+      legendary: t.celebrateLegendary,
     };
     const pool = pools[stage];
     return pool[Math.floor(Math.random() * pool.length)];

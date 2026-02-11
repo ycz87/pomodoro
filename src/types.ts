@@ -178,22 +178,57 @@ export function migrateSettings(raw: unknown): PomodoroSettings {
 }
 
 // ─── 西瓜生长阶段 ───
-export type GrowthStage = 'seed' | 'sprout' | 'bloom' | 'green' | 'ripe';
+export type GrowthStage = 'seed' | 'sprout' | 'bloom' | 'green' | 'ripe' | 'legendary';
 
-/** 根据专注时长返回生长阶段 */
+/** 根据专注时长返回生长阶段（不含 legendary 概率判定） */
 export function getGrowthStage(minutes: number): GrowthStage {
-  if (minutes < 10) return 'seed';
-  if (minutes < 15) return 'sprout';
-  if (minutes < 20) return 'bloom';
-  if (minutes < 25) return 'green';
-  return 'ripe';
+  if (minutes < 5) return 'seed'; // <5min 在调用侧判断是否给收获物
+  if (minutes < 15) return 'seed';
+  if (minutes < 25) return 'sprout';
+  if (minutes < 45) return 'bloom';
+  if (minutes < 60) return 'green';
+  if (minutes < 90) return 'ripe';
+  return 'ripe'; // ≥90min 默认 ripe，legendary 由概率判定
+}
+
+/** 判定 ≥90min 是否触发金西瓜（10% 概率 + 保底） */
+export function rollLegendary(pityCount: number): boolean {
+  if (pityCount >= 20) return true; // 保底
+  return Math.random() < 0.1;       // 10% 概率
 }
 
 /** 通知文案用的 emoji fallback（系统通知不支持 SVG） */
 export const GROWTH_EMOJI: Record<GrowthStage, string> = {
-  seed: '🌱', sprout: '🌿', bloom: '🌼', green: '🍈', ripe: '🍉',
+  seed: '🌱', sprout: '🌿', bloom: '🌼', green: '🍈', ripe: '🍉', legendary: '👑',
 };
 
 export const GROWTH_LABEL: Record<GrowthStage, string> = {
-  seed: '发芽', sprout: '幼苗', bloom: '开花', green: '青瓜', ripe: '成熟',
+  seed: '发芽', sprout: '幼苗', bloom: '开花', green: '青瓜', ripe: '成熟', legendary: '金西瓜',
 };
+
+// ─── 仓库系统 ───
+export interface Warehouse {
+  items: Record<GrowthStage, number>;
+  legendaryPity: number;   // 连续未出金西瓜次数
+  totalCollected: number;  // 历史总收获数
+}
+
+export const DEFAULT_WAREHOUSE: Warehouse = {
+  items: { seed: 0, sprout: 0, bloom: 0, green: 0, ripe: 0, legendary: 0 },
+  legendaryPity: 0,
+  totalCollected: 0,
+};
+
+// ─── 合成配方 ───
+export interface SynthesisRecipe {
+  from: GrowthStage;
+  to: GrowthStage;
+  cost: number;
+}
+
+export const SYNTHESIS_RECIPES: SynthesisRecipe[] = [
+  { from: 'seed', to: 'sprout', cost: 20 },
+  { from: 'sprout', to: 'bloom', cost: 15 },
+  { from: 'bloom', to: 'green', cost: 10 },
+  { from: 'green', to: 'ripe', cost: 5 },
+];
