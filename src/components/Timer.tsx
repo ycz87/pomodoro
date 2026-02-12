@@ -337,7 +337,6 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
         })()}
 
         {/* Health reminder toast — below time display */}
-        <Toast message={toast} durationMs={3500} />
 
         {/* Quick duration picker */}
         {showQuickPicker && status === 'idle' && isWork && (
@@ -366,6 +365,9 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
           </div>
         )}
       </div>
+
+      {/* Health reminder toast — below timer circle */}
+      <Toast message={toast} durationMs={3500} />
 
       {/* Controls */}
       <div className="flex items-center gap-3 sm:gap-4 h-16 mt-6">
