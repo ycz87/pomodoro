@@ -336,6 +336,9 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
           );
         })()}
 
+        {/* Health reminder toast — below time display */}
+        <Toast message={toast} durationMs={3500} />
+
         {/* Quick duration picker */}
         {showQuickPicker && status === 'idle' && isWork && (
           <div className="absolute -bottom-2 translate-y-full flex flex-wrap justify-center gap-1.5 px-4 py-2.5 rounded-2xl border animate-fade-up z-10"
@@ -456,8 +459,6 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
         )}
       </div>
 
-      {/* Toast for short-tap hint & health reminder */}
-      <Toast message={toast} durationMs={3500} />
     </div>
   );
 }

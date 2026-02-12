@@ -219,4 +219,4 @@ MIT
 
 ---
 
-**Current version: v0.9.0**
+**Current version: v0.9.1**

@@ -2,6 +2,17 @@
 
 ---
 
+## v0.9.1 — Toast 位置调整（2026-02-12）
+
+### 需求背景
+Charles 反馈 Toast 位置不够醒目，希望放在时钟数字正下方更清晰。
+
+### 改动
+- `src/components/Toast.tsx` — 去掉 `absolute -bottom-2` 定位，改为文档流元素 `mt-2`
+- `src/components/Timer.tsx` — 将 `<Toast>` 从组件底部移到时钟数字 `<span>` 之后、快捷选择器之前
+
+---
+
 ## v0.9.0 — 快捷选择器 Toast 提示（2026-02-12）
 
 ### 需求背景

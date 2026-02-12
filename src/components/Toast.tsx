@@ -48,7 +48,7 @@ export function Toast({ message, durationMs = 3500, className = '' }: ToastProps
 
   return (
     <div
-      className={`absolute -bottom-2 text-xs font-medium px-3 py-1.5 rounded-full z-20 transition-all duration-300 ${className}`}
+      className={`text-xs font-medium px-3 py-1.5 rounded-full z-20 transition-all duration-300 mt-2 ${className}`}
       style={{
         backgroundColor: `${theme.surface}ee`,
         color: theme.textMuted,
