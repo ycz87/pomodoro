@@ -160,8 +160,8 @@ export function AmbienceMixerModal({ config, onChange, onClose, keepOnClose }: P
                               type="range" min={0} max={1} step={0.01}
                               value={cfg.volume}
                               onChange={(e) => changeVolume(meta.id, parseFloat(e.target.value))}
-                              className="w-full h-1 rounded-full appearance-none cursor-pointer mt-1.5"
-                              style={{ accentColor: theme.accent }}
+                              className="w-full range-slider mt-1.5"
+                              style={{ '--range-accent': theme.accent, '--range-bg': 'rgba(255,255,255,0.12)', '--range-pct': `${Math.round(cfg.volume * 100)}%` } as React.CSSProperties}
                             />
                           )}
                         </div>
