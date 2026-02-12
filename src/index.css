@@ -362,3 +362,68 @@ body {
 .celeb-melon-roll-right {
   animation: celeb-melon-roll-right-anim 2s ease-out forwards;
 }
+
+/* ─── Range Slider (iOS-style) ─── */
+.range-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 5px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--range-accent) 0%,
+    var(--range-accent) var(--range-pct),
+    var(--range-bg) var(--range-pct),
+    var(--range-bg) 100%
+  );
+  outline: none;
+  cursor: pointer;
+}
+
+/* Thumb — Chrome / Safari */
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+.range-slider::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+/* Thumb — Firefox */
+.range-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.range-slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+}
+
+/* Track — Firefox (uses its own track element) */
+.range-slider::-moz-range-track {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--range-bg);
+}
+.range-slider::-moz-range-progress {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--range-accent);
+}

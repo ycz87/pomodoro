@@ -103,14 +103,19 @@ function VolumeSlider({ label, value, onChange }: {
   label: string; value: number; onChange: (v: number) => void;
 }) {
   const t = useTheme();
+  const pct = value; // 0-100
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="text-sm shrink-0" style={{ color: t.textMuted }}>{label}</div>
       <div className="flex items-center gap-2 flex-1 max-w-[160px]">
         <input type="range" min={0} max={100} value={value}
           onChange={(e) => onChange(parseInt(e.target.value, 10))}
-          className="flex-1 h-1 rounded-full appearance-none cursor-pointer accent-current"
-          style={{ accentColor: t.accent }} />
+          className="range-slider flex-1"
+          style={{
+            '--range-accent': t.accent,
+            '--range-bg': t.inputBg,
+            '--range-pct': `${pct}%`,
+          } as React.CSSProperties} />
         <span className="text-xs w-8 text-right tabular-nums" style={{ color: t.textMuted }}>{value}%</span>
       </div>
     </div>
