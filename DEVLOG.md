@@ -2,6 +2,29 @@
 
 ---
 
+## v0.8.3 — Slider 样式再优化（2026-02-12）
+
+### 需求背景
+Charles 反馈设置面板 Alert Volume 滑块在暗色主题下存在感不足，白色滑块质感偏弱，整体像浏览器默认控件。
+
+### 改动
+- `src/index.css`
+  - `.range-slider` 轨道高度 5px → 8px
+  - `::-webkit-slider-thumb` / `::-moz-range-thumb` 尺寸 18px → 22px
+  - thumb 增加 radial 渐变、accent 描边、外发光
+  - hover/active 增强发光与交互反馈
+  - Firefox `::-moz-range-track` / `::-moz-range-progress` 高度同步 8px
+- `src/components/Settings.tsx`
+  - `--range-bg` 改为固定 `rgba(255,255,255,0.12)`，增强未填充轨道可见性
+
+### 改动文件
+- `src/index.css`
+- `src/components/Settings.tsx`
+- `package.json`（0.8.2 → 0.8.3）
+- 四个文档同步
+
+---
+
 ## v0.8.2 — autoStartBreak UI 联动 + 提示文案位置（2026-02-12）
 
 ### 需求背景

@@ -113,7 +113,7 @@ function VolumeSlider({ label, value, onChange }: {
           className="range-slider flex-1"
           style={{
             '--range-accent': t.accent,
-            '--range-bg': t.inputBg,
+            '--range-bg': 'rgba(255,255,255,0.12)',
             '--range-pct': `${pct}%`,
           } as React.CSSProperties} />
         <span className="text-xs w-8 text-right tabular-nums" style={{ color: t.textMuted }}>{value}%</span>

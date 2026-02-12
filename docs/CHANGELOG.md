@@ -2,6 +2,20 @@
 
 ---
 
+## v0.8.3 — Alert Volume 滑块质感升级（2026-02-12）
+
+### Slider 视觉优化（P1）
+- Alert Volume 滑块轨道高度从 5px 提升到 8px，提升暗色主题可见性
+- 滑块尺寸从 18px 提升到 22px，增加视觉焦点
+- 滑块新增 accent 描边 + 外发光，hover/active 时发光更明显
+- Firefox 同步更新 `::-moz-range-track` / `::-moz-range-progress` / `::-moz-range-thumb`
+
+### 未填充轨道对比度增强
+- `Settings.tsx` 中 `--range-bg` 固定为 `rgba(255,255,255,0.12)`
+- 让未填充部分在深色背景下更清晰可见
+
+---
+
 ## v0.8.2 — autoStartBreak UI 联动 + 提示文案位置调整（2026-02-12）
 
 ### autoStartBreak 开关联动

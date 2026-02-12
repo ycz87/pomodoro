@@ -367,7 +367,7 @@ body {
 .range-slider {
   -webkit-appearance: none;
   appearance: none;
-  height: 5px;
+  height: 8px;
   border-radius: 999px;
   background: linear-gradient(
     to right,
@@ -384,46 +384,65 @@ body {
 .range-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  border: none;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #ffffff 35%, #f3f4f6 100%);
+  border: 2px solid color-mix(in oklab, var(--range-accent) 72%, #ffffff 28%);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.35),
+    0 0 0 4px color-mix(in oklab, var(--range-accent) 30%, transparent 70%);
   cursor: pointer;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .range-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
+  transform: scale(1.08);
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.4),
+    0 0 0 6px color-mix(in oklab, var(--range-accent) 45%, transparent 55%);
 }
 .range-slider::-webkit-slider-thumb:active {
-  transform: scale(1.05);
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  transform: scale(1.02);
+  box-shadow:
+    0 2px 7px rgba(0, 0, 0, 0.38),
+    0 0 0 7px color-mix(in oklab, var(--range-accent) 55%, transparent 45%);
 }
 
 /* Thumb — Firefox */
 .range-slider::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  border: none;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #ffffff 35%, #f3f4f6 100%);
+  border: 2px solid color-mix(in oklab, var(--range-accent) 72%, #ffffff 28%);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.35),
+    0 0 0 4px color-mix(in oklab, var(--range-accent) 30%, transparent 70%);
   cursor: pointer;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .range-slider::-moz-range-thumb:hover {
-  transform: scale(1.15);
+  transform: scale(1.08);
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.4),
+    0 0 0 6px color-mix(in oklab, var(--range-accent) 45%, transparent 55%);
+}
+.range-slider::-moz-range-thumb:active {
+  transform: scale(1.02);
+  box-shadow:
+    0 2px 7px rgba(0, 0, 0, 0.38),
+    0 0 0 7px color-mix(in oklab, var(--range-accent) 55%, transparent 45%);
 }
 
 /* Track — Firefox (uses its own track element) */
 .range-slider::-moz-range-track {
-  height: 5px;
+  height: 8px;
   border-radius: 999px;
   background: var(--range-bg);
 }
 .range-slider::-moz-range-progress {
-  height: 5px;
+  height: 8px;
   border-radius: 999px;
   background: var(--range-accent);
 }
+
