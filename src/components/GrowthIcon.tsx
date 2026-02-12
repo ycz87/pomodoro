@@ -1,6 +1,6 @@
 /**
  * GrowthIcon — 西瓜生长阶段 SVG 图标
- * 5 个阶段：种子发芽 → 幼苗 → 开花 → 青瓜 → 成熟西瓜
+ * 6 个阶段：种子发芽 → 幼苗 → 开花 → 小瓜（完整迷你西瓜）→ 大西瓜（完整大西瓜）→ 金西瓜
  */
 import type { GrowthStage } from '../types';
 
@@ -69,48 +69,61 @@ function BloomIcon({ size }: { size: number }) {
   );
 }
 
-/** 青瓜 — 小的浅绿/黄绿色未成熟西瓜 */
+/** 小瓜 — 小的、圆的、带深绿色条纹的完整迷你西瓜（未切开） */
 function GreenIcon({ size }: { size: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      {/* 藤 */}
-      <path d="M12 7 C12 5 13 4 14 3.5" stroke="#65a30d" strokeWidth="1" strokeLinecap="round" />
+      {/* 藤蒂 */}
+      <path d="M12 7.5 C12 6 12.5 5 13.5 4.5" stroke="#4d7c0f" strokeWidth="1.2" strokeLinecap="round" />
       {/* 小叶 */}
-      <path d="M13.5 4.5 C15 3.5 16.5 4 16 5 C15.5 6 14 5.5 13.5 4.5Z" fill="#a3e635" />
-      {/* 西瓜主体 — 浅绿/黄绿，比成熟的小 */}
-      <ellipse cx="12" cy="14.5" rx="6" ry="6.5" fill="#a3e635" />
-      {/* 浅色条纹 — 不太明显 */}
-      <path d="M9 9.5 C8.3 12 8.3 17 9 20" stroke="#84cc16" strokeWidth="0.9" strokeLinecap="round" fill="none" opacity="0.6" />
-      <path d="M12 8 C12 12 12 17 12 21" stroke="#84cc16" strokeWidth="0.9" strokeLinecap="round" fill="none" opacity="0.6" />
-      <path d="M15 9.5 C15.7 12 15.7 17 15 20" stroke="#84cc16" strokeWidth="0.9" strokeLinecap="round" fill="none" opacity="0.6" />
+      <path d="M13 5 C14.5 3.8 16 4.2 15.5 5.3 C15 6.2 13.5 5.8 13 5Z" fill="#65a30d" />
+      {/* 卷须 */}
+      <path d="M14 4.8 C15 4 16.5 4.5 16.8 3.5" stroke="#86efac" strokeWidth="0.6" fill="none" strokeLinecap="round" />
+      {/* 西瓜主体 — 深绿色小圆瓜 */}
+      <circle cx="12" cy="14.5" r="6.5" fill="#22c55e" />
+      {/* 深绿色条纹 */}
+      <path d="M8.5 9.5 C7.8 12 7.8 17 8.5 20" stroke="#15803d" strokeWidth="1.4" strokeLinecap="round" fill="none" />
+      <path d="M12 8 C12 12 12 17 12 21" stroke="#15803d" strokeWidth="1.4" strokeLinecap="round" fill="none" />
+      <path d="M15.5 9.5 C16.2 12 16.2 17 15.5 20" stroke="#15803d" strokeWidth="1.4" strokeLinecap="round" fill="none" />
+      {/* 浅色底纹 — 瓜皮质感 */}
+      <path d="M10 9 C9.5 12 9.5 17 10 20.5" stroke="#4ade80" strokeWidth="0.5" strokeLinecap="round" fill="none" opacity="0.5" />
+      <path d="M14 9 C14.5 12 14.5 17 14 20.5" stroke="#4ade80" strokeWidth="0.5" strokeLinecap="round" fill="none" opacity="0.5" />
       {/* 高光 */}
-      <ellipse cx="10" cy="12" rx="1.8" ry="2.5" fill="white" opacity="0.2" transform="rotate(-15 10 12)" />
+      <ellipse cx="9.5" cy="12" rx="1.5" ry="2.5" fill="white" opacity="0.18" transform="rotate(-15 9.5 12)" />
+      {/* 底部瓜脐 */}
+      <circle cx="12" cy="20.5" r="0.8" fill="#16a34a" opacity="0.5" />
     </svg>
   );
 }
 
-/** 成熟西瓜 — 切开露出红瓤 */
+/** 大西瓜 — 大的、饱满的、带深绿色条纹的完整西瓜（未切开） */
 function RipeIcon({ size }: { size: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      {/* 整瓜（右半，背景） */}
-      <path d="M14 3 C19 4 22 9 22 14 C22 19 18 22 14 22 C14 22 14 3 14 3Z" fill="#22c55e" />
-      <path d="M16 4.5 C16.5 8 16.5 16 16 20" stroke="#15803d" strokeWidth="0.8" fill="none" />
-      <path d="M19 6.5 C19.5 10 19.5 15 19 19" stroke="#15803d" strokeWidth="0.8" fill="none" />
-      {/* 切面（左半） */}
-      <path d="M14 3 C9 4 4 8 3 14 C4 20 9 22 14 22 C14 22 14 3 14 3Z" fill="#ef4444" />
-      {/* 红瓤渐变 */}
-      <path d="M14 4.5 C10 5.5 5.5 9 5 14 C5.5 19 10 21 14 21.5" fill="#dc2626" opacity="0.3" />
-      {/* 西瓜皮边缘 */}
-      <path d="M14 3 C9 4 4 8 3 14 C4 20 9 22 14 22" stroke="#16a34a" strokeWidth="1.8" fill="none" />
-      {/* 白色瓤皮 */}
-      <path d="M14 4 C9.5 5 5 8.5 4 14 C5 19.5 9.5 21.5 14 22" stroke="#bbf7d0" strokeWidth="0.8" fill="none" />
-      {/* 西瓜籽 */}
-      <ellipse cx="9" cy="10" rx="0.8" ry="1.2" fill="#1a1a1a" transform="rotate(-20 9 10)" />
-      <ellipse cx="7.5" cy="14" rx="0.8" ry="1.2" fill="#1a1a1a" transform="rotate(10 7.5 14)" />
-      <ellipse cx="10" cy="17" rx="0.8" ry="1.2" fill="#1a1a1a" transform="rotate(-5 10 17)" />
-      <ellipse cx="11.5" cy="13" rx="0.8" ry="1.2" fill="#1a1a1a" transform="rotate(15 11.5 13)" />
-      <ellipse cx="9" cy="18.5" rx="0.7" ry="1" fill="#1a1a1a" transform="rotate(-10 9 18.5)" />
+      {/* 藤蒂 */}
+      <path d="M12 4.5 C12 3 12.5 2.2 13.5 1.8" stroke="#4d7c0f" strokeWidth="1.4" strokeLinecap="round" />
+      {/* 叶子 */}
+      <path d="M13 2.5 C14.8 1 16.5 1.5 16 2.8 C15.4 4 13.5 3.5 13 2.5Z" fill="#65a30d" />
+      <path d="M11.5 3 C10 1.5 8 2 8.5 3.2 C9 4.2 11 3.8 11.5 3Z" fill="#65a30d" />
+      {/* 卷须 */}
+      <path d="M14 2 C15.5 1 17 1.8 17.5 0.8" stroke="#86efac" strokeWidth="0.6" fill="none" strokeLinecap="round" />
+      {/* 西瓜主体 — 深绿色大圆瓜，比小瓜大一圈 */}
+      <ellipse cx="12" cy="13.5" rx="9.5" ry="9" fill="#22c55e" />
+      {/* 深绿色条纹 — 更宽更明显 */}
+      <path d="M6 6 C4.8 9.5 4.8 17.5 6 21" stroke="#15803d" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      <path d="M9 4.8 C8.2 9 8.2 18 9 22" stroke="#15803d" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      <path d="M12 4.5 C12 9 12 18 12 22.5" stroke="#15803d" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      <path d="M15 4.8 C15.8 9 15.8 18 15 22" stroke="#15803d" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      <path d="M18 6 C19.2 9.5 19.2 17.5 18 21" stroke="#15803d" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      {/* 浅色底纹 — 瓜皮质感 */}
+      <path d="M7.5 5.5 C6.8 9.5 6.8 17.5 7.5 21.5" stroke="#4ade80" strokeWidth="0.5" strokeLinecap="round" fill="none" opacity="0.4" />
+      <path d="M10.5 4.5 C10 9 10 18 10.5 22.5" stroke="#4ade80" strokeWidth="0.5" strokeLinecap="round" fill="none" opacity="0.4" />
+      <path d="M13.5 4.5 C14 9 14 18 13.5 22.5" stroke="#4ade80" strokeWidth="0.5" strokeLinecap="round" fill="none" opacity="0.4" />
+      <path d="M16.5 5.5 C17.2 9.5 17.2 17.5 16.5 21.5" stroke="#4ade80" strokeWidth="0.5" strokeLinecap="round" fill="none" opacity="0.4" />
+      {/* 高光 */}
+      <ellipse cx="8" cy="10.5" rx="2" ry="3.5" fill="white" opacity="0.15" transform="rotate(-15 8 10.5)" />
+      {/* 底部瓜脐 */}
+      <circle cx="12" cy="22" r="1" fill="#16a34a" opacity="0.5" />
     </svg>
   );
 }

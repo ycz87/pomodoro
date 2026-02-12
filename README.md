@@ -166,7 +166,7 @@ src/
 ├── components/
 │   ├── Timer.tsx              # 核心计时器（圆形进度环 + 控制按钮）
 │   ├── CelebrationOverlay.tsx # 完成庆祝动画（粒子 + 弹跳图标）
-│   ├── GrowthIcon.tsx         # 西瓜生长阶段 SVG 图标（5 阶段）
+│   ├── GrowthIcon.tsx         # 西瓜生长阶段 SVG 图标（6 阶段）
 │   ├── HistoryPanel.tsx       # 历史记录 + 统计图表面板
 │   ├── MiniCalendar.tsx       # 月历日期选择器
 │   ├── BarChart.tsx           # 纯 SVG 柱状图
