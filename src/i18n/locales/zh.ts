@@ -388,4 +388,16 @@ export const zh: Messages = {
   // Long-press buttons
   holdToFinish: '长按以提前完成',
   holdToGiveUp: '长按以放弃',
+
+  // Auth
+  authTitle: '登录',
+  authEmailPlaceholder: '输入邮箱地址',
+  authSendCode: '发送验证码',
+  authSendFailed: '发送失败，请稍后重试',
+  authVerifyFailed: '验证码错误或已过期',
+  authOr: '或',
+  authGoogle: '使用 Google 登录',
+  authMicrosoft: '使用 Microsoft 登录',
+  authLoginToSync: '登录以同步数据',
+  authLogout: '退出',
 };

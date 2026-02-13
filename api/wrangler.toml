@@ -6,3 +6,7 @@ compatibility_date = "2026-02-13"
 binding = "DB"
 database_name = "watermelon-clock-db"
 database_id = "f96102d0-3dc7-4028-8ff1-151d3164e9a2"
+
+[[kv_namespaces]]
+binding = "SESSION_KV"
+id = "038921288aed4170b7bee72b0b457cf4"

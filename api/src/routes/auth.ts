@@ -1,0 +1,233 @@
+/**
+ * Auth routes — 9 endpoints for email code + OAuth + session management
+ */
+import { Hono } from 'hono'
+import type { Env } from '../index'
+import { signAccessToken, verifyAccessToken, generateRefreshTokenId } from '../services/jwt'
+import { sendVerificationEmail, generateCode } from '../services/email'
+import {
+  googleAuthUrl, googleExchangeCode, googleUserInfo,
+  microsoftAuthUrl, microsoftExchangeCode, microsoftUserInfo,
+} from '../services/oauth'
+import type { OAuthUserInfo } from '../services/oauth'
+import { authMiddleware } from '../middleware/auth'
+
+type AuthEnv = { Bindings: Env; Variables: { userId: string; email: string } }
+
+const FRONTEND_URL = 'https://watermelon-clock.pages.dev'
+const REFRESH_TOKEN_TTL = 30 * 24 * 60 * 60 // 30 days in seconds
+
+export const authRoutes = new Hono<AuthEnv>()
+
+// ─── Helpers ───
+
+async function findOrCreateUser(
+  db: D1Database, email: string, provider: string, name?: string, avatar?: string,
+): Promise<{ id: string; email: string; display_name: string | null; avatar_url: string | null }> {
+  const existing = await db.prepare('SELECT id, email, display_name, avatar_url FROM users WHERE email = ?').bind(email).first<{
+    id: string; email: string; display_name: string | null; avatar_url: string | null
+  }>()
+  if (existing) return existing
+
+  const id = crypto.randomUUID()
+  await db.prepare(
+    'INSERT INTO users (id, email, display_name, avatar_url, auth_provider) VALUES (?, ?, ?, ?, ?)',
+  ).bind(id, email, name || null, avatar || null, provider).run()
+  return { id, email, display_name: name || null, avatar_url: avatar || null }
+}
+
+async function issueTokens(
+  env: Env, userId: string, email: string,
+): Promise<{ accessToken: string; refreshTokenId: string }> {
+  const accessToken = await signAccessToken(env.JWT_SECRET, userId, email)
+  const refreshTokenId = generateRefreshTokenId()
+  await env.SESSION_KV.put(`refresh:${refreshTokenId}`, userId, { expirationTtl: REFRESH_TOKEN_TTL })
+  return { accessToken, refreshTokenId }
+}
+
+function setRefreshCookie(headers: Headers, refreshTokenId: string) {
+  headers.set(
+    'Set-Cookie',
+    `refresh_token=${refreshTokenId}; HttpOnly; Secure; SameSite=None; Path=/api/auth; Max-Age=${REFRESH_TOKEN_TTL}`,
+  )
+}
+
+function clearRefreshCookie(headers: Headers) {
+  headers.set(
+    'Set-Cookie',
+    'refresh_token=; HttpOnly; Secure; SameSite=None; Path=/api/auth; Max-Age=0',
+  )
+}
+
+function getRefreshTokenFromCookie(c: { req: { header: (name: string) => string | undefined } }): string | null {
+  const cookie = c.req.header('Cookie') || ''
+  const match = cookie.match(/refresh_token=([^;]+)/)
+  return match ? match[1] : null
+}
+
+// ─── 1. POST /email/send-code ───
+
+authRoutes.post('/email/send-code', async (c) => {
+  const body = await c.req.json<{ email?: string }>()
+  const email = body.email?.trim().toLowerCase()
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return c.json({ error: 'Invalid email' }, 400)
+  }
+
+  // Rate limit: 60s cooldown
+  const rateKey = `rate:${email}`
+  const existing = await c.env.SESSION_KV.get(rateKey)
+  if (existing) {
+    return c.json({ error: 'Please wait 60 seconds before requesting another code' }, 429)
+  }
+
+  const code = generateCode()
+  await c.env.SESSION_KV.put(`code:${email}`, code, { expirationTtl: 300 })
+  await c.env.SESSION_KV.put(rateKey, '1', { expirationTtl: 60 })
+
+  const sent = await sendVerificationEmail(c.env.RESEND_API_KEY, email, code)
+  if (!sent) {
+    return c.json({ error: 'Failed to send email' }, 500)
+  }
+
+  return c.json({ ok: true })
+})
+
+// ─── 2. POST /email/verify ───
+
+authRoutes.post('/email/verify', async (c) => {
+  const body = await c.req.json<{ email?: string; code?: string }>()
+  const email = body.email?.trim().toLowerCase()
+  const code = body.code?.trim()
+  if (!email || !code) return c.json({ error: 'Email and code required' }, 400)
+
+  const stored = await c.env.SESSION_KV.get(`code:${email}`)
+  if (!stored || stored !== code) {
+    return c.json({ error: 'Invalid or expired code' }, 400)
+  }
+
+  // Delete used code
+  await c.env.SESSION_KV.delete(`code:${email}`)
+
+  const user = await findOrCreateUser(c.env.DB, email, 'email')
+  const { accessToken, refreshTokenId } = await issueTokens(c.env, user.id, email)
+
+  const res = c.json({
+    accessToken,
+    user: { id: user.id, email: user.email, displayName: user.display_name, avatarUrl: user.avatar_url },
+  })
+  setRefreshCookie(res.headers, refreshTokenId)
+  return res
+})
+
+// ─── 3. GET /google/redirect ───
+
+authRoutes.get('/google/redirect', (c) => {
+  const state = crypto.randomUUID()
+  const redirectUri = `${new URL(c.req.url).origin}/api/auth/google/callback`
+  const url = googleAuthUrl(c.env.GOOGLE_CLIENT_ID, redirectUri, state)
+  return c.redirect(url)
+})
+
+// ─── 4. GET /google/callback ───
+
+authRoutes.get('/google/callback', async (c) => {
+  const code = c.req.query('code')
+  if (!code) return c.json({ error: 'Missing code' }, 400)
+
+  const redirectUri = `${new URL(c.req.url).origin}/api/auth/google/callback`
+  const tokens = await googleExchangeCode(c.env.GOOGLE_CLIENT_ID, c.env.GOOGLE_CLIENT_SECRET, code, redirectUri)
+  const info = await googleUserInfo(tokens.access_token)
+  return handleOAuthCallback(c.env, info)
+})
+
+// ─── 5. GET /microsoft/redirect ───
+
+authRoutes.get('/microsoft/redirect', (c) => {
+  const state = crypto.randomUUID()
+  const redirectUri = `${new URL(c.req.url).origin}/api/auth/microsoft/callback`
+  const url = microsoftAuthUrl(c.env.MICROSOFT_CLIENT_ID, redirectUri, state)
+  return c.redirect(url)
+})
+
+// ─── 6. GET /microsoft/callback ───
+
+authRoutes.get('/microsoft/callback', async (c) => {
+  const code = c.req.query('code')
+  if (!code) return c.json({ error: 'Missing code' }, 400)
+
+  const redirectUri = `${new URL(c.req.url).origin}/api/auth/microsoft/callback`
+  const tokens = await microsoftExchangeCode(c.env.MICROSOFT_CLIENT_ID, c.env.MICROSOFT_CLIENT_SECRET, code, redirectUri)
+  const info = await microsoftUserInfo(tokens.access_token)
+  return handleOAuthCallback(c.env, info)
+})
+
+async function handleOAuthCallback(env: Env, info: OAuthUserInfo): Promise<Response> {
+  const user = await findOrCreateUser(env.DB, info.email, info.provider, info.name, info.picture)
+  const { accessToken, refreshTokenId } = await issueTokens(env, user.id, info.email)
+
+  const redirectUrl = `${FRONTEND_URL}/?auth=success#access_token=${accessToken}`
+  const res = Response.redirect(redirectUrl, 302)
+  // Response.redirect returns immutable headers, so we create a new response
+  const mutableRes = new Response(res.body, {
+    status: res.status,
+    headers: new Headers(res.headers),
+  })
+  setRefreshCookie(mutableRes.headers, refreshTokenId)
+  return mutableRes
+}
+
+// ─── 7. POST /refresh ───
+
+authRoutes.post('/refresh', async (c) => {
+  const refreshTokenId = getRefreshTokenFromCookie(c)
+  if (!refreshTokenId) return c.json({ error: 'No refresh token' }, 401)
+
+  const userId = await c.env.SESSION_KV.get(`refresh:${refreshTokenId}`)
+  if (!userId) return c.json({ error: 'Invalid refresh token' }, 401)
+
+  // Get user email
+  const user = await c.env.DB.prepare('SELECT email FROM users WHERE id = ?').bind(userId).first<{ email: string }>()
+  if (!user) return c.json({ error: 'User not found' }, 401)
+
+  // Rotate refresh token
+  await c.env.SESSION_KV.delete(`refresh:${refreshTokenId}`)
+  const newAccessToken = await signAccessToken(c.env.JWT_SECRET, userId, user.email)
+  const newRefreshId = generateRefreshTokenId()
+  await c.env.SESSION_KV.put(`refresh:${newRefreshId}`, userId, { expirationTtl: REFRESH_TOKEN_TTL })
+
+  const res = c.json({ accessToken: newAccessToken })
+  setRefreshCookie(res.headers, newRefreshId)
+  return res
+})
+
+// ─── 8. POST /logout ───
+
+authRoutes.post('/logout', async (c) => {
+  const refreshTokenId = getRefreshTokenFromCookie(c)
+  if (refreshTokenId) {
+    await c.env.SESSION_KV.delete(`refresh:${refreshTokenId}`)
+  }
+  const res = c.json({ ok: true })
+  clearRefreshCookie(res.headers)
+  return res
+})
+
+// ─── 9. GET /me ───
+
+authRoutes.get('/me', authMiddleware, async (c) => {
+  const userId = c.get('userId')
+  const user = await c.env.DB.prepare(
+    'SELECT id, email, display_name, avatar_url, created_at FROM users WHERE id = ?',
+  ).bind(userId).first()
+  if (!user) return c.json({ error: 'User not found' }, 404)
+  return c.json({
+    user: {
+      id: user.id,
+      email: user.email,
+      displayName: user.display_name,
+      avatarUrl: user.avatar_url,
+      createdAt: user.created_at,
+    },
+  })
+})

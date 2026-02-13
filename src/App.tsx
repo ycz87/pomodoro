@@ -39,6 +39,7 @@ import { useTimer } from './hooks/useTimer';
 import type { TimerPhase } from './hooks/useTimer';
 import { useProjectTimer } from './hooks/useProjectTimer';
 import { useWarehouse } from './hooks/useWarehouse';
+import { useAuth } from './hooks/useAuth';
 import { ThemeProvider } from './hooks/useTheme';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useDragScroll } from './hooks/useDragScroll';
@@ -71,6 +72,9 @@ function App() {
 
   // PC drag-to-scroll (mouse drag = touch scroll)
   useDragScroll();
+
+  // Auth
+  const auth = useAuth();
 
   // Warehouse
   const { warehouse, addItem, addItems, updatePity, synthesize, synthesizeAll, getHighestStage, resetWarehouse } = useWarehouse();
@@ -487,6 +491,7 @@ function App() {
               isWorkRunning={(timer.status === 'running' && timer.phase === 'work') || isProjectWorking === true}
               onExport={handleExport}
               onShowGuide={() => setShowGuide(true)}
+              auth={auth}
               testMode={{ addItems, resetWarehouse }}
             />
           </div>

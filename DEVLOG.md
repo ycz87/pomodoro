@@ -2,6 +2,34 @@
 
 ---
 
+## v0.11.0 — 用户登录系统（2026-02-13）
+
+### 背景
+两周冲刺 Day 1-2 续，实现完整的用户认证系统，为后续数据同步做准备。
+
+### 改动
+- **基础设施**：创建 KV namespace `watermelon-clock-sessions`，配置 JWT_SECRET secret
+- **API 新增文件**：
+  - `api/src/services/jwt.ts`：Web Crypto API HMAC-SHA256 JWT 签发/验证
+  - `api/src/services/email.ts`：Resend API 发送验证码邮件
+  - `api/src/services/oauth.ts`：Google + Microsoft OAuth 流程
+  - `api/src/middleware/auth.ts`：JWT 认证中间件
+  - `api/src/routes/auth.ts`：9 个认证端点
+- **前端新增文件**：
+  - `src/hooks/useAuth.ts`：认证状态管理 hook
+  - `src/components/LoginPanel.tsx`：底部滑出登录面板
+  - `src/components/CodeInput.tsx`：6 格验证码输入组件
+  - `src/components/UserProfile.tsx`：用户信息/登录入口
+- **集成**：Settings 组件新增用户区域，App.tsx 接入 useAuth
+- **i18n**：新增 10 个 auth 相关翻译 key
+
+### 技术决策
+- JWT 用 Web Crypto API 原生实现，不引入 jsonwebtoken 等外部库
+- Refresh Token 通过 httpOnly cookie 传递，Access Token 存 localStorage
+- OAuth 回调通过 URL fragment 传递 access token，避免 token 出现在服务端日志
+
+---
+
 ## v0.10.0 — Workers API 骨架 + GitHub Actions（2026-02-13）
 
 ### 背景

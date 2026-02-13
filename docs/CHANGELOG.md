@@ -1,3 +1,23 @@
+## v0.11.0 — 用户登录系统（2026-02-13）
+
+### 新增
+- 邮箱验证码登录：6 位数字验证码，Resend API 发送，KV 存储，5 分钟过期
+- Google OAuth 登录
+- Microsoft OAuth 登录
+- JWT 认证：Access Token（15 分钟）+ Refresh Token（30 天，httpOnly cookie）
+- Web Crypto API HMAC-SHA256 签名，零外部依赖
+- KV namespace 用于会话管理（验证码 + refresh token）
+- 9 个 API 端点：send-code、verify、google/redirect、google/callback、microsoft/redirect、microsoft/callback、refresh、logout、me
+- 认证中间件：验证 JWT，注入 userId
+- 前端 LoginPanel：底部滑出半屏弹窗，300ms 滑入/滑出动画
+- CodeInput 组件：6 格独立验证码输入，自动聚焦、支持粘贴
+- UserProfile 组件：设置页顶部显示用户信息或登录入口
+- useAuth hook：token 管理、自动刷新、OAuth 回调处理
+- 全 5 套主题适配
+- 中英文 i18n 支持
+
+---
+
 ## v0.10.0 — Workers API 骨架 + GitHub Actions 自动部署（2026-02-13）
 
 ### 新增

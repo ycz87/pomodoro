@@ -1,8 +1,16 @@
 import { Hono } from 'hono'
 import { healthRoutes } from './routes/health'
+import { authRoutes } from './routes/auth'
 
 export type Env = {
   DB: D1Database
+  SESSION_KV: KVNamespace
+  JWT_SECRET: string
+  RESEND_API_KEY: string
+  GOOGLE_CLIENT_ID: string
+  GOOGLE_CLIENT_SECRET: string
+  MICROSOFT_CLIENT_ID: string
+  MICROSOFT_CLIENT_SECRET: string
 }
 
 const app = new Hono<{ Bindings: Env }>().basePath('/api')
@@ -23,6 +31,7 @@ app.use('*', async (c, next) => {
     c.res.headers.set('Access-Control-Allow-Origin', origin)
     c.res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
     c.res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    c.res.headers.set('Access-Control-Allow-Credentials', 'true')
     c.res.headers.set('Access-Control-Max-Age', '86400')
   }
 })
@@ -32,6 +41,7 @@ app.options('*', (c) => c.body(null, 204))
 
 // Routes
 app.route('/health', healthRoutes)
+app.route('/auth', authRoutes)
 
 // 404
 app.notFound((c) => c.json({ error: 'Not Found' }, 404))

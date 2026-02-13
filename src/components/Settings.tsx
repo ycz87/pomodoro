@@ -13,6 +13,9 @@ import { useI18n } from '../i18n';
 import type { Locale } from '../i18n';
 import { AmbienceMixerModal } from './AmbienceMixerModal';
 import { AlertPickerModal } from './AlertPickerModal';
+import { UserProfile } from './UserProfile';
+import { LoginPanel } from './LoginPanel';
+import type { User } from '../hooks/useAuth';
 
 interface SettingsProps {
   settings: PomodoroSettings;
@@ -21,6 +24,12 @@ interface SettingsProps {
   isWorkRunning: boolean;
   onExport: () => void;
   onShowGuide?: () => void;
+  auth?: {
+    user: User | null;
+    isLoading: boolean;
+    login: (token: string) => Promise<void>;
+    logout: () => Promise<void>;
+  };
   testMode?: {
     addItems: (stage: import('../types').GrowthStage, count: number) => void;
     resetWarehouse: () => void;
@@ -126,10 +135,11 @@ const REPEAT_OPTIONS = [1, 2, 3, 5, 0];
 const LOCALE_LABELS: Record<Locale, string> = { zh: '中文', en: 'EN' };
 // Divider color is now theme-aware via theme.border
 
-export function Settings({ settings, onChange, disabled, isWorkRunning, onExport, onShowGuide, testMode }: SettingsProps) {
+export function Settings({ settings, onChange, disabled, isWorkRunning, onExport, onShowGuide, auth, testMode }: SettingsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showAmbienceModal, setShowAmbienceModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
+  const [showLoginPanel, setShowLoginPanel] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const theme = useTheme();
   const i18n = useI18n();
@@ -190,6 +200,19 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
           <div className="absolute right-0 top-12 w-[calc(100vw-1.5rem)] sm:w-80 p-4 sm:p-5 rounded-2xl border shadow-2xl z-50 animate-fade-up max-h-[75vh] overflow-y-auto settings-scrollbar"
             style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
             <div className="flex flex-col">
+              {/* ── 👤 Account ── */}
+              {auth && (
+                <>
+                  <UserProfile
+                    user={auth.user}
+                    isLoading={auth.isLoading}
+                    onLoginClick={() => { setShowLoginPanel(true); setIsOpen(false); }}
+                    onLogout={auth.logout}
+                  />
+                  <div className="border-t mt-4 pt-4" style={{ borderColor: theme.border }} />
+                </>
+              )}
+
               {disabled && (
                 <div className="text-xs mb-4" style={{ color: '#fbbf24' }}>{i18n.timerRunningHint}</div>
               )}
@@ -403,6 +426,13 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
           onClose={() => setShowAlertModal(false)}
         />,
         document.body,
+      )}
+      {auth && (
+        <LoginPanel
+          open={showLoginPanel}
+          onClose={() => setShowLoginPanel(false)}
+          onLogin={auth.login}
+        />
       )}
     </>
   );

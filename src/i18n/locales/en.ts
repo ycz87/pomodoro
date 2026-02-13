@@ -388,4 +388,16 @@ export const en: Messages = {
   // Long-press buttons
   holdToFinish: 'Hold to finish early',
   holdToGiveUp: 'Hold to give up',
+
+  // Auth
+  authTitle: 'Sign In',
+  authEmailPlaceholder: 'Enter your email',
+  authSendCode: 'Send Code',
+  authSendFailed: 'Failed to send, please try again',
+  authVerifyFailed: 'Invalid or expired code',
+  authOr: 'or',
+  authGoogle: 'Continue with Google',
+  authMicrosoft: 'Continue with Microsoft',
+  authLoginToSync: 'Sign in to sync data',
+  authLogout: 'Sign Out',
 };

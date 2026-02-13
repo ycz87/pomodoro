@@ -258,4 +258,16 @@ export interface Messages {
   // Long-press buttons
   holdToFinish: string;
   holdToGiveUp: string;
+
+  // Auth (v0.11.0)
+  authTitle: string;
+  authEmailPlaceholder: string;
+  authSendCode: string;
+  authSendFailed: string;
+  authVerifyFailed: string;
+  authOr: string;
+  authGoogle: string;
+  authMicrosoft: string;
+  authLoginToSync: string;
+  authLogout: string;
 }
