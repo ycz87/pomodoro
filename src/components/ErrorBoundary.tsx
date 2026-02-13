@@ -21,6 +21,10 @@ interface State {
 const ERROR_LOG_ID = 'wm-error-overlay';
 
 function showGlobalError(msg: string): void {
+  if (import.meta.env.PROD) {
+    console.error(msg);
+    return;
+  }
   let el = document.getElementById(ERROR_LOG_ID);
   if (!el) {
     el = document.createElement('div');
@@ -42,6 +46,9 @@ function showGlobalError(msg: string): void {
 
 /** Install global error handlers — call once at app startup */
 export function installGlobalErrorHandlers(): void {
+  // 生产环境不显示错误 overlay，只在开发环境显示
+  if (import.meta.env.PROD) return;
+
   window.addEventListener('error', (e) => {
     showGlobalError(`ERROR: ${e.message}\n  at ${e.filename}:${e.lineno}:${e.colno}`);
   });
