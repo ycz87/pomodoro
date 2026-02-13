@@ -22,11 +22,11 @@ export function clearStoredAuth() {
   localStorage.removeItem('admin_email')
 }
 
-export async function sendCode(email: string): Promise<{ ok: boolean; error?: string }> {
+export async function sendCode(email: string, turnstileToken: string): Promise<{ ok: boolean; error?: string }> {
   const res = await fetch(`${AUTH_BASE}/auth/email/send-code`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, turnstileToken }),
   })
   if (!res.ok) {
     const data = await res.json().catch(() => ({})) as Record<string, unknown>

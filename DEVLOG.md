@@ -2,6 +2,12 @@
 
 ---
 
+## Cloudflare Turnstile 防机器人验证（2026-02-13）
+
+在 email send-code 端点集成 Cloudflare Turnstile 人机验证，防止滥用邮件发送。后端新增 `verifyTurnstile` 服务和 `TURNSTILE_SECRET` 环境变量；前端（西瓜时钟 + Admin）在登录面板邮箱输入下方添加 Turnstile widget，发送验证码时携带 token。当前使用 Cloudflare 测试 key，部署前需替换为真实 key。OAuth 登录不受影响。
+
+---
+
 ## v0.15.0 — 管理后台：用户管理（2026-02-13）
 
 ### 背景

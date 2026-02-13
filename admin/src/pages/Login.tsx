@@ -1,5 +1,8 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile'
 import { sendCode, verifyCode } from '../auth'
+
+const TURNSTILE_SITE_KEY = '1x00000000000000000000AA' // Cloudflare test key — replace with real key after creating widget
 
 export function Login({ onLogin }: { onLogin: () => void }) {
   const [email, setEmail] = useState('')
@@ -7,15 +10,23 @@ export function Login({ onLogin }: { onLogin: () => void }) {
   const [step, setStep] = useState<'email' | 'code'>('email')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const turnstileRef = useRef<TurnstileInstance>(null)
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault()
+    if (!turnstileToken) {
+      setError('请完成人机验证')
+      return
+    }
     setLoading(true)
     setError('')
-    const result = await sendCode(email)
+    const result = await sendCode(email, turnstileToken)
     setLoading(false)
     if (result.ok) {
       setStep('code')
+      setTurnstileToken(null)
+      turnstileRef.current?.reset()
     } else {
       setError(result.error || 'Failed to send code')
     }
@@ -57,10 +68,19 @@ export function Login({ onLogin }: { onLogin: () => void }) {
               required
               autoFocus
             />
+            <div className="flex justify-center my-4">
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={TURNSTILE_SITE_KEY}
+                onSuccess={setTurnstileToken}
+                onExpire={() => setTurnstileToken(null)}
+                options={{ theme: 'light' }}
+              />
+            </div>
             <button
               type="submit"
               disabled={loading || !email}
-              className="mt-4 w-full py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? '发送中...' : '发送验证码'}
             </button>

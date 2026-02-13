@@ -3,11 +3,13 @@
  */
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile'
 import { useTheme } from '../hooks/useTheme'
 import { useI18n } from '../i18n'
 import { CodeInput } from './CodeInput'
 
 const AUTH_BASE = 'https://auth.cosmelon.app'
+const TURNSTILE_SITE_KEY = '1x00000000000000000000AA' // Cloudflare test key — replace with real key after creating widget
 
 interface LoginPanelProps {
   open: boolean
@@ -27,7 +29,9 @@ export function LoginPanel({ open, onClose, onLogin }: LoginPanelProps) {
   const [cooldown, setCooldown] = useState(0)
   const [visible, setVisible] = useState(false)
   const [animating, setAnimating] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const panelRef = useRef<HTMLDivElement>(null)
+  const turnstileRef = useRef<TurnstileInstance>(null)
 
   // Slide-in animation
   useEffect(() => {
@@ -66,17 +70,23 @@ export function LoginPanel({ open, onClose, onLogin }: LoginPanelProps) {
 
   const handleSendCode = async () => {
     if (!email.trim() || sending) return
+    if (!turnstileToken) {
+      setError('Please complete the verification')
+      return
+    }
     setError('')
     setSending(true)
     try {
       const res = await fetch(`${AUTH_BASE}/auth/email/send-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: email.trim(), turnstileToken }),
       })
       if (res.ok) {
         setCodeSent(true)
         setCooldown(60)
+        setTurnstileToken(null)
+        turnstileRef.current?.reset()
       } else {
         const data = await res.json() as { error?: string }
         setError(data.error || i18n.authSendFailed)
@@ -198,6 +208,19 @@ export function LoginPanel({ open, onClose, onLogin }: LoginPanelProps) {
             </button>
           </div>
         </div>
+
+        {/* Turnstile — only before code is sent */}
+        {!codeSent && (
+          <div className="flex justify-center my-3">
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={TURNSTILE_SITE_KEY}
+              onSuccess={setTurnstileToken}
+              onExpire={() => setTurnstileToken(null)}
+              options={{ theme: theme.surface === '#ffffff' ? 'light' : 'dark' }}
+            />
+          </div>
+        )}
 
         {/* Code input — slides in */}
         <div

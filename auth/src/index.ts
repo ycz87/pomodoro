@@ -11,6 +11,7 @@ export type Env = {
   GOOGLE_CLIENT_SECRET: string
   MICROSOFT_CLIENT_ID: string
   MICROSOFT_CLIENT_SECRET: string
+  TURNSTILE_SECRET: string
 }
 
 const app = new Hono<{ Bindings: Env }>().basePath('/auth')

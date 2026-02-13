@@ -11,6 +11,7 @@ import {
 } from '../services/oauth'
 import type { OAuthUserInfo } from '../services/oauth'
 import { authMiddleware } from '../middleware/auth'
+import { verifyTurnstile } from '../services/turnstile'
 
 type AuthEnv = { Bindings: Env; Variables: { userId: string; email: string } }
 
@@ -68,7 +69,19 @@ function getRefreshTokenFromCookie(c: { req: { header: (name: string) => string 
 // ─── 1. POST /email/send-code ───
 
 authRoutes.post('/email/send-code', async (c) => {
-  const body = await c.req.json<{ email?: string }>()
+  const body = await c.req.json<{ email?: string; turnstileToken?: string }>()
+
+  // Turnstile verification
+  const turnstileToken = body.turnstileToken
+  if (!turnstileToken) {
+    return c.json({ error: 'Turnstile verification required' }, 403)
+  }
+  const ip = c.req.header('CF-Connecting-IP') || undefined
+  const turnstileOk = await verifyTurnstile(c.env.TURNSTILE_SECRET, turnstileToken, ip)
+  if (!turnstileOk) {
+    return c.json({ error: 'Turnstile verification failed' }, 403)
+  }
+
   const email = body.email?.trim().toLowerCase()
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return c.json({ error: 'Invalid email' }, 400)
