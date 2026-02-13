@@ -2,6 +2,41 @@
 
 ---
 
+## v0.15.0 — 管理后台：用户管理（2026-02-13）
+
+### 背景
+需要一个管理后台来查看和管理用户，包括用户列表、详情、禁用/启用等操作。
+
+### 改动
+
+#### 数据库
+- `api/src/db/schema.sql`：users 表新增 `role`（'user'|'admin'）、`status`（'active'|'disabled'）、`last_active_at` 三个字段
+- ALTER TABLE 语句需要手动在 D1 上执行
+
+#### API 后端
+- `api/src/middleware/auth.ts`：重构，提取 `verifyAccessToken` 和 `extractBearerToken` 为可复用函数
+- `api/src/middleware/admin.ts`：新建，JWT 验证 + D1 查 role=admin
+- `api/src/routes/admin.ts`：新建，3 个端点
+  - `GET /api/admin/users`：分页用户列表 + 搜索
+  - `GET /api/admin/users/:id`：用户详情 + 专注统计
+  - `PUT /api/admin/users/:id/status`：禁用/启用用户
+- `api/src/index.ts`：挂载 admin 路由，CORS 新增 admin.cosmelon.app
+- `auth/src/index.ts`：CORS 新增 admin.cosmelon.app
+
+#### Admin 前端（新建 admin/ 目录）
+- React 19 + Vite 7 + Tailwind CSS 4，纯 SPA（无 PWA）
+- 邮箱验证码登录（复用 auth.cosmelon.app）
+- Hash router：用户列表（#/）、用户详情（#/users/:id）
+- 用户列表：搜索、分页、头像/昵称/邮箱/状态
+- 用户详情：基本信息 + 专注统计 + 禁用/启用操作
+
+### 部署说明（需要 Charles 手动操作）
+- D1 执行 ALTER TABLE 添加 role/status/last_active_at 字段
+- api Workers 重新部署
+- Cloudflare Pages 创建新项目 cosmelon-admin，绑定 admin.cosmelon.app，构建目录 admin/dist
+
+---
+
 ## v0.14.0 — 云端数据同步（2026-02-13）
 
 ### 背景

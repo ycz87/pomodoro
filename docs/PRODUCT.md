@@ -9,7 +9,7 @@
 - **技术栈：** React 19 + Vite 7 + Tailwind CSS 4 + TypeScript
 - **后端：** Cloudflare Workers（Hono）— API（watermelon-clock-api）+ Auth（cosmelon-auth）+ D1 数据库
 - **部署：** Cloudflare Pages（前端）+ Cloudflare Workers（API + Auth）
-- **域名：** clock.cosmelon.app（前端）、api.clock.cosmelon.app（业务 API）、auth.cosmelon.app（认证服务）
+- **域名：** clock.cosmelon.app（前端）、api.clock.cosmelon.app（业务 API）、auth.cosmelon.app（认证服务）、admin.cosmelon.app（管理后台）
 - **CI/CD：** GitHub Actions（push main 自动部署）
 
 ## 产品定位
@@ -47,6 +47,12 @@
 - 本地优先策略：先写 localStorage，异步推云端，离线可用
 - 首次登录自动迁移本地数据到云端
 - 未登录用户不受影响，继续使用 localStorage
+
+### 管理后台（admin.cosmelon.app）
+- 邮箱验证码登录（复用 auth 服务），仅 role=admin 可访问
+- 用户列表：分页、搜索（邮箱/昵称）、头像/昵称/邮箱/登录方式/状态/注册时间
+- 用户详情：基本信息 + 专注统计（总时长/总次数/近 7 天）
+- 用户管理：禁用/启用用户
 
 ### 项目计时模式
 - 创建项目，添加多个子任务（名称 + 预计时间 + 休息时间）

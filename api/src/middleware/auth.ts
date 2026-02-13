@@ -5,7 +5,7 @@
 import type { Context, Next } from 'hono'
 import type { Env } from '../index'
 
-interface JwtPayload {
+export interface JwtPayload {
   userId: string
   email: string
   iat: number
@@ -25,7 +25,8 @@ async function getKey(secret: string): Promise<CryptoKey> {
   return crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify'])
 }
 
-async function verifyAccessToken(secret: string, token: string): Promise<JwtPayload | null> {
+/** Verify a JWT access token. Shared by auth and admin middleware. */
+export async function verifyAccessToken(secret: string, token: string): Promise<JwtPayload | null> {
   const parts = token.split('.')
   if (parts.length !== 3) return null
   const key = await getKey(secret)
@@ -39,12 +40,17 @@ async function verifyAccessToken(secret: string, token: string): Promise<JwtPayl
   return payload
 }
 
+/** Extract Bearer token from Authorization header and verify JWT. */
+export function extractBearerToken(authHeader: string | undefined): string | null {
+  if (!authHeader?.startsWith('Bearer ')) return null
+  return authHeader.slice(7)
+}
+
 export async function authMiddleware(c: Context<{ Bindings: Env; Variables: { userId: string; email: string } }>, next: Next) {
-  const authHeader = c.req.header('Authorization')
-  if (!authHeader?.startsWith('Bearer ')) {
+  const token = extractBearerToken(c.req.header('Authorization'))
+  if (!token) {
     return c.json({ error: 'Unauthorized' }, 401)
   }
-  const token = authHeader.slice(7)
   const payload = await verifyAccessToken(c.env.JWT_SECRET, token)
   if (!payload) {
     return c.json({ error: 'Invalid or expired token' }, 401)

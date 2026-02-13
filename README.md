@@ -43,6 +43,13 @@
 - **个人资料编辑** — 点击头像上传新头像（Canvas 裁剪 256x256，R2 存储），点击昵称编辑修改
 - **云端数据同步** — 登录后设置、专注记录、仓库数据自动同步，跨设备可用，本地优先
 
+### 管理后台 🛠️
+- **用户管理** — 查看所有用户列表，搜索邮箱/昵称，分页浏览
+- **用户详情** — 查看用户基本信息 + 专注统计（总时长/次数/近 7 天）
+- **禁用/启用** — 管理用户状态
+- **权限控制** — 仅 role=admin 的用户可访问，JWT + D1 双重验证
+- **独立部署** — admin.cosmelon.app，React 19 + Vite 7 + Tailwind CSS 4
+
 ### 西瓜生长系统
 自定义 SVG 图标，根据专注时长显示不同生长阶段：
 - 🌱 小芽（5-15min）→ 🌿 幼苗（16-25min）→ 🌼 小花（26-45min）→ 🍈 小瓜（46-60min）→ 🍉 大西瓜（61-90min）→ 👑 金西瓜（61-90min，10% 概率）
@@ -223,6 +230,7 @@ src/
 └── main.tsx                   # 入口
 api/                           # Cloudflare Workers — 业务 API
 auth/                          # Cloudflare Workers — 认证服务
+admin/                         # 管理后台（React SPA）
 src-tauri/                     # Tauri 桌面应用（Rust）
 ```
 
@@ -232,4 +240,4 @@ MIT
 
 ---
 
-**Current version: v0.13.0**
+**Current version: v0.15.0**

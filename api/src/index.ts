@@ -3,6 +3,7 @@ import { healthRoutes } from './routes/health'
 import { settingsRoutes } from './routes/settings'
 import { recordsRoutes } from './routes/records'
 import { warehouseRoutes } from './routes/warehouse'
+import { adminRoutes } from './routes/admin'
 
 export type Env = {
   DB: D1Database
@@ -18,6 +19,7 @@ app.use('*', async (c, next) => {
     'https://clock.cosmelon.app',
     'https://watermelon-clock.pages.dev',
     'https://pomodoro-puce-seven-98.vercel.app',
+    'https://admin.cosmelon.app',
   ]
   const isLocalhost = /^https?:\/\/localhost(:\d+)?$/.test(origin)
   const isAllowed = allowed.includes(origin) || isLocalhost
@@ -41,6 +43,7 @@ app.route('/health', healthRoutes)
 app.route('/settings', settingsRoutes)
 app.route('/records', recordsRoutes)
 app.route('/warehouse', warehouseRoutes)
+app.route('/admin', adminRoutes)
 
 // 404
 app.notFound((c) => c.json({ error: 'Not Found' }, 404))

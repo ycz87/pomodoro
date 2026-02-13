@@ -56,3 +56,8 @@ CREATE INDEX IF NOT EXISTS idx_focus_records_user_id ON focus_records(user_id);
 CREATE INDEX IF NOT EXISTS idx_focus_records_started_at ON focus_records(user_id, started_at);
 CREATE INDEX IF NOT EXISTS idx_inventory_user_id ON inventory(user_id);
 CREATE INDEX IF NOT EXISTS idx_synthesis_log_user_id ON synthesis_log(user_id);
+
+-- v0.15.0: Admin support
+ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user';
+ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'active';
+ALTER TABLE users ADD COLUMN last_active_at TEXT;

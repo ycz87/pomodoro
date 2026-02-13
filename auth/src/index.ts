@@ -22,6 +22,7 @@ app.use('*', async (c, next) => {
     'https://clock.cosmelon.app',
     'https://watermelon-clock.pages.dev',
     'https://pomodoro-puce-seven-98.vercel.app',
+    'https://admin.cosmelon.app',
   ]
   const isLocalhost = /^https?:\/\/localhost(:\d+)?$/.test(origin)
   const isAllowed = allowed.includes(origin) || isLocalhost

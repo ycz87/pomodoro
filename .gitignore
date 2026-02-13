@@ -33,4 +33,6 @@ api/node_modules
 api/.dev.vars
 auth/node_modules
 auth/.dev.vars
+admin/node_modules
+admin/dist
 .wrangler

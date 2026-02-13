@@ -1,3 +1,19 @@
+## v0.15.0 — 管理后台：用户管理（2026-02-13）
+
+### 新增
+- Admin 后台（admin.cosmelon.app）：用户列表、搜索、详情、禁用/启用
+- Admin API：GET /api/admin/users、GET /api/admin/users/:id、PUT /api/admin/users/:id/status
+- Admin 中间件：JWT 验证 + role=admin 检查
+- users 表新增 role、status、last_active_at 字段
+- CORS 新增 admin.cosmelon.app
+
+### 技术细节
+- Admin 前端：React 19 + Vite 7 + Tailwind CSS 4，hash router，纯 SPA
+- auth middleware 重构：JWT 验证逻辑提取为共享函数
+- 邮箱验证码登录复用 auth.cosmelon.app
+
+---
+
 ## v0.14.0 — 云端数据同步（2026-02-13）
 
 ### 新增

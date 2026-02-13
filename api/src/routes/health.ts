@@ -14,7 +14,7 @@ healthRoutes.get('/', async (c) => {
 
   return c.json({
     status: 'ok',
-    version: '0.14.0',
+    version: '0.15.0',
     timestamp: new Date().toISOString(),
     db: dbStatus,
   })
