@@ -82,7 +82,7 @@ authRoutes.post('/email/send-code', async (c) => {
   }
 
   const code = generateCode()
-  await c.env.SESSION_KV.put(`code:${email}`, code, { expirationTtl: 300 })
+  await c.env.SESSION_KV.put(`code:${email}`, code, { expirationTtl: 900 })
   await c.env.SESSION_KV.put(rateKey, '1', { expirationTtl: 60 })
 
   const sent = await sendVerificationEmail(c.env.RESEND_API_KEY, email, code)

@@ -25,13 +25,13 @@ export async function sendVerificationEmail(
 
           <p style="color: #555; font-size: 14px; margin: 0 0 8px;">Your verification code is:</p>
           <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #111; padding: 16px 0; text-align: center;">${code}</div>
-          <p style="color: #999; font-size: 12px; margin: 0 0 24px;">This code expires in 5 minutes.</p>
+          <p style="color: #999; font-size: 12px; margin: 0 0 24px;">This code expires in 15 minutes.</p>
 
           <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
 
           <p style="color: #555; font-size: 14px; margin: 0 0 8px;">您的验证码是：</p>
           <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #111; padding: 16px 0; text-align: center;">${code}</div>
-          <p style="color: #999; font-size: 12px; margin: 0 0 24px;">验证码 5 分钟内有效。</p>
+          <p style="color: #999; font-size: 12px; margin: 0 0 24px;">验证码 15 分钟内有效。</p>
 
           <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
 
