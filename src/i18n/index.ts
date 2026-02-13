@@ -12,7 +12,7 @@ export type { Messages };
 
 const locales: Record<Locale, Messages> = { zh, en };
 
-const I18nContext = createContext<Messages>(zh);
+const I18nContext = createContext<Messages>(en);
 
 export const I18nProvider = I18nContext.Provider;
 
@@ -23,7 +23,7 @@ export function useI18n(): Messages {
 
 /** 根据 locale 获取对应的翻译字典 */
 export function getMessages(locale: Locale): Messages {
-  return locales[locale] ?? zh;
+  return locales[locale] ?? en;
 }
 
 /** 检测浏览器语言，返回最匹配的 locale */
@@ -31,6 +31,6 @@ export function detectLocale(): Locale {
   const lang = navigator.language?.toLowerCase() ?? '';
   if (lang.startsWith('zh')) return 'zh';
   if (lang.startsWith('en')) return 'en';
-  // 默认中文
-  return 'zh';
+  // 默认英文（国际化优先）
+  return 'en';
 }
