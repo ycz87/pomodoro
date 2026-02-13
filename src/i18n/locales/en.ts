@@ -109,7 +109,7 @@ export const en: Messages = {
 
   // Anti-AFK & Health
   overtimeNoReward: 'Overtime too long — no reward this time ⏰',
-  healthReminder: 'Sessions over 25 min require manual finish — remember to rest 🧘',
+  healthReminder: 'Longer focus sessions won\'t auto-switch to break — remember to take a rest when time\'s up 🧘',
 
   // Settings
   settings: 'Settings',

@@ -1,4 +1,14 @@
 
+## v0.9.2 — Toast 健康提醒文案优化（2026-02-13）
+
+### 文案优化
+- 中文 Toast 文案更新为"专注时间较长，不会自动进入休息～记得到点给自己放个假哦 🧘"（原："超过 25 分钟需手动结束，记得适时休息 🧘"）
+- 英文 Toast 文案更新为"Longer focus sessions won't auto-switch to break — remember to take a rest when time's up 🧘"
+- 设置面板中的健康提示文案同步更新（共用同一个 i18n key）
+- 语气从指令式改为关怀式，更自然亲切
+
+---
+
 ## v0.9.1 — Toast 体验修复（2026-02-13）
 
 ### 修复
