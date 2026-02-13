@@ -3,10 +3,13 @@
 ## 项目信息
 
 - **产品名称：** 西瓜时钟（Watermelon Clock）
-- **线上地址：** https://pomodoro-puce-seven-98.vercel.app/
+- **线上地址：** https://watermelon-clock.pages.dev/
+- **旧地址：** https://pomodoro-puce-seven-98.vercel.app/
 - **GitHub：** https://github.com/ycz87/pomodoro
 - **技术栈：** React 19 + Vite 7 + Tailwind CSS 4 + TypeScript
-- **部署：** Vercel（自动部署，push 到 main 自动更新）
+- **后端：** Cloudflare Workers（Hono）+ D1 数据库
+- **部署：** Cloudflare Pages（前端）+ Cloudflare Workers（API）
+- **CI/CD：** GitHub Actions（push main 自动部署）
 
 ## 产品定位
 

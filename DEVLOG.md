@@ -2,6 +2,36 @@
 
 ---
 
+## v0.10.0 — Workers API 骨架 + GitHub Actions（2026-02-13）
+
+### 背景
+两周冲刺 Day 1-2，搭建后端 API 基础设施和 CI/CD 自动部署。
+
+### 改动
+- 新建 `api/` 目录，独立的 Cloudflare Workers 项目
+  - Hono 框架，TypeScript
+  - `api/wrangler.toml`：Workers 配置，绑定 D1 数据库
+  - `api/src/index.ts`：入口，CORS 中间件 + 路由挂载
+  - `api/src/routes/health.ts`：`GET /api/health` 健康检查
+  - `api/src/db/schema.sql`：5 张表 + 索引
+- 新建 `.github/workflows/deploy.yml`：push main 自动 build + deploy to Cloudflare Pages
+- `.gitignore` 新增 api/node_modules、.dev.vars、.wrangler
+- `package.json` 版本号 0.9.2 → 0.10.0
+
+### CORS 允许列表
+- `https://watermelon-clock.pages.dev`
+- `https://pomodoro-puce-seven-98.vercel.app`
+- `http(s)://localhost:*`
+
+### 待办（需要 Charles 手动操作）
+- Cloudflare API Token 需添加 D1 权限（当前 token 只有 Pages 权限）
+- 创建 D1 数据库：`wrangler d1 create watermelon-clock-db`
+- 执行建表：`wrangler d1 execute watermelon-clock-db --file=api/src/db/schema.sql`
+- 部署 Workers：`cd api && wrangler deploy`
+- GitHub Secret：需在 GitHub 仓库 Settings → Secrets 手动添加 `CLOUDFLARE_API_TOKEN`（PAT 缺少 secrets scope）
+
+---
+
 ## Cloudflare Pages 迁移准备（2026-02-13）
 
 ### 背景

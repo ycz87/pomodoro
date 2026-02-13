@@ -1,3 +1,14 @@
+## v0.10.0 — Workers API 骨架 + GitHub Actions 自动部署（2026-02-13）
+
+### 新增
+- Cloudflare Workers API 项目骨架（`api/` 目录，Hono 框架）
+- D1 数据库 schema：users、focus_records、inventory、user_settings、synthesis_log 五张表
+- `GET /api/health` 健康检查端点（返回版本、时间戳、DB 状态）
+- CORS 配置（允许 Pages、Vercel 旧站、localhost）
+- GitHub Actions 自动部署 workflow（push main → build → deploy to Cloudflare Pages）
+- `.gitignore` 更新：排除 api/node_modules、.dev.vars、.wrangler
+
+---
 
 ## v0.9.2 — Toast 健康提醒文案优化（2026-02-13）
 

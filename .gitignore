@@ -27,3 +27,8 @@ dist-ssr
 src-tauri/target/
 src-tauri/gen/
 src-tauri/Cargo.lock
+
+# Cloudflare Workers
+api/node_modules
+api/.dev.vars
+.wrangler

@@ -2,7 +2,7 @@
 
 简洁优雅的专注计时器，基于番茄工作法（Pomodoro Technique）。
 
-**在线体验：** [pomodoro-puce-seven-98.vercel.app](https://pomodoro-puce-seven-98.vercel.app/)
+**在线体验：** [watermelon-clock.pages.dev](https://watermelon-clock.pages.dev/)
 
 ## 功能
 
