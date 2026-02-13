@@ -3,7 +3,8 @@
  */
 import { useState, useEffect, useCallback, useRef } from 'react'
 
-const API_BASE = 'https://watermelon-clock-api.yuchangzhou.workers.dev'
+const AUTH_BASE = 'https://auth.cosmelon.app'
+export const API_BASE = 'https://api.clock.cosmelon.app' // for future business API calls
 const TOKEN_KEY = 'wc_access_token'
 
 export interface User {
@@ -43,7 +44,7 @@ export function useAuth() {
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current)
       refreshTimerRef.current = setTimeout(async () => {
         try {
-          const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+          const res = await fetch(`${AUTH_BASE}/auth/refresh`, {
             method: 'POST',
             credentials: 'include',
           })
@@ -65,7 +66,7 @@ export function useAuth() {
 
   const fetchMe = useCallback(async (token: string): Promise<User | null> => {
     try {
-      const res = await fetch(`${API_BASE}/api/auth/me`, {
+      const res = await fetch(`${AUTH_BASE}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) return null
@@ -119,7 +120,7 @@ export function useAuth() {
 
   const logout = useCallback(async () => {
     try {
-      await fetch(`${API_BASE}/api/auth/logout`, {
+      await fetch(`${AUTH_BASE}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       })

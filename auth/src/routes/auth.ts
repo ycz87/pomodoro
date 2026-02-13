@@ -48,14 +48,14 @@ async function issueTokens(
 function setRefreshCookie(headers: Headers, refreshTokenId: string) {
   headers.set(
     'Set-Cookie',
-    `refresh_token=${refreshTokenId}; HttpOnly; Secure; SameSite=None; Path=/api/auth; Max-Age=${REFRESH_TOKEN_TTL}`,
+    `refresh_token=${refreshTokenId}; HttpOnly; Secure; SameSite=None; Path=/auth; Max-Age=${REFRESH_TOKEN_TTL}`,
   )
 }
 
 function clearRefreshCookie(headers: Headers) {
   headers.set(
     'Set-Cookie',
-    'refresh_token=; HttpOnly; Secure; SameSite=None; Path=/api/auth; Max-Age=0',
+    'refresh_token=; HttpOnly; Secure; SameSite=None; Path=/auth; Max-Age=0',
   )
 }
 
@@ -124,7 +124,7 @@ authRoutes.post('/email/verify', async (c) => {
 
 authRoutes.get('/google/redirect', (c) => {
   const state = crypto.randomUUID()
-  const redirectUri = `${new URL(c.req.url).origin}/api/auth/google/callback`
+  const redirectUri = `${new URL(c.req.url).origin}/auth/google/callback`
   const url = googleAuthUrl(c.env.GOOGLE_CLIENT_ID, redirectUri, state)
   return c.redirect(url)
 })
@@ -135,7 +135,7 @@ authRoutes.get('/google/callback', async (c) => {
   const code = c.req.query('code')
   if (!code) return c.json({ error: 'Missing code' }, 400)
 
-  const redirectUri = `${new URL(c.req.url).origin}/api/auth/google/callback`
+  const redirectUri = `${new URL(c.req.url).origin}/auth/google/callback`
   const tokens = await googleExchangeCode(c.env.GOOGLE_CLIENT_ID, c.env.GOOGLE_CLIENT_SECRET, code, redirectUri)
   const info = await googleUserInfo(tokens.access_token)
   return handleOAuthCallback(c.env, info)
@@ -145,7 +145,7 @@ authRoutes.get('/google/callback', async (c) => {
 
 authRoutes.get('/microsoft/redirect', (c) => {
   const state = crypto.randomUUID()
-  const redirectUri = `${new URL(c.req.url).origin}/api/auth/microsoft/callback`
+  const redirectUri = `${new URL(c.req.url).origin}/auth/microsoft/callback`
   const url = microsoftAuthUrl(c.env.MICROSOFT_CLIENT_ID, redirectUri, state)
   return c.redirect(url)
 })
@@ -156,7 +156,7 @@ authRoutes.get('/microsoft/callback', async (c) => {
   const code = c.req.query('code')
   if (!code) return c.json({ error: 'Missing code' }, 400)
 
-  const redirectUri = `${new URL(c.req.url).origin}/api/auth/microsoft/callback`
+  const redirectUri = `${new URL(c.req.url).origin}/auth/microsoft/callback`
   const tokens = await microsoftExchangeCode(c.env.MICROSOFT_CLIENT_ID, c.env.MICROSOFT_CLIENT_SECRET, code, redirectUri)
   const info = await microsoftUserInfo(tokens.access_token)
   return handleOAuthCallback(c.env, info)

@@ -7,8 +7,9 @@
 - **旧地址：** https://pomodoro-puce-seven-98.vercel.app/
 - **GitHub：** https://github.com/ycz87/pomodoro
 - **技术栈：** React 19 + Vite 7 + Tailwind CSS 4 + TypeScript
-- **后端：** Cloudflare Workers（Hono）+ D1 数据库
-- **部署：** Cloudflare Pages（前端）+ Cloudflare Workers（API）
+- **后端：** Cloudflare Workers（Hono）— API（watermelon-clock-api）+ Auth（cosmelon-auth）+ D1 数据库
+- **部署：** Cloudflare Pages（前端）+ Cloudflare Workers（API + Auth）
+- **域名：** clock.cosmelon.app（前端）、api.clock.cosmelon.app（业务 API）、auth.cosmelon.app（认证服务）
 - **CI/CD：** GitHub Actions（push main 自动部署）
 
 ## 产品定位
@@ -137,6 +138,9 @@
 | v0.9.0 | ✅ 完成 | 健康提醒 Toast — 快捷选择器选 >25min 弹出 Toast 提醒，fade 动画，3.5s 消失，适配全主题 |
 | v0.9.1 | ✅ 完成 | Toast 体验修复 — 浮动定位不占布局空间、选回 ≤25min 立即消失 |
 | v0.9.2 | ✅ 完成 | Toast 健康提醒文案优化 — 中英文文案改为关怀式语气，更自然亲切 |
+| v0.10.0 | ✅ 完成 | Workers API 骨架 + GitHub Actions 自动部署 |
+| v0.11.0 | ✅ 完成 | 用户登录系统 — 邮箱验证码 + Google/Microsoft OAuth + JWT 认证 |
+| v0.12.0 | ✅ 完成 | Auth 服务拆分 — 认证服务独立 Workers + 自定义域名支持 |
 | v0.8 | ⏳ 计划 | 切瓜（待定） |
 | v0.9 | ⏳ 计划 | Chrome 扩展等多端覆盖 |
 | v1.0 | ⏳ 计划 | 账号体系（注册登录、多设备同步） |

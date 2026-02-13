@@ -151,6 +151,7 @@
 - [Tauri](https://tauri.app/) 2.x — 桌面应用打包
 - [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) — Service Worker + Web App Manifest
 - [Vercel](https://vercel.com/) — 部署
+- **后端：** Cloudflare Workers（Hono）— API + Auth 独立服务 + D1 数据库
 
 ## 本地运行
 
@@ -218,6 +219,8 @@ src/
 ├── App.tsx                    # 主应用
 ├── index.css                  # 全局样式 + 动画
 └── main.tsx                   # 入口
+api/                           # Cloudflare Workers — 业务 API
+auth/                          # Cloudflare Workers — 认证服务
 src-tauri/                     # Tauri 桌面应用（Rust）
 ```
 
@@ -227,4 +230,4 @@ MIT
 
 ---
 
-**Current version: v0.9.2**
+**Current version: v0.12.0**

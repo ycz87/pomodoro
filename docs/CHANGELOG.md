@@ -1,3 +1,22 @@
+## v0.12.0 — Auth 服务拆分 + 自定义域名（2026-02-13）
+
+### 架构变更
+- 认证服务从 api/ 拆分为独立的 auth/ Workers 项目（cosmelon-auth）
+- auth Workers 部署到 cosmelon-auth.yuchangzhou.workers.dev（将绑定 auth.cosmelon.app）
+- api Workers 精简为纯业务 API，移除所有 auth 相关代码和 KV 绑定
+- api/src/middleware/auth.ts 改为自包含 JWT 验证（不依赖外部 services）
+
+### 前端更新
+- 认证请求指向 https://auth.cosmelon.app（AUTH_BASE）
+- 业务 API 预留 https://api.clock.cosmelon.app（API_BASE）
+- 所有 auth API 路径从 /api/auth/xxx 改为 /auth/xxx
+- Refresh token cookie path 从 /api/auth 改为 /auth
+
+### CORS 更新
+- auth Workers 和 api Workers 均新增 https://clock.cosmelon.app 到允许列表
+
+---
+
 ## v0.11.0 — 用户登录系统（2026-02-13）
 
 ### 新增

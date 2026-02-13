@@ -31,4 +31,6 @@ src-tauri/Cargo.lock
 # Cloudflare Workers
 api/node_modules
 api/.dev.vars
+auth/node_modules
+auth/.dev.vars
 .wrangler

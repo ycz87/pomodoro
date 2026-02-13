@@ -7,7 +7,7 @@ import { useTheme } from '../hooks/useTheme'
 import { useI18n } from '../i18n'
 import { CodeInput } from './CodeInput'
 
-const API_BASE = 'https://watermelon-clock-api.yuchangzhou.workers.dev'
+const AUTH_BASE = 'https://auth.cosmelon.app'
 
 interface LoginPanelProps {
   open: boolean
@@ -69,7 +69,7 @@ export function LoginPanel({ open, onClose, onLogin }: LoginPanelProps) {
     setError('')
     setSending(true)
     try {
-      const res = await fetch(`${API_BASE}/api/auth/email/send-code`, {
+      const res = await fetch(`${AUTH_BASE}/auth/email/send-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim() }),
@@ -92,7 +92,7 @@ export function LoginPanel({ open, onClose, onLogin }: LoginPanelProps) {
     setError('')
     setVerifying(true)
     try {
-      const res = await fetch(`${API_BASE}/api/auth/email/verify`, {
+      const res = await fetch(`${AUTH_BASE}/auth/email/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -114,7 +114,7 @@ export function LoginPanel({ open, onClose, onLogin }: LoginPanelProps) {
   }
 
   const handleOAuth = (provider: 'google' | 'microsoft') => {
-    window.location.href = `${API_BASE}/api/auth/${provider}/redirect`
+    window.location.href = `${AUTH_BASE}/auth/${provider}/redirect`
   }
 
   if (!visible) return null

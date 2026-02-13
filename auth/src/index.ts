@@ -1,12 +1,18 @@
 import { Hono } from 'hono'
-import { healthRoutes } from './routes/health'
+import { authRoutes } from './routes/auth'
 
 export type Env = {
   DB: D1Database
+  SESSION_KV: KVNamespace
   JWT_SECRET: string
+  RESEND_API_KEY: string
+  GOOGLE_CLIENT_ID: string
+  GOOGLE_CLIENT_SECRET: string
+  MICROSOFT_CLIENT_ID: string
+  MICROSOFT_CLIENT_SECRET: string
 }
 
-const app = new Hono<{ Bindings: Env }>().basePath('/api')
+const app = new Hono<{ Bindings: Env }>().basePath('/auth')
 
 // CORS middleware
 app.use('*', async (c, next) => {
@@ -34,7 +40,7 @@ app.use('*', async (c, next) => {
 app.options('*', (c) => c.body(null, 204))
 
 // Routes
-app.route('/health', healthRoutes)
+app.route('/', authRoutes)
 
 // 404
 app.notFound((c) => c.json({ error: 'Not Found' }, 404))

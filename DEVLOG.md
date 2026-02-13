@@ -2,6 +2,42 @@
 
 ---
 
+## v0.12.0 — Auth 服务拆分 + 自定义域名（2026-02-13）
+
+### 背景
+将认证服务从 api Workers 拆分为独立的 auth Workers，为自定义域名（auth.cosmelon.app / api.clock.cosmelon.app）做准备。
+
+### 改动
+- **新建 auth/ 目录**：独立 Cloudflare Workers 项目（cosmelon-auth）
+  - `auth/src/index.ts`：Hono 入口，basePath `/auth`，CORS 配置
+  - `auth/src/routes/auth.ts`：9 个认证端点（从 api 移过来）
+  - `auth/src/services/jwt.ts`、`email.ts`、`oauth.ts`：认证服务（从 api 移过来）
+  - `auth/src/middleware/auth.ts`：认证中间件（从 api 复制）
+  - `auth/wrangler.toml`：绑定 D1 + KV
+  - Cookie path 从 `/api/auth` 改为 `/auth`
+  - OAuth callback URL 从 `/api/auth/xxx/callback` 改为 `/auth/xxx/callback`
+
+- **清理 api/ 目录**：
+  - 删除 `api/src/routes/auth.ts`
+  - 删除 `api/src/services/` 整个目录
+  - `api/src/index.ts`：移除 auth 路由和相关 import，Env 简化为 DB + JWT_SECRET
+  - `api/src/middleware/auth.ts`：改为自包含 JWT 验证（内联 Web Crypto API 实现）
+  - `api/wrangler.toml`：移除 KV 绑定
+  - `api/src/routes/health.ts`：版本号更新到 0.12.0
+
+- **前端更新**：
+  - `LoginPanel.tsx`：API_BASE → AUTH_BASE（https://auth.cosmelon.app），路径 /api/auth → /auth
+  - `useAuth.ts`：AUTH_BASE + API_BASE 分离，路径 /api/auth → /auth
+
+- **部署**：auth Workers 和 api Workers 均已部署，JWT_SECRET 已同步设置
+
+### 技术决策
+- api/src/middleware/auth.ts 内联 JWT 验证而非保留对 services/jwt.ts 的依赖，因为 api 不再需要签发 token，只需验证
+- Cookie path 改为 /auth 匹配新的 basePath
+- API_BASE 在 useAuth.ts 中 export 预留，供未来业务 API 使用
+
+---
+
 ## v0.11.0 — 用户登录系统（2026-02-13）
 
 ### 背景
