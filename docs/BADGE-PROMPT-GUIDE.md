@@ -29,19 +29,26 @@ cosmelon/docs/badges/
 ## 二、设计风格参考
 
 以西瓜时钟 logo 为基准：
-- 珐琅徽章风格（enamel pin badge）— 有金属边框、填色区域分明、像真实可佩戴的徽章
+- 卡通徽章风格，伪 3D 效果（柔和阴影、微微光泽、圆润立体感）
 - 造型简约圆润，没有多余细节
-- kawaii 可爱表情（圆点眼睛+微笑弧线）
 - 色彩明快清新，饱和度适中，不沉闷不刺眼
 - 颜色不限于 logo 的绿红白，可以根据每个徽章的主题自由搭配，但整体风格要跟 logo 一致
 - 所有物体的颜色要符合现实常识（如：西瓜籽是棕色/黑色，不是绿色）
+
+### 西瓜拟人形象（核心要素）
+徽章中的西瓜是拟人角色，跟 logo 一样有表情：
+- 两个小圆点眼睛（黑色）
+- 一条浅浅的微笑弧线
+- 可选：淡淡的粉色腮红
+- 风格参考：asamimichan（あさみみちゃん）— 极简、温柔、可爱
+- 表情要克制，不夸张，保持安静温暖的感觉
 
 ---
 
 ## 三、通用提示词（每个徽章前面都加这段）
 
 ```
-A single cute enamel pin badge icon on a clean white background. The style resembles a real collectible enamel pin — with a thin metallic rim, smooth filled color areas, and a slight glossy sheen. Kawaii aesthetic — simple, minimal, adorable, rounded shapes. The design style should match a watermelon-clock app logo: clean, cheerful, with fresh vibrant colors. Colors are not limited — use whatever palette fits the badge theme, but keep the overall feel consistent with the cute kawaii watermelon brand. All object colors must be realistic (e.g. watermelon seeds are brown/black, not green; watermelon flesh is red/pink, rind is green). No text, no letters, no numbers. One simple focal element, clean composition, easy to recognize at small sizes.
+A single cute cartoon badge icon on a clean white background. Pseudo-3D style with soft rounded shapes, gentle shadows, and a slight glossy feel. Simple, minimal, adorable. The watermelon character in the badge has a personified face like the app logo: two small round black dot eyes and a gentle subtle smile curve (asamimichan style — quiet, warm, not exaggerated), optionally with faint pink blush cheeks. The design style should match a watermelon-clock app logo: clean, cheerful, with fresh vibrant colors. Colors are not limited — use whatever palette fits the badge theme, but keep the overall feel consistent with the cute kawaii watermelon brand. All object colors must be realistic (e.g. watermelon seeds are brown/black, not green; watermelon flesh is red/pink, rind is green). No text, no letters, no numbers. One simple focal element, clean composition, easy to recognize at small sizes.
 ```
 
 ---
@@ -140,7 +147,7 @@ A single cute enamel pin badge icon on a clean white background. The style resem
 3. 如果不够可爱 → 加 "Extra kawaii, baby-like proportions, round soft shapes."
 4. 如果颜色不协调 → 加 "Fresh, cheerful color palette that matches a cute kawaii app brand."
 5. 如果出现文字 → 加 "Absolutely no text or letters anywhere."
-6. 如果不像徽章 → 加 "Enamel pin badge style with metallic rim border and smooth filled color areas."
+6. 如果表情太夸张 → 加 "The face should be very subtle: just two tiny dot eyes and a gentle smile curve, asamimichan style."
 
 ## 七、生成后检查清单
 
