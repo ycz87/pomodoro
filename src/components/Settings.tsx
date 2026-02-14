@@ -25,8 +25,6 @@ interface SettingsProps {
   isWorkRunning: boolean;
   onExport: () => void;
   onShowGuide?: () => void;
-  onShowAchievements?: () => void;
-  achievementUnseenCount?: number;
   auth?: {
     user: User | null;
     isLoading: boolean;
@@ -148,7 +146,7 @@ const LANGUAGE_DISPLAY: Record<Locale, { flag: string; name: string }> = {
 };
 // Divider color is now theme-aware via theme.border
 
-export function Settings({ settings, onChange, disabled, isWorkRunning, onExport, onShowGuide, onShowAchievements, achievementUnseenCount, auth, testMode }: SettingsProps) {
+export function Settings({ settings, onChange, disabled, isWorkRunning, onExport, onShowGuide, auth, testMode }: SettingsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showAmbienceModal, setShowAmbienceModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
@@ -225,28 +223,6 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
                     onUpdateProfile={auth.updateProfile}
                   />
                   <div className="border-t mt-4 pt-4" style={{ borderColor: theme.border }} />
-
-                  {/* 🏆 Achievements button */}
-                  {onShowAchievements && (
-                    <button
-                      onClick={() => { onShowAchievements(); setIsOpen(false); }}
-                      className="w-full py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer relative"
-                      style={{
-                        backgroundColor: `${theme.accent}15`,
-                        color: theme.accent,
-                      }}
-                    >
-                      {i18n.achievementsButton}
-                      {(achievementUnseenCount ?? 0) > 0 && (
-                        <span
-                          className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold text-white px-1"
-                          style={{ backgroundColor: '#ef4444' }}
-                        >
-                          {achievementUnseenCount}
-                        </span>
-                      )}
-                    </button>
-                  )}
                 </>
               )}
 

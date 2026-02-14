@@ -572,7 +572,7 @@ function App() {
           {/* Center: Segmented Control */}
           <ModeSwitch mode={mode} onChange={setMode} disabled={isAnyTimerActive} />
 
-          {/* Right: warehouse + history + settings */}
+          {/* Right: warehouse + achievements + history + settings */}
           <div className="flex items-center gap-0.5 flex-1 justify-end">
             <button
               onClick={() => setShowWarehouse(true)}
@@ -581,6 +581,22 @@ function App() {
               aria-label={t.warehouseTitle}
             >
               🏠
+            </button>
+            <button
+              onClick={() => setShowAchievements(true)}
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer text-sm relative"
+              style={{ color: theme.textMuted }}
+              aria-label={t.achievementsButton}
+            >
+              🏆
+              {achievements.unseenCount > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold text-white px-1"
+                  style={{ backgroundColor: '#ef4444' }}
+                >
+                  {achievements.unseenCount}
+                </span>
+              )}
             </button>
             <button
               onClick={() => setShowHistory(true)}
@@ -597,8 +613,6 @@ function App() {
               isWorkRunning={(timer.status === 'running' && timer.phase === 'work') || isProjectWorking === true}
               onExport={handleExport}
               onShowGuide={() => setShowGuide(true)}
-              onShowAchievements={() => setShowAchievements(true)}
-              achievementUnseenCount={achievements.unseenCount}
               auth={auth}
               testMode={{ addItems, resetWarehouse }}
             />
