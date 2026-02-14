@@ -26,7 +26,7 @@
 - **任务标记** — 为每个西瓜钟标记正在做的事，完成后可编辑
 - **手动完成** — 跳过时按实际专注时间记录，给予对应生长阶段奖励
 - **统一操作** — ✗ 退出、⏸ 暂停/继续、✓ 完成，两个模式一致
-- **退出确认** — 番茄钟退出需确认，项目模式两步选择（重新开始/下一个/返回上一个）
+- **退出确认** — 番茄模式退出需确认，项目模式两步选择（重新开始/下一个/返回上一个）
 
 ### 项目计时模式 📋
 - **创建项目** — 输入项目名称，添加多个子任务
@@ -208,7 +208,7 @@ src/
 │   ├── BarChart.tsx           # 纯 SVG 柱状图
 │   ├── AmbienceMixerModal.tsx # 背景音混音器弹窗
 │   ├── AlertPickerModal.tsx   # 提醒音效选择弹窗
-│   ├── ModeSwitch.tsx         # 番茄钟/项目模式切换
+│   ├── ModeSwitch.tsx         # 番茄模式/项目模式切换
 │   ├── ProjectSetup.tsx       # 项目创建 + 子任务编辑
 │   ├── ProjectTaskBar.tsx     # 项目计时信息条（任务名 + 进度）
 │   ├── ProjectSummary.tsx     # 项目完成总结
@@ -229,7 +229,7 @@ src/
 │   ├── alerts/sounds.ts       # 10 种提醒音效生成函数
 │   └── index.ts               # 统一导出
 ├── hooks/
-│   ├── useTimer.ts            # 番茄钟计时逻辑
+│   ├── useTimer.ts            # 番茄模式计时逻辑
 │   ├── useProjectTimer.ts     # 项目计时逻辑
 │   ├── useLocalStorage.ts     # localStorage 封装
 │   └── useTheme.ts            # 主题上下文

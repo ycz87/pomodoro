@@ -265,7 +265,7 @@ export const zh: Messages = {
   monthFormat: (year: number, month: number) => `${year}年${month}月`,
 
   // ─── Project mode ───
-  modePomodoro: '番茄钟',
+  modePomodoro: '番茄模式',
   modeProject: '项目模式',
 
   // Setup

@@ -205,10 +205,6 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
   const ringBaseOpacityFrom = theme.ringBase ? '1' : theme.ring;
   const ringBaseOpacityTo = theme.ringBase ? '0.6' : (parseFloat(theme.ring) * 0.4).toFixed(2);
 
-  const phaseLabel = isOvertime ? t.projectOvertime
-    : phase === 'work' ? t.phaseWork
-    : t.phaseShortBreak;
-
   return (
     <div ref={containerRef} className="flex flex-col items-center relative">
       {/* Celebration overlay */}
@@ -220,22 +216,8 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
         />
       )}
 
-      {/* Phase indicator — capsule label */}
-      <div
-        className="text-sm font-semibold tracking-widest transition-all duration-500 rounded-full"
-        style={{
-          color: isOvertime ? '#ef4444' : isWork ? theme.accent : theme.breakAccent,
-          backgroundColor: isOvertime ? 'rgba(239,68,68,0.12)' : isWork ? (theme.focusLabel ?? `${theme.accent}1f`) : `${theme.breakAccent}1f`,
-          padding: '6px 14px',
-          fontSize: '14px',
-          fontWeight: 600,
-        }}
-      >
-        {phaseLabel}
-      </div>
-
       {/* Circular timer */}
-      <div className="relative w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] flex items-center justify-center overflow-visible mt-4">
+      <div className="relative w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] flex items-center justify-center overflow-visible">
         <svg className={`absolute inset-0 overflow-visible ${celebrating ? 'animate-ring-pulse' : ''} ${isOvertime ? 'animate-ring-pulse' : ''} ${isSprintT1 ? 'animate-sprint-breathe-slow' : ''} ${isSprintT2 ? 'animate-sprint-breathe-fast' : ''} ${isSprintT3 ? 'animate-sprint-flash' : ''}`} viewBox={`0 0 ${size} ${size}`} overflow="visible" style={{ filter: `drop-shadow(0 0 12px ${colors.from}40)` }}>
           <defs>
             <linearGradient id="grad-progress" gradientUnits="userSpaceOnUse"

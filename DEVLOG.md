@@ -2,6 +2,18 @@
 
 ---
 
+## v0.19.1 — UI 微调：番茄模式命名 + 移除 phase capsule（2026-02-14）
+
+### 背景
+两个小 UI 调整：模式命名对称化，以及去掉时钟上方冗余的 phase label capsule。
+
+### 改动
+- zh.ts：`modePomodoro` 从「番茄钟」改为「番茄模式」，与「项目模式」对称
+- Timer.tsx：移除 phase indicator capsule（显示"🍉 专注时间"/"☕ 休息一下"的胶囊标签），清理 `phaseLabel` 变量
+- 移除 capsule 后去掉 circular timer 的 `mt-4`，间距自然衔接
+
+---
+
 ## v0.19.0 — 顶部导航栏重构：主功能 Tab + 工具图标（2026-02-14）
 
 ### 背景
