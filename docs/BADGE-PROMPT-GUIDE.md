@@ -46,7 +46,7 @@ cosmelon/docs/badges/
 ## 三、通用提示词（每个徽章前面都加这段）
 
 ```
-A cute, simple cartoon badge icon on a clean white background. Pseudo-3D with soft shadows and gentle gloss. Style: asamimichan — soft, warm, dreamy, minimal. The design must be creative, cleverly using watermelon elements (rind, flesh, seeds, slices, vines). Keep it simple — one clear idea, minimal elements, instantly readable meaning. Any watermelon has a cute face: two tiny dot eyes and a gentle smile, with optional pink blush. Only watermelons have faces. Colors: fresh and vibrant, matching the theme. Realistic colors (seeds are brown/black, flesh is red/pink, rind is green). No text, no letters, no numbers.
+A cute circular badge/medal icon on a clean white background. The badge has a clear circular border/rim (like a coin or medal edge), giving it a distinct badge shape. Inside the circular frame is the illustration. Pseudo-3D with soft shadows and gentle gloss. Style: asamimichan — soft, warm, dreamy, minimal. The design must be creative, cleverly using watermelon elements (rind, flesh, seeds, slices, vines). Keep it simple — one clear idea, minimal elements, instantly readable meaning. Any watermelon has a cute face: two tiny dot eyes and a gentle smile, with optional pink blush. Only watermelons have faces. Colors: fresh and vibrant, matching the theme. Realistic colors (seeds are brown/black, flesh is red/pink, rind is green). No text, no letters, no numbers.
 ```
 
 ---
