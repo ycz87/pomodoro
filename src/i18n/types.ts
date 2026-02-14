@@ -295,4 +295,10 @@ export interface Messages {
   achievementsSeriesHouse: string;
   achievementsSeriesFarm: string;
   achievementsSeriesHidden: string;
+
+  // ─── Nav tabs ───
+  tabFocus: string;
+  tabWarehouse: string;
+  tabFarm: string;
+  farmComingSoon: string;
 }

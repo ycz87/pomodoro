@@ -17,7 +17,8 @@ interface WarehousePageProps {
   onSynthesize: (recipe: SynthesisRecipe, count?: number) => boolean;
   onSynthesizeAll: (recipe: SynthesisRecipe) => number;
   highestStage: GrowthStage | null;
-  onClose: () => void;
+  onClose?: () => void;
+  inline?: boolean;
 }
 
 const DISPLAY_ORDER: GrowthStage[] = ['seed', 'sprout', 'bloom', 'green', 'ripe', 'legendary'];
@@ -34,7 +35,7 @@ function getStageName(stage: GrowthStage, t: ReturnType<typeof useI18n>): string
   return map[stage];
 }
 
-export function WarehousePage({ warehouse, onSynthesize, onSynthesizeAll, highestStage, onClose }: WarehousePageProps) {
+export function WarehousePage({ warehouse, onSynthesize, onSynthesizeAll, highestStage, onClose, inline }: WarehousePageProps) {
   const theme = useTheme();
   const t = useI18n();
   const [toast, setToast] = useState<string | null>(null);
@@ -65,20 +66,18 @@ export function WarehousePage({ warehouse, onSynthesize, onSynthesizeAll, highes
     }, 600);
   }, [onSynthesizeAll, showToast, t]);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
-      <div
-        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border p-5 mx-4 animate-fade-up"
-        style={{ backgroundColor: theme.surface, borderColor: theme.border }}
-      >
+  const content = (
+    <>
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-semibold" style={{ color: theme.text }}>{t.warehouseTitle}</h2>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"
-            style={{ color: theme.textMuted, backgroundColor: theme.inputBg }}
-          >✕</button>
+          {!inline && onClose && (
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"
+              style={{ color: theme.textMuted, backgroundColor: theme.inputBg }}
+            >✕</button>
+          )}
         </div>
 
         {/* Items grid */}
@@ -204,6 +203,24 @@ export function WarehousePage({ warehouse, onSynthesize, onSynthesizeAll, highes
             {toast}
           </div>
         )}
+    </>
+  );
+
+  if (inline) {
+    return (
+      <div className="flex-1 w-full max-w-md mx-auto px-4 pt-6 pb-6 overflow-y-auto">
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+      <div
+        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border p-5 mx-4 animate-fade-up"
+        style={{ backgroundColor: theme.surface, borderColor: theme.border }}
+      >
+        {content}
       </div>
     </div>
   );

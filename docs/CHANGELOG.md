@@ -1,3 +1,22 @@
+## v0.19.0 — 顶部导航栏重构：主功能 Tab + 工具图标（2026-02-14）
+
+### 新增
+- 🍉🏠🌱 顶栏三个主功能 Tab：专注 / 瓜棚 / 农场，iOS segmented control 风格
+- 🌱 农场占位页（Coming Soon），支持 i18n 8 语言
+- 瓜棚内联显示：点击瓜棚 Tab 直接展示内容，不再是弹窗 overlay
+
+### 改进
+- ModeSwitch（番茄钟/项目模式切换）下移到时钟区域上方，仅在专注 Tab 显示
+- 顶栏右侧精简：移除🏠瓜棚按钮，保留🏆成就 + 📅历史 + ⚙️设置
+- 计时器运行中禁止切换主 Tab（与之前 ModeSwitch 逻辑一致）
+- WarehousePage 支持 inline 模式（新增 inline prop）
+
+### i18n
+- 新增 4 个翻译 key：tabFocus / tabWarehouse / tabFarm / farmComingSoon
+- 覆盖全部 8 种语言（zh/en/de/es/fr/ja/ko/pt）
+
+---
+
 ## v0.18.1 — 成就按钮移至顶栏（2026-02-14）
 
 ### 改进

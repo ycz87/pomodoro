@@ -425,4 +425,8 @@ export const ja: Messages = {
   achievementsSeriesHouse: '🏠 Melon Shed',
   achievementsSeriesFarm: '🌱 Farm',
   achievementsSeriesHidden: '🌟 Hidden',
+  tabFocus: '集中',
+  tabWarehouse: '倉庫',
+  tabFarm: '農場',
+  farmComingSoon: '近日公開',
 };

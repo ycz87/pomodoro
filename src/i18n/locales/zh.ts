@@ -425,4 +425,8 @@ export const zh: Messages = {
   achievementsSeriesHouse: '🏠 瓜棚',
   achievementsSeriesFarm: '🌱 农场',
   achievementsSeriesHidden: '🌟 隐藏',
+  tabFocus: '专注',
+  tabWarehouse: '瓜棚',
+  tabFarm: '农场',
+  farmComingSoon: '即将开放',
 };

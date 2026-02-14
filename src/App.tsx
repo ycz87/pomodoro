@@ -37,6 +37,7 @@ import { EncouragementBanner } from './components/EncouragementBanner';
 import { WarehousePage } from './components/WarehousePage';
 import { AchievementsPage } from './components/AchievementsPage';
 import { AchievementCelebration } from './components/AchievementCelebration';
+import { FarmPage } from './components/FarmPage';
 import { useTimer } from './hooks/useTimer';
 import type { TimerPhase } from './hooks/useTimer';
 import { useProjectTimer } from './hooks/useProjectTimer';
@@ -68,12 +69,12 @@ function App() {
   const [projectRecords, setProjectRecords] = useLocalStorage<ProjectRecord[]>('pomodoro-project-records', []);
   const [settings, setSettings] = useLocalStorage<PomodoroSettings>('pomodoro-settings', DEFAULT_SETTINGS, migrateSettings);
   const [showHistory, setShowHistory] = useState(false);
-  const [showWarehouse, setShowWarehouse] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   const [achievementCelebrationIds, setAchievementCelebrationIds] = useState<string[]>([]);
   const [mode, setMode] = useState<AppMode>('pomodoro');
   const [showGuide, setShowGuide] = useState(false);
   const [lastRolledStage, setLastRolledStage] = useState<GrowthStage | null>(null);
+  const [activeTab, setActiveTab] = useState<'focus' | 'warehouse' | 'farm'>('focus');
   const suppressCelebrationRef = useRef(false);
 
   // PC drag-to-scroll (mouse drag = touch scroll)
@@ -569,19 +570,40 @@ function App() {
             )}
           </div>
 
-          {/* Center: Segmented Control */}
-          <ModeSwitch mode={mode} onChange={setMode} disabled={isAnyTimerActive} />
+          {/* Center: Main Tab Bar */}
+          <div
+            className="relative flex items-center rounded-full p-[3px]"
+            style={{ backgroundColor: theme.inputBg }}
+          >
+            {/* Sliding indicator */}
+            <div
+              className="absolute top-[3px] bottom-[3px] rounded-full transition-all duration-200 ease-out"
+              style={{
+                backgroundColor: theme.accent,
+                opacity: 0.15,
+                width: 'calc(33.333% - 2px)',
+                left: activeTab === 'focus' ? '3px' : activeTab === 'warehouse' ? 'calc(33.333% + 1px)' : 'calc(66.666% - 1px)',
+              }}
+            />
+            {(['focus', 'warehouse', 'farm'] as const).map((tab) => {
+              const emoji = tab === 'focus' ? '🍉' : tab === 'warehouse' ? '🏠' : '🌱';
+              const label = tab === 'focus' ? t.tabFocus : tab === 'warehouse' ? t.tabWarehouse : t.tabFarm;
+              const isActive = activeTab === tab;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => !isAnyTimerActive && setActiveTab(tab)}
+                  className={`relative z-10 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors duration-200 ${isAnyTimerActive && !isActive ? 'opacity-40' : 'cursor-pointer'}`}
+                  style={{ color: isActive ? theme.accent : theme.textMuted }}
+                >
+                  {emoji} {label}
+                </button>
+              );
+            })}
+          </div>
 
-          {/* Right: warehouse + achievements + history + settings */}
+          {/* Right: achievements + history + settings */}
           <div className="flex items-center gap-0.5 flex-1 justify-end">
-            <button
-              onClick={() => setShowWarehouse(true)}
-              className="w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer text-sm"
-              style={{ color: theme.textMuted }}
-              aria-label={t.warehouseTitle}
-            >
-              🏠
-            </button>
             <button
               onClick={() => setShowAchievements(true)}
               className="w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer text-sm relative"
@@ -620,7 +642,7 @@ function App() {
         </header>
 
         {/* 主内容 */}
-        {(() => {
+        {activeTab === 'focus' && (() => {
           const pv = project.timerView;
           const isProjectExecuting = pv !== null && mode === 'project';
 
@@ -670,8 +692,10 @@ function App() {
           if (mode === 'pomodoro') {
             return (
               <>
-                {/* 8pt grid: header→32px→phase→16px→ring→24px→controls→24px→input→24px→stats */}
-                <div className="flex-1 flex flex-col items-center w-full px-4 pt-8">
+                <div className="flex-1 flex flex-col items-center w-full px-4 pt-4">
+                  <div className="mb-4">
+                    <ModeSwitch mode={mode} onChange={setMode} disabled={isAnyTimerActive} />
+                  </div>
                   <Timer
                     timeLeft={timer.timeLeft} totalDuration={totalDuration}
                     phase={timer.phase} status={timer.status}
@@ -705,12 +729,29 @@ function App() {
 
           // Project mode: setup, summary, or exited
           return (
-            <ProjectMode
-              project={project}
-              onSwitchToPomodoro={() => setMode('pomodoro')}
-            />
+            <>
+              <div className="flex justify-center pt-4 mb-2">
+                <ModeSwitch mode={mode} onChange={setMode} disabled={isAnyTimerActive} />
+              </div>
+              <ProjectMode
+                project={project}
+                onSwitchToPomodoro={() => setMode('pomodoro')}
+              />
+            </>
           );
         })()}
+
+        {activeTab === 'warehouse' && (
+          <WarehousePage
+            warehouse={warehouse}
+            onSynthesize={handleSynthesize}
+            onSynthesizeAll={handleSynthesizeAll}
+            highestStage={getHighestStage()}
+            inline
+          />
+        )}
+
+        {activeTab === 'farm' && <FarmPage />}
 
         {/* PWA 安装提示 */}
         <InstallPrompt />
@@ -768,17 +809,6 @@ function App() {
 
         {/* Guide modal — triggered from settings */}
         <GuideButton externalShow={showGuide} onExternalClose={() => setShowGuide(false)} />
-
-        {/* Warehouse page */}
-        {showWarehouse && (
-          <WarehousePage
-            warehouse={warehouse}
-            onSynthesize={handleSynthesize}
-            onSynthesizeAll={handleSynthesizeAll}
-            highestStage={getHighestStage()}
-            onClose={() => setShowWarehouse(false)}
-          />
-        )}
 
         {/* Achievements page */}
         {showAchievements && (

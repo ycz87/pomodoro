@@ -425,4 +425,8 @@ export const ko: Messages = {
   achievementsSeriesHouse: '🏠 Melon Shed',
   achievementsSeriesFarm: '🌱 Farm',
   achievementsSeriesHidden: '🌟 Hidden',
+  tabFocus: '집중',
+  tabWarehouse: '창고',
+  tabFarm: '농장',
+  farmComingSoon: '곧 출시',
 };

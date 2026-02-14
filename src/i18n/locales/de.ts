@@ -425,4 +425,8 @@ export const de: Messages = {
   achievementsSeriesHouse: '🏠 Melon Shed',
   achievementsSeriesFarm: '🌱 Farm',
   achievementsSeriesHidden: '🌟 Hidden',
+  tabFocus: 'Fokus',
+  tabWarehouse: 'Schuppen',
+  tabFarm: 'Farm',
+  farmComingSoon: 'Demnächst',
 };
