@@ -275,4 +275,24 @@ export interface Messages {
   profileEditName: string;
   profileSaving: string;
   profileUploadAvatar: string;
+
+  // Achievements (v0.17.0)
+  achievementsTitle: string;
+  achievementsButton: string;
+  achievementsProgress: (unlocked: number, total: number) => string;
+  achievementsSeriesProgress: (unlocked: number, total: number) => string;
+  achievementsUnlocked: string;
+  achievementsLocked: string;
+  achievementsHiddenLocked: string;
+  achievementsHiddenHint: string;
+  achievementsComingSoon: string;
+  achievementsUnlockedAt: (date: string) => string;
+  achievementsCondition: string;
+  achievementsCurrentProgress: string;
+  achievementsCelebrationTitle: string;
+  achievementsSeriesStreak: string;
+  achievementsSeriesFocus: string;
+  achievementsSeriesHouse: string;
+  achievementsSeriesFarm: string;
+  achievementsSeriesHidden: string;
 }

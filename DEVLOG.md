@@ -2,6 +2,31 @@
 
 ---
 
+## v0.17.0 — 成就徽章系统（2026-02-14）
+
+### 背景
+为西瓜时钟添加成就系统，增加长期使用动力和成就感。44 个成就分 5 个系列，覆盖坚持、专注、瓜棚、农场和隐藏成就。
+
+### 改动
+
+#### 成就系统核心
+- `src/achievements/types.ts` — 成就类型定义（系列、进度、数据结构）
+- `src/achievements/definitions.ts` — 44 个成就完整定义（中英文名称、描述、解锁条件、emoji）
+- `src/achievements/detection.ts` — 解锁检测逻辑（坚持 10 个 + 专注 10 个 + 隐藏 6 个）
+- `src/hooks/useAchievements.ts` — 状态管理 hook（localStorage 持久化、检测触发、未读计数）
+
+#### UI 组件
+- `src/components/AchievementsPage.tsx` — 成就页面（系列分组、进度条、徽章网格、详情弹窗）
+- `src/components/AchievementCelebration.tsx` — 解锁庆祝动画（灰→彩色 0.8s + 光波 + 金色粒子）
+
+#### 集成
+- `src/components/Settings.tsx` — 新增"🏆 成就"入口按钮 + 未读红点
+- `src/App.tsx` — 接入 useAchievements hook，专注完成/放弃时触发检测
+- `src/index.css` — 新增成就庆祝动画 CSS
+- 8 种语言 i18n 文件全部新增成就相关翻译 key
+
+---
+
 ## v0.16.0 — 多语言扩展 + 语言选择弹窗（2026-02-13）
 
 ### 背景

@@ -35,10 +35,13 @@ import { ConfirmModal } from './components/ConfirmModal';
 import { ProjectExitModal } from './components/ProjectExitModal';
 import { EncouragementBanner } from './components/EncouragementBanner';
 import { WarehousePage } from './components/WarehousePage';
+import { AchievementsPage } from './components/AchievementsPage';
+import { AchievementCelebration } from './components/AchievementCelebration';
 import { useTimer } from './hooks/useTimer';
 import type { TimerPhase } from './hooks/useTimer';
 import { useProjectTimer } from './hooks/useProjectTimer';
 import { useWarehouse } from './hooks/useWarehouse';
+import { useAchievements } from './hooks/useAchievements';
 import { useAuth } from './hooks/useAuth';
 import { useSync } from './hooks/useSync';
 import { ThemeProvider } from './hooks/useTheme';
@@ -66,6 +69,8 @@ function App() {
   const [settings, setSettings] = useLocalStorage<PomodoroSettings>('pomodoro-settings', DEFAULT_SETTINGS, migrateSettings);
   const [showHistory, setShowHistory] = useState(false);
   const [showWarehouse, setShowWarehouse] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
+  const [achievementCelebrationIds, setAchievementCelebrationIds] = useState<string[]>([]);
   const [mode, setMode] = useState<AppMode>('pomodoro');
   const [showGuide, setShowGuide] = useState(false);
   const [lastRolledStage, setLastRolledStage] = useState<GrowthStage | null>(null);
@@ -82,6 +87,9 @@ function App() {
 
   // Warehouse (with cloud sync callback)
   const { warehouse, setWarehouse, addItem, addItems, updatePity, synthesize, synthesizeAll, getHighestStage, resetWarehouse } = useWarehouse(syncWarehouse);
+
+  // Achievements
+  const achievements = useAchievements(records, projectRecords.length);
 
   // Modal states
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
@@ -190,6 +198,12 @@ function App() {
         syncRecord(record);
         sendBrowserNotification(t.workComplete(emoji), `"${taskName}" · ${settings.workMinutes}${t.minutes}`);
         playAlertRepeated(settings.alertSound, settings.alertRepeatCount);
+        // Check achievements after work completion
+        const newAchievements = achievements.checkAfterSession(settings.workMinutes, true);
+        if (newAchievements.length > 0) {
+          // Delay showing achievement celebration until after the main celebration
+          setTimeout(() => setAchievementCelebrationIds(newAchievements), 3000);
+        }
       } else {
         sendBrowserNotification(t.breakOver, t.breakOverBody);
         playAlertRepeated(settings.alertSound, settings.alertRepeatCount);
@@ -198,7 +212,7 @@ function App() {
       // Prevent timer completion errors from crashing the app
       console.error('[Timer] onComplete error:', err);
     }
-  }, [currentTask, records, setRecords, settings.alertSound, settings.alertRepeatCount, settings.workMinutes, t, resolveStageAndStore, syncRecord]);
+  }, [currentTask, records, setRecords, settings.alertSound, settings.alertRepeatCount, settings.workMinutes, t, resolveStageAndStore, syncRecord, achievements]);
 
   const handleSkipWork = useCallback((elapsedSeconds: number) => {
     try {
@@ -232,10 +246,17 @@ function App() {
         sendBrowserNotification(t.skipComplete(emoji), `"${taskName}" · ${elapsedMinutes}${t.minutes}`);
       }
       playAlertRepeated(settings.alertSound, 1);
+      // Check achievements after skip-complete
+      if (!isOvertime2x) {
+        const newAchievements = achievements.checkAfterSession(settings.workMinutes, true);
+        if (newAchievements.length > 0) {
+          setTimeout(() => setAchievementCelebrationIds(newAchievements), 3000);
+        }
+      }
     } catch (err) {
       console.error('[Timer] onSkipWork error:', err);
     }
-  }, [currentTask, records, setRecords, settings.alertSound, settings.workMinutes, t, resolveStageAndStore, syncRecord]);
+  }, [currentTask, records, setRecords, settings.alertSound, settings.workMinutes, t, resolveStageAndStore, syncRecord, achievements]);
 
   const timer = useTimer({ settings, onComplete: handleTimerComplete, onSkipWork: handleSkipWork });
 
@@ -265,8 +286,10 @@ function App() {
       syncRecord(record);
     }
     timer.abandon();
+    // Track abandoned session for achievement detection (resets perfectionist counter)
+    achievements.checkAfterSession(0, false);
     setShowAbandonConfirm(false);
-  }, [settings.workMinutes, timer, resolveTaskName, setRecords, syncRecord]);
+  }, [settings.workMinutes, timer, resolveTaskName, setRecords, syncRecord, achievements]);
 
   // ─── Project timer callbacks ───
   // When a project task completes, also create a PomodoroRecord for unified daily stats.
@@ -323,7 +346,17 @@ function App() {
       }
     }
     playAlertRepeated(settings.alertSound, 1);
-  }, [setRecords, settings.alertSound, t, resolveStageAndStore, syncRecord]);
+    // Check achievements after project task completion
+    if (result.status === 'completed') {
+      const newAchievements = achievements.checkAfterSession(
+        Math.round(result.actualSeconds / 60),
+        true,
+      );
+      if (newAchievements.length > 0) {
+        setTimeout(() => setAchievementCelebrationIds(newAchievements), 3000);
+      }
+    }
+  }, [setRecords, settings.alertSound, t, resolveStageAndStore, syncRecord, achievements]);
 
   const handleProjectComplete = useCallback((record: ProjectRecord) => {
     setProjectRecords((prev) => [record, ...prev]);
@@ -527,6 +560,8 @@ function App() {
               isWorkRunning={(timer.status === 'running' && timer.phase === 'work') || isProjectWorking === true}
               onExport={handleExport}
               onShowGuide={() => setShowGuide(true)}
+              onShowAchievements={() => setShowAchievements(true)}
+              achievementUnseenCount={achievements.unseenCount}
               auth={auth}
               testMode={{ addItems, resetWarehouse }}
             />
@@ -691,6 +726,25 @@ function App() {
             onSynthesizeAll={synthesizeAll}
             highestStage={getHighestStage()}
             onClose={() => setShowWarehouse(false)}
+          />
+        )}
+
+        {/* Achievements page */}
+        {showAchievements && (
+          <AchievementsPage
+            data={achievements.data}
+            onClose={() => setShowAchievements(false)}
+            onMarkSeen={achievements.markSeen}
+            language={settings.language}
+          />
+        )}
+
+        {/* Achievement celebration overlay */}
+        {achievementCelebrationIds.length > 0 && (
+          <AchievementCelebration
+            unlockedIds={achievementCelebrationIds}
+            onComplete={() => setAchievementCelebrationIds([])}
+            language={settings.language}
           />
         )}
       </div>
