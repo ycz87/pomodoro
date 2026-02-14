@@ -2,6 +2,32 @@
 
 ---
 
+## v0.17.2 — 农场系列成就检测预埋（2026-02-14）
+
+### 背景
+Step 3：农场功能尚未上线，先预埋 8 个农场系列成就的检测逻辑和 progress 字段，移除 comingSoon 标记。
+
+### 改动
+
+#### 类型扩展
+- `AchievementProgress` 新增 7 个字段：totalPlants, totalFarmHarvests, alienVisits, thiefDefenses, farmActiveStreak, completedGalaxies, totalVarieties
+- `DEFAULT_PROGRESS` 同步更新（默认值均为 0）
+- `SERIES_CONFIG.farm` 移除 `comingSoon: true`
+
+#### 检测逻辑
+- `detection.ts` 新增 `detectFarmAchievements()` 函数
+- G1: totalPlants >= 1, G2: totalFarmHarvests >= 1, G3: totalPlants >= 100
+- G4: completedGalaxies >= 1, G5: totalVarieties >= 28
+- G6: alienVisits >= 10, G7: thiefDefenses >= 5, G8: farmActiveStreak >= 30
+
+#### 集成
+- `useAchievements.ts` 新增 `checkFarm()` 方法（暂未调用，等农场功能上线后接入）
+
+#### 成就定义
+- `definitions.ts` 农场系列 8 个成就补全 descZh/descEn/conditionZh/conditionEn/target/progressKey
+
+---
+
 ## v0.17.1 — 瓜棚系列成就检测（2026-02-14）
 
 ### 背景

@@ -5,7 +5,7 @@ import { useCallback, useRef, useEffect } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 import type { AchievementData } from '../achievements/types';
 import { DEFAULT_ACHIEVEMENT_DATA } from '../achievements/types';
-import { detectAchievements, detectOnDailyOpen, detectWarehouseAchievements } from '../achievements/detection';
+import { detectAchievements, detectOnDailyOpen, detectWarehouseAchievements, detectFarmAchievements } from '../achievements/detection';
 import type { PomodoroRecord, Warehouse } from '../types';
 
 const STORAGE_KEY = 'achievements';
@@ -84,6 +84,20 @@ export function useAchievements(records: PomodoroRecord[], totalProjects: number
     return newlyUnlocked;
   }, [data, setData]);
 
+  /**
+   * Call after farm operations (plant, harvest, alien visit, thief defense, daily check).
+   * Returns array of newly unlocked achievement IDs.
+   * Not yet called — will be integrated when farm feature launches.
+   */
+  const checkFarm = useCallback((): string[] => {
+    const { updatedData, newlyUnlocked } = detectFarmAchievements(data);
+    setData(updatedData);
+    if (newlyUnlocked.length > 0) {
+      pendingUnlocksRef.current = [...pendingUnlocksRef.current, ...newlyUnlocked];
+    }
+    return newlyUnlocked;
+  }, [data, setData]);
+
   /** Get count of unseen unlocked achievements */
   const unseenCount = Object.keys(data.unlocked).filter(id => !data.seen.includes(id)).length;
 
@@ -98,6 +112,7 @@ export function useAchievements(records: PomodoroRecord[], totalProjects: number
     data,
     checkAfterSession,
     checkWarehouse,
+    checkFarm,
     markSeen,
     unseenCount,
     consumePendingUnlocks,

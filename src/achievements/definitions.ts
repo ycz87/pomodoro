@@ -45,16 +45,16 @@ export const HOUSE_ACHIEVEMENTS: AchievementDef[] = [
   { id: 'H10', series: 'house', nameZh: '道具全收集', nameEn: 'Tool Collector', descZh: '每一种道具你都拥有过，真正的收藏家 🧰', descEn: 'You\'ve owned every tool — a true collector 🧰', conditionZh: '获得过所有类型的道具', conditionEn: 'Collect all tool types', emoji: '🎒' },
 ];
 
-// 🌱 农场系列 (Farm) — display only
+// 🌱 农场系列 (Farm)
 export const FARM_ACHIEVEMENTS: AchievementDef[] = [
-  { id: 'G1', series: 'farm', nameZh: '播种者', nameEn: 'First Planting', descZh: '', descEn: '', emoji: '🌱' },
-  { id: 'G2', series: 'farm', nameZh: '第一次丰收', nameEn: 'First Farm Harvest', descZh: '', descEn: '', emoji: '🌾' },
-  { id: 'G3', series: 'farm', nameZh: '种植百株', nameEn: 'Hundred Plants', descZh: '', descEn: '', emoji: '🌳' },
-  { id: 'G4', series: 'farm', nameZh: '星系征服者', nameEn: 'Galaxy Conqueror', descZh: '', descEn: '', emoji: '🌌' },
-  { id: 'G5', series: 'farm', nameZh: '图鉴大师', nameEn: 'Codex Master', descZh: '', descEn: '', emoji: '📖' },
-  { id: 'G6', series: 'farm', nameZh: '外星人之友', nameEn: 'Alien Friend', descZh: '', descEn: '', emoji: '👽' },
-  { id: 'G7', series: 'farm', nameZh: '瓜贼克星', nameEn: 'Thief Buster', descZh: '', descEn: '', emoji: '🛡️' },
-  { id: 'G8', series: 'farm', nameZh: '不枯之田', nameEn: 'Evergreen Farm', descZh: '', descEn: '', emoji: '🌿' },
+  { id: 'G1', series: 'farm', nameZh: '播种者', nameEn: 'First Planting', descZh: '把种子埋进土里，期待它发芽的那一刻 🌱', descEn: 'Bury the seed and wait for it to sprout 🌱', conditionZh: '第 1 次种植', conditionEn: 'Plant for the first time', emoji: '🌱', target: 1, progressKey: 'totalPlants' },
+  { id: 'G2', series: 'farm', nameZh: '第一次丰收', nameEn: 'First Farm Harvest', descZh: '从种子到西瓜，你亲手见证了整个过程', descEn: 'From seed to melon — you witnessed the whole journey', conditionZh: '第 1 次在农场收获成熟西瓜', conditionEn: 'Harvest your first ripe melon on the farm', emoji: '🌾', target: 1, progressKey: 'totalFarmHarvests' },
+  { id: 'G3', series: 'farm', nameZh: '种植百株', nameEn: 'Hundred Plants', descZh: '一百株西瓜，你的农场已经是一片绿洲', descEn: 'A hundred plants — your farm is an oasis', conditionZh: '累计种植 ≥100 株', conditionEn: 'Plant 100+ times', emoji: '🌳', target: 100, progressKey: 'totalPlants' },
+  { id: 'G4', series: 'farm', nameZh: '星系征服者', nameEn: 'Galaxy Conqueror', descZh: '这个星系的每一种西瓜，你都收入囊中 🌍', descEn: 'Every variety in this galaxy is yours 🌍', conditionZh: '集齐一个星系的全部品种', conditionEn: 'Collect all varieties in one galaxy', emoji: '🌌', target: 1, progressKey: 'completedGalaxies' },
+  { id: 'G5', series: 'farm', nameZh: '图鉴大师', nameEn: 'Codex Master', descZh: '整个西瓜宇宙的品种，你一个不落', descEn: 'Every variety in the melon universe — you got them all', conditionZh: '集齐全部 28 个品种', conditionEn: 'Collect all 28 varieties', emoji: '📖', target: 28, progressKey: 'totalVarieties' },
+  { id: 'G6', series: 'farm', nameZh: '外星人之友', nameEn: 'Alien Friend', descZh: '你的农场已经成了外星人的热门打卡点 👽', descEn: 'Your farm is a popular alien hangout 👽', conditionZh: '外星人到访累计 ≥10 次', conditionEn: '10+ alien visits', emoji: '👽', target: 10, progressKey: 'alienVisits' },
+  { id: 'G7', series: 'farm', nameZh: '瓜贼克星', nameEn: 'Thief Buster', descZh: '瓜贼看到你的农场就绕道走 🪤', descEn: 'Thieves take a detour when they see your farm 🪤', conditionZh: '成功抵御瓜贼 ≥5 次', conditionEn: 'Defend against thieves 5+ times', emoji: '🛡️', target: 5, progressKey: 'thiefDefenses' },
+  { id: 'G8', series: 'farm', nameZh: '不枯之田', nameEn: 'Evergreen Farm', descZh: '三十天，你的农场一直生机勃勃', descEn: 'Thirty days — your farm stays vibrant', conditionZh: '农场连续活跃 30 天（无枯萎）', conditionEn: '30-day active streak (no wilting)', emoji: '🌿', target: 30, progressKey: 'farmActiveStreak' },
 ];
 
 // 🌟 隐藏系列 (Hidden)

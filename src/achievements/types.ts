@@ -1,5 +1,5 @@
 /**
- * Achievement system types — v0.17.1
+ * Achievement system types — v0.17.2
  */
 
 export type AchievementSeries = 'streak' | 'focus' | 'house' | 'farm' | 'hidden';
@@ -47,6 +47,14 @@ export interface AchievementProgress {
   collectedStagesCount: number; // number of unique normal stages collected (for H2 progress)
   collectedStages: string[];    // GrowthStage types ever collected (for H2)
   collectedTools: string[];     // tool types ever collected (for H10)
+  // Farm tracking (farm series)
+  totalPlants: number;          // cumulative plants planted
+  totalFarmHarvests: number;    // cumulative farm harvests
+  alienVisits: number;          // alien visit count
+  thiefDefenses: number;        // successful thief defense count
+  farmActiveStreak: number;     // consecutive active farm days (no wilt)
+  completedGalaxies: number;    // galaxies with all varieties collected
+  totalVarieties: number;       // total unique varieties collected (out of 28)
 }
 
 export interface AchievementData {
@@ -78,6 +86,13 @@ export const DEFAULT_PROGRESS: AchievementProgress = {
   collectedStagesCount: 0,
   collectedStages: [],
   collectedTools: [],
+  totalPlants: 0,
+  totalFarmHarvests: 0,
+  alienVisits: 0,
+  thiefDefenses: 0,
+  farmActiveStreak: 0,
+  completedGalaxies: 0,
+  totalVarieties: 0,
 };
 
 export const DEFAULT_ACHIEVEMENT_DATA: AchievementData = {
@@ -97,6 +112,6 @@ export const SERIES_CONFIG: Record<AchievementSeries, {
   streak: { emoji: '⭐️', color: '#FF8C42', count: 10 },
   focus:  { emoji: '⏱️', color: '#FF3B5C', count: 10 },
   house:  { emoji: '🏠', color: '#4CAF50', count: 10 },
-  farm:   { emoji: '🌱', color: '#8D6E63', count: 8, comingSoon: true },
+  farm:   { emoji: '🌱', color: '#8D6E63', count: 8 },
   hidden: { emoji: '🌟', color: '#FFD700', colorEnd: '#9C27B0', count: 6 },
 };

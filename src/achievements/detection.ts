@@ -308,3 +308,52 @@ export function detectWarehouseAchievements(ctx: WarehouseDetectionContext): {
 
   return { updatedData: data, newlyUnlocked };
 }
+
+/**
+ * Detect farm series achievements (G1-G8).
+ * Call after farm operations (plant, harvest, alien visit, thief defense, daily check).
+ * Farm feature is not yet implemented — this is pre-wired for future integration.
+ */
+export function detectFarmAchievements(data: AchievementData): {
+  updatedData: AchievementData;
+  newlyUnlocked: string[];
+} {
+  const result: AchievementData = JSON.parse(JSON.stringify(data));
+  const progress = result.progress;
+  const now = new Date();
+  const newlyUnlocked: string[] = [];
+
+  const isUnlocked = (id: string) => id in result.unlocked;
+  const unlock = (id: string) => {
+    if (!isUnlocked(id)) {
+      result.unlocked[id] = now.toISOString();
+      newlyUnlocked.push(id);
+    }
+  };
+
+  // G1: First Planting — totalPlants >= 1
+  if (!isUnlocked('G1') && progress.totalPlants >= 1) unlock('G1');
+
+  // G2: First Farm Harvest — totalFarmHarvests >= 1
+  if (!isUnlocked('G2') && progress.totalFarmHarvests >= 1) unlock('G2');
+
+  // G3: Hundred Plants — totalPlants >= 100
+  if (!isUnlocked('G3') && progress.totalPlants >= 100) unlock('G3');
+
+  // G4: Galaxy Conqueror — completedGalaxies >= 1
+  if (!isUnlocked('G4') && progress.completedGalaxies >= 1) unlock('G4');
+
+  // G5: Codex Master — totalVarieties >= 28
+  if (!isUnlocked('G5') && progress.totalVarieties >= 28) unlock('G5');
+
+  // G6: Alien Friend — alienVisits >= 10
+  if (!isUnlocked('G6') && progress.alienVisits >= 10) unlock('G6');
+
+  // G7: Thief Buster — thiefDefenses >= 5
+  if (!isUnlocked('G7') && progress.thiefDefenses >= 5) unlock('G7');
+
+  // G8: Evergreen Farm — farmActiveStreak >= 30
+  if (!isUnlocked('G8') && progress.farmActiveStreak >= 30) unlock('G8');
+
+  return { updatedData: result, newlyUnlocked };
+}
