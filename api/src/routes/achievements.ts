@@ -26,6 +26,12 @@ achievementsRoutes.put('/', async (c) => {
   const userId = c.get('userId')
   const body = await c.req.json()
   const achievementsJson = JSON.stringify(body.achievements ?? body)
+
+  // Prevent excessively large payloads
+  if (achievementsJson.length > 50_000) {
+    return c.json({ error: 'Achievements payload too large' }, 400)
+  }
+
   const now = new Date().toISOString()
 
   await c.env.DB.prepare(

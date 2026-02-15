@@ -101,7 +101,7 @@ export function useSync(isAuthenticated: boolean) {
     try {
       const [settingsRes, recordsRes, warehouseRes, achievementsRes] = await Promise.all([
         authFetch('/settings'),
-        authFetch('/records?limit=500'),
+        authFetch('/records?limit=500&offset=0'),
         authFetch('/warehouse'),
         authFetch('/achievements'),
       ])

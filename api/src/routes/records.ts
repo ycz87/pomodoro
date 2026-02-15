@@ -52,6 +52,13 @@ recordsRoutes.post('/', async (c) => {
   const body = await c.req.json()
   const { id, task, durationMinutes, completedAt, status } = body
 
+  // Input validation
+  if (!id || typeof id !== 'string') return c.json({ error: 'Invalid id' }, 400)
+  if (!task || typeof task !== 'string' || task.length > 200) return c.json({ error: 'Invalid task' }, 400)
+  if (typeof durationMinutes !== 'number' || durationMinutes < 0 || durationMinutes > 1440) return c.json({ error: 'Invalid durationMinutes' }, 400)
+  if (!completedAt || isNaN(Date.parse(completedAt))) return c.json({ error: 'Invalid completedAt' }, 400)
+  if (status && status !== 'completed' && status !== 'abandoned') return c.json({ error: 'Invalid status' }, 400)
+
   const endedAt = completedAt
   const startedAt = new Date(new Date(endedAt).getTime() - durationMinutes * 60 * 1000).toISOString()
   const now = new Date().toISOString()

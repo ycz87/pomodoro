@@ -26,6 +26,12 @@ settingsRoutes.put('/', async (c) => {
   const userId = c.get('userId')
   const body = await c.req.json()
   const settingsJson = JSON.stringify(body.settings ?? body)
+
+  // Prevent excessively large settings payloads
+  if (settingsJson.length > 10_000) {
+    return c.json({ error: 'Settings payload too large' }, 400)
+  }
+
   const now = new Date().toISOString()
 
   await c.env.DB.prepare(

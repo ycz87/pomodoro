@@ -25,6 +25,20 @@ app.use('*', async (c, next) => {
   const isLocalhost = /^https?:\/\/localhost(:\d+)?$/.test(origin)
   const isAllowed = allowed.includes(origin) || isLocalhost
 
+  // Handle preflight requests before routing
+  if (c.req.method === 'OPTIONS' && isAllowed) {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Max-Age': '86400',
+      },
+    })
+  }
+
   await next()
 
   if (isAllowed) {
@@ -36,7 +50,7 @@ app.use('*', async (c, next) => {
   }
 })
 
-// Preflight
+// Preflight fallback (non-allowed origins)
 app.options('*', (c) => c.body(null, 204))
 
 // Routes

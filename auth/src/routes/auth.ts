@@ -114,13 +114,22 @@ authRoutes.post('/email/verify', async (c) => {
   const code = body.code?.trim()
   if (!email || !code) return c.json({ error: 'Email and code required' }, 400)
 
+  // Rate limit: max 5 verify attempts per email per 15 minutes
+  const attemptKey = `verify_attempts:${email}`
+  const attempts = parseInt(await c.env.SESSION_KV.get(attemptKey) || '0', 10)
+  if (attempts >= 5) {
+    return c.json({ error: 'Too many attempts. Please request a new code.' }, 429)
+  }
+  await c.env.SESSION_KV.put(attemptKey, String(attempts + 1), { expirationTtl: 900 })
+
   const stored = await c.env.SESSION_KV.get(`code:${email}`)
   if (!stored || stored !== code) {
     return c.json({ error: 'Invalid or expired code' }, 400)
   }
 
-  // Delete used code
+  // Delete used code and attempt counter
   await c.env.SESSION_KV.delete(`code:${email}`)
+  await c.env.SESSION_KV.delete(attemptKey)
 
   const user = await findOrCreateUser(c.env.DB, email, 'email')
   const { accessToken, refreshTokenId } = await issueTokens(c.env, user.id, email)
@@ -135,8 +144,10 @@ authRoutes.post('/email/verify', async (c) => {
 
 // ─── 3. GET /google/redirect ───
 
-authRoutes.get('/google/redirect', (c) => {
+authRoutes.get('/google/redirect', async (c) => {
   const state = crypto.randomUUID()
+  // Store state in KV with 10-minute TTL for CSRF validation
+  await c.env.SESSION_KV.put(`oauth_state:${state}`, '1', { expirationTtl: 600 })
   const redirectUri = `${new URL(c.req.url).origin}/auth/google/callback`
   const url = googleAuthUrl(c.env.GOOGLE_CLIENT_ID, redirectUri, state)
   return c.redirect(url)
@@ -146,7 +157,14 @@ authRoutes.get('/google/redirect', (c) => {
 
 authRoutes.get('/google/callback', async (c) => {
   const code = c.req.query('code')
+  const state = c.req.query('state')
   if (!code) return c.json({ error: 'Missing code' }, 400)
+
+  // Validate OAuth state to prevent CSRF
+  if (!state) return c.json({ error: 'Missing state parameter' }, 400)
+  const storedState = await c.env.SESSION_KV.get(`oauth_state:${state}`)
+  if (!storedState) return c.json({ error: 'Invalid or expired state' }, 400)
+  await c.env.SESSION_KV.delete(`oauth_state:${state}`)
 
   const redirectUri = `${new URL(c.req.url).origin}/auth/google/callback`
   const tokens = await googleExchangeCode(c.env.GOOGLE_CLIENT_ID, c.env.GOOGLE_CLIENT_SECRET, code, redirectUri)
@@ -156,8 +174,10 @@ authRoutes.get('/google/callback', async (c) => {
 
 // ─── 5. GET /microsoft/redirect ───
 
-authRoutes.get('/microsoft/redirect', (c) => {
+authRoutes.get('/microsoft/redirect', async (c) => {
   const state = crypto.randomUUID()
+  // Store state in KV with 10-minute TTL for CSRF validation
+  await c.env.SESSION_KV.put(`oauth_state:${state}`, '1', { expirationTtl: 600 })
   const redirectUri = `${new URL(c.req.url).origin}/auth/microsoft/callback`
   const url = microsoftAuthUrl(c.env.MICROSOFT_CLIENT_ID, redirectUri, state)
   return c.redirect(url)
@@ -167,7 +187,14 @@ authRoutes.get('/microsoft/redirect', (c) => {
 
 authRoutes.get('/microsoft/callback', async (c) => {
   const code = c.req.query('code')
+  const state = c.req.query('state')
   if (!code) return c.json({ error: 'Missing code' }, 400)
+
+  // Validate OAuth state to prevent CSRF
+  if (!state) return c.json({ error: 'Missing state parameter' }, 400)
+  const storedState = await c.env.SESSION_KV.get(`oauth_state:${state}`)
+  if (!storedState) return c.json({ error: 'Invalid or expired state' }, 400)
+  await c.env.SESSION_KV.delete(`oauth_state:${state}`)
 
   const redirectUri = `${new URL(c.req.url).origin}/auth/microsoft/callback`
   const tokens = await microsoftExchangeCode(c.env.MICROSOFT_CLIENT_ID, c.env.MICROSOFT_CLIENT_SECRET, code, redirectUri)

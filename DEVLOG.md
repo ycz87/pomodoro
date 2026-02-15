@@ -2,6 +2,45 @@
 
 ---
 
+## v0.19.4 — 全面代码审查 + 安全修复（2026-02-15）
+
+### 背景
+Charles 要求对整个项目做一次深度代码审查，找出 bug、安全隐患、类型问题、逻辑漏洞并修复。
+
+### 发现的问题与修复
+
+#### P1 安全修复
+1. **OAuth CSRF 防护** — Google/Microsoft OAuth 的 state 参数之前生成了但 callback 没有验证，存在 CSRF 风险。现在 state 存入 KV（10 分钟 TTL），callback 时验证并删除。
+2. **邮箱验证码暴力破解防护** — `/email/verify` 之前没有限制尝试次数，攻击者可暴力枚举 6 位验证码。现在每个邮箱 15 分钟内最多 5 次尝试。
+3. **CORS preflight 修复** — API 和 Auth 服务的 OPTIONS 请求之前不返回 CORS headers（headers 在 `await next()` 之后设置，但 OPTIONS 路由直接返回 204）。现在在中间件中拦截 OPTIONS 请求并正确返回 CORS headers。
+
+#### P2 安全加固
+4. **Admin search LIKE 注入防护** — 管理后台搜索的 LIKE 查询没有转义 `%` 和 `_` 特殊字符，可能导致意外匹配。已添加转义。
+5. **POST /records 输入校验** — 之前没有验证请求体字段，现在校验 id、task、durationMinutes、completedAt、status 的类型和范围。
+6. **PUT /settings 大小限制** — 防止恶意超大 payload，限制 10KB。
+7. **PUT /achievements 大小限制** — 防止恶意超大 payload，限制 50KB。
+
+#### 审查结论（无需修复）
+- TypeScript 类型安全：tsc 零错误，无 any 滥用
+- SQL 注入：所有 D1 查询均使用参数化绑定
+- JWT 处理：HMAC-SHA256 + 15 分钟过期 + refresh token 轮换，实现正确
+- 数据同步：fire-and-forget 模式符合 local-first 设计，可接受
+- 错误处理：全局 onError 不泄露内部信息，catch 块合理
+- useTimer 状态机：逻辑严密，overtime 模式正确
+- useProjectTimer：状态持久化和恢复逻辑完善
+
+### 改动文件
+- `auth/src/routes/auth.ts` — OAuth state 验证 + 验证码暴力破解防护
+- `auth/src/index.ts` — CORS preflight 修复
+- `api/src/index.ts` — CORS preflight 修复
+- `api/src/routes/admin.ts` — LIKE 转义
+- `api/src/routes/records.ts` — 输入校验
+- `api/src/routes/settings.ts` — payload 大小限制
+- `api/src/routes/achievements.ts` — payload 大小限制
+- `package.json`（0.19.3 → 0.19.4）
+
+---
+
 ## v0.19.3 — 成就数据云端同步 API（2026-02-15）
 
 ### 背景
