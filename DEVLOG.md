@@ -2,6 +2,27 @@
 
 ---
 
+## v0.19.3 — 成就数据云端同步 API（2026-02-15）
+
+### 背景
+v0.18.0 实现了成就系统的云端同步前端逻辑（useSync 中 PUT/GET /api/achievements），但后端 API 尚未实现，请求静默失败。本次补齐后端端点。
+
+### 改动
+- `api/src/db/schema.sql`：新增 `user_achievements` 表（user_id PK + achievements_json + updated_at）
+- `api/src/routes/achievements.ts`：新建，GET/PUT /achievements，参考 settings.ts 模式
+- `api/src/index.ts`：注册 achievements 路由
+- D1 远程执行 CREATE TABLE migration
+- Worker 重新部署
+
+### 改动文件
+- `api/src/db/schema.sql`
+- `api/src/routes/achievements.ts`（新建）
+- `api/src/index.ts`
+- `package.json`（0.19.2 → 0.19.3）
+- 文档同步
+
+---
+
 ## v0.19.2 — 修复 auth 服务 FRONTEND_URL（2026-02-15）
 
 ### 背景

@@ -4,6 +4,7 @@ import { settingsRoutes } from './routes/settings'
 import { recordsRoutes } from './routes/records'
 import { warehouseRoutes } from './routes/warehouse'
 import { adminRoutes } from './routes/admin'
+import { achievementsRoutes } from './routes/achievements'
 
 export type Env = {
   DB: D1Database
@@ -44,6 +45,7 @@ app.route('/settings', settingsRoutes)
 app.route('/records', recordsRoutes)
 app.route('/warehouse', warehouseRoutes)
 app.route('/admin', adminRoutes)
+app.route('/achievements', achievementsRoutes)
 
 // 404
 app.notFound((c) => c.json({ error: 'Not Found' }, 404))

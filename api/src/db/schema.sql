@@ -61,3 +61,11 @@ CREATE INDEX IF NOT EXISTS idx_synthesis_log_user_id ON synthesis_log(user_id);
 ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user';
 ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'active';
 ALTER TABLE users ADD COLUMN last_active_at TEXT;
+
+-- v0.19.3: Achievements sync
+CREATE TABLE IF NOT EXISTS user_achievements (
+  user_id TEXT PRIMARY KEY,
+  achievements_json TEXT,
+  updated_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);

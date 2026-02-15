@@ -1,3 +1,12 @@
+## v0.19.3 — 成就数据云端同步 API（2026-02-15）
+
+### 新增
+- 后端 achievements API 端点：GET/PUT /api/achievements，支持成就数据云端存取
+- D1 新增 `user_achievements` 表（user_id PK + achievements_json + updated_at）
+- 前端 v0.18.0 已有的成就同步逻辑现在可以正常工作
+
+---
+
 ## v0.19.2 — 修复 auth 服务 FRONTEND_URL（2026-02-15）
 
 ### 修复
