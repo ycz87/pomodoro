@@ -58,6 +58,9 @@ export function SlicingScene({ melonType, comboCount, canContinue, pity, onCompl
   const [showPerfect, setShowPerfect] = useState(false);
   const [showRareGlow, setShowRareGlow] = useState(false);
   const [comboEffect, setComboEffect] = useState<string | null>(null);
+  const [screenFlash, setScreenFlash] = useState(false);
+  const [shaking, setShaking] = useState(false);
+  const [goldBurst, setGoldBurst] = useState(false);
 
   const dragStart = useRef<{ x: number; y: number } | null>(null);
   const hasSwiped = useRef(false);
@@ -69,24 +72,46 @@ export function SlicingScene({ melonType, comboCount, canContinue, pity, onCompl
     return () => { document.body.style.overscrollBehavior = prev; };
   }, []);
 
-  const melonEmoji = melonType === 'legendary' ? '👑' : '🍉';
   const juiceColors = melonType === 'legendary' ? GOLD_JUICE_COLORS : JUICE_COLORS;
+
+  // SVG whole watermelon for ready phase
+  const WholeMelonSVG = ({ size = 120 }: { size?: number }) => {
+    const isGold = melonType === 'legendary';
+    const baseColor = isGold ? '#fbbf24' : '#2d8a4e';
+    const stripeColor = isGold ? '#d97706' : '#1a5c32';
+    const highlight = isGold ? '#fde68a' : '#4ade80';
+    return (
+      <svg width={size} height={size} viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="56" fill={baseColor} />
+        {/* Stripes */}
+        <path d="M60 4 C62 40, 68 80, 60 116" stroke={stripeColor} strokeWidth="5" fill="none" opacity="0.7" />
+        <path d="M30 10 C38 40, 44 80, 30 110" stroke={stripeColor} strokeWidth="4" fill="none" opacity="0.5" />
+        <path d="M90 10 C82 40, 76 80, 90 110" stroke={stripeColor} strokeWidth="4" fill="none" opacity="0.5" />
+        <path d="M15 30 C28 50, 28 70, 15 90" stroke={stripeColor} strokeWidth="3" fill="none" opacity="0.35" />
+        <path d="M105 30 C92 50, 92 70, 105 90" stroke={stripeColor} strokeWidth="3" fill="none" opacity="0.35" />
+        {/* Highlight */}
+        <ellipse cx="42" cy="35" rx="18" ry="12" fill={highlight} opacity="0.25" transform="rotate(-20 42 35)" />
+        {/* Stem */}
+        <path d="M58 6 C56 0, 62 -2, 64 4" stroke={isGold ? '#92400e' : '#166534'} strokeWidth="2.5" fill="none" />
+      </svg>
+    );
+  };
 
   // 生成汁水粒子
   const spawnParticles = useCallback((cx: number, cy: number, angle: number) => {
-    const count = melonType === 'legendary' ? 40 : 25;
+    const count = melonType === 'legendary' ? 70 : 45;
     const newParticles: Particle[] = [];
     for (let i = 0; i < count; i++) {
       const spread = (Math.random() - 0.5) * Math.PI;
       const dir = angle + Math.PI / 2 + spread;
-      const speed = 2 + Math.random() * 6;
+      const speed = 2 + Math.random() * 8;
       newParticles.push({
         id: i,
-        x: cx + (Math.random() - 0.5) * 20,
-        y: cy + (Math.random() - 0.5) * 20,
+        x: cx + (Math.random() - 0.5) * 30,
+        y: cy + (Math.random() - 0.5) * 30,
         vx: Math.cos(dir) * speed,
         vy: Math.sin(dir) * speed,
-        size: 3 + Math.random() * 6,
+        size: 5 + Math.random() * 10,
         color: juiceColors[Math.floor(Math.random() * juiceColors.length)],
         opacity: 1,
       });
@@ -135,9 +160,22 @@ export function SlicingScene({ melonType, comboCount, canContinue, pity, onCompl
     setPhase('slicing');
     playSliceSound();
 
+    // Screen flash + shake
+    setScreenFlash(true);
+    setShaking(true);
+    setTimeout(() => setScreenFlash(false), 150);
+    setTimeout(() => setShaking(false), 400);
+
     setTimeout(() => {
       spawnParticles(cx, cy, angle);
       playSplashSound();
+
+      // Gold burst for legendary
+      if (melonType === 'legendary') {
+        setGoldBurst(true);
+        setTimeout(() => setGoldBurst(false), 600);
+      }
+
       setPhase('split');
 
       const sliceResult = rollSlicingResult(melonType, isPerfect, comboCount, pity);
@@ -192,36 +230,41 @@ export function SlicingScene({ melonType, comboCount, canContinue, pity, onCompl
           setShowRareGlow(false);
           setPhase('result');
         }, totalDelay);
-      }, 600);
-    }, 200);
+      }, 800);
+    }, 400);
   }, [phase, melonType, comboCount, pity, spawnParticles, t]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (phase !== 'ready') return;
     e.preventDefault();
     dragStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-  }, []);
+  }, [phase]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (phase !== 'ready') return;
     e.preventDefault();
-  }, []);
+  }, [phase]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (phase !== 'ready') return;
     e.preventDefault();
     if (!dragStart.current) return;
     const touch = e.changedTouches[0];
     handleSlice(dragStart.current.x, dragStart.current.y, touch.clientX, touch.clientY);
     dragStart.current = null;
-  }, [handleSlice]);
+  }, [phase, handleSlice]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (phase !== 'ready') return;
     dragStart.current = { x: e.clientX, y: e.clientY };
-  }, []);
+  }, [phase]);
 
   const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    if (phase !== 'ready') return;
     if (!dragStart.current) return;
     handleSlice(dragStart.current.x, dragStart.current.y, e.clientX, e.clientY);
     dragStart.current = null;
-  }, [handleSlice]);
+  }, [phase, handleSlice]);
 
   const handleCollect = useCallback(() => {
     if (result) onComplete(result);
@@ -233,7 +276,7 @@ export function SlicingScene({ melonType, comboCount, canContinue, pity, onCompl
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-[70] flex flex-col items-center justify-center select-none"
+      className={`fixed inset-0 z-[70] flex flex-col items-center justify-center select-none${shaking ? ' slicing-shake' : ''}`}
       style={{ backgroundColor: 'rgba(0,0,0,0.85)', cursor: phase === 'ready' ? 'crosshair' : 'default', touchAction: 'none', overscrollBehavior: 'none' }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -241,6 +284,21 @@ export function SlicingScene({ melonType, comboCount, canContinue, pity, onCompl
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
     >
+      {/* Screen flash */}
+      {screenFlash && (
+        <div className="absolute inset-0 z-50 pointer-events-none" style={{
+          backgroundColor: 'rgba(255,255,255,0.8)',
+          animation: 'flashFade 150ms ease-out forwards',
+        }} />
+      )}
+
+      {/* Gold burst for legendary */}
+      {goldBurst && (
+        <div className="absolute inset-0 z-40 pointer-events-none" style={{
+          background: 'radial-gradient(circle at center, rgba(251,191,36,0.6) 0%, rgba(251,191,36,0.2) 40%, transparent 70%)',
+          animation: 'flashFade 600ms ease-out forwards',
+        }} />
+      )}
       {/* Combo 计数器 */}
       {comboCount > 1 && (
         <div
@@ -285,24 +343,23 @@ export function SlicingScene({ melonType, comboCount, canContinue, pity, onCompl
 
       {/* 西瓜 */}
       <div className="relative transition-all" style={{
-        fontSize: phase === 'ready' ? 120 : 100,
         transform: phase === 'slicing' ? 'scale(1.1)' : phase === 'split' || phase === 'drops' ? 'scale(0)' : 'scale(1)',
         opacity: phase === 'result' ? 0 : 1,
-        transition: phase === 'slicing' ? 'transform 0.15s ease-out' : 'transform 0.4s ease-in, opacity 0.3s',
+        transition: phase === 'slicing' ? 'transform 0.15s ease-out' : 'transform 0.6s ease-in, opacity 0.3s',
       }}>
-        {(phase === 'ready' || phase === 'slicing') && <span className="block">{melonEmoji}</span>}
+        {(phase === 'ready' || phase === 'slicing') && <WholeMelonSVG size={120} />}
         {(phase === 'split' || phase === 'drops') && (
           <div className="relative" style={{ fontSize: 100 }}>
             <span className="absolute" style={{
-              transform: `rotate(${sliceAngle}rad) translateX(-40px) rotate(-15deg)`,
-              transition: 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              filter: `drop-shadow(0 0 10px ${melonType === 'legendary' ? '#fbbf24' : '#ff3b3b'})`,
-            }}>{melonEmoji}</span>
+              transform: `rotate(${sliceAngle}rad) translateX(-50px) rotate(-15deg)`,
+              transition: 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              filter: `drop-shadow(0 0 15px ${melonType === 'legendary' ? '#fbbf24' : '#ff3b3b'})`,
+            }}>🍉</span>
             <span className="absolute" style={{
-              transform: `rotate(${sliceAngle}rad) translateX(40px) rotate(15deg)`,
-              transition: 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              filter: `drop-shadow(0 0 10px ${melonType === 'legendary' ? '#fbbf24' : '#ff3b3b'})`,
-            }}>{melonEmoji}</span>
+              transform: `rotate(${sliceAngle}rad) translateX(50px) rotate(15deg)`,
+              transition: 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              filter: `drop-shadow(0 0 15px ${melonType === 'legendary' ? '#fbbf24' : '#ff3b3b'})`,
+            }}>🍉</span>
           </div>
         )}
       </div>
@@ -310,8 +367,9 @@ export function SlicingScene({ melonType, comboCount, canContinue, pity, onCompl
       {/* 刀光引导 */}
       {phase === 'ready' && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-0.5 h-40 rounded-full" style={{
-            background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.6), transparent)',
+          <div className="w-1.5 h-40 rounded-full" style={{
+            background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.9), transparent)',
+            boxShadow: '0 0 12px rgba(255,255,255,0.6), 0 0 24px rgba(255,255,255,0.3)',
             animation: 'sliceGuide 2s ease-in-out infinite',
           }} />
         </div>
@@ -368,6 +426,11 @@ export function SlicingScene({ melonType, comboCount, canContinue, pity, onCompl
         <div
           className="absolute inset-x-4 max-w-sm mx-auto rounded-2xl border p-6 animate-fade-up"
           style={{ backgroundColor: theme.surface, borderColor: theme.border }}
+          onMouseDown={e => e.stopPropagation()}
+          onMouseUp={e => e.stopPropagation()}
+          onTouchStart={e => e.stopPropagation()}
+          onTouchEnd={e => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
         >
           <h3 className="text-lg font-semibold text-center mb-4" style={{ color: theme.text }}>
             {melonType === 'legendary' ? t.sliceGoldResult : t.sliceResult}
@@ -470,6 +533,24 @@ export function SlicingScene({ melonType, comboCount, canContinue, pity, onCompl
           40% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
           60% { transform: translate(-50%, -70%) scale(1); }
           100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        @keyframes flashFade {
+          0% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+        .slicing-shake {
+          animation: shakeAnim 0.4s ease-out;
+        }
+        @keyframes shakeAnim {
+          0%, 100% { transform: translate(0, 0); }
+          10% { transform: translate(-4px, 2px); }
+          20% { transform: translate(4px, -2px); }
+          30% { transform: translate(-3px, -3px); }
+          40% { transform: translate(3px, 3px); }
+          50% { transform: translate(-2px, 1px); }
+          60% { transform: translate(2px, -1px); }
+          70% { transform: translate(-1px, 2px); }
+          80% { transform: translate(1px, -1px); }
         }
       `}</style>
     </div>

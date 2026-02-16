@@ -9,7 +9,7 @@
 - **GitHub：** https://github.com/ycz87/cosmelon
 
 ## 技术架构
-- **前端：** React 19 + Vite 7 + Tailwind CSS 4 + TypeScript（当前 v0.21.3）
+- **前端：** React 19 + Vite 7 + Tailwind CSS 4 + TypeScript（当前 v0.21.4）
 - **后端：** Cloudflare Workers（Hono）+ D1 数据库
 - **认证：** auth.cosmelon.app（邮箱验证码 + Google/Microsoft OAuth）
 - **API：** api.clock.cosmelon.app
@@ -68,4 +68,4 @@
 - 角色权限控制
 
 ## 当前版本
-v0.21.2（2026-02-16）
+v0.21.4（2026-02-16）

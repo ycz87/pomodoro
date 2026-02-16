@@ -142,8 +142,8 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
                   </div>
                   <button
                     onClick={() => onSlice('ripe')}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all"
-                    style={{ backgroundColor: `${theme.accent}20`, color: theme.accent }}
+                    className="px-4 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-all"
+                    style={{ backgroundColor: '#ef4444', color: '#fff', boxShadow: '0 2px 8px rgba(239,68,68,0.4)' }}
                   >
                     {t.sliceButton}
                   </button>
@@ -162,8 +162,8 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
                   </div>
                   <button
                     onClick={() => onSlice('legendary')}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all"
-                    style={{ backgroundColor: '#fbbf2420', color: '#fbbf24' }}
+                    className="px-4 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-all"
+                    style={{ backgroundColor: '#fbbf24', color: '#78350f', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}
                   >
                     {t.sliceButton}
                   </button>

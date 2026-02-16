@@ -2,6 +2,17 @@
 
 ---
 
+## v0.21.4 — 切瓜系统 4 bug 修复（2026-02-16）
+
+P0 修复，Charles 手机端测试发现的 4 个问题：
+
+1. **切瓜按钮不显眼** → WarehousePage 按钮改为实色大按钮（红色/金色），加 boxShadow
+2. **切瓜场景西瓜显示** → ready 阶段用 SVG 画完整圆形西瓜（绿色条纹/金色条纹），split 阶段才用 🍉 emoji 表示切开的两半
+3. **切开过程不隆重** → 加屏幕闪白（flashFade）+ CSS shake + 刀光加粗加 glow + 粒子数量翻倍（45/70）+ 粒子尺寸加大 + 金西瓜金光爆发 + split 延迟 200→400ms + 分离动画 0.5→0.8s
+4. **结果卡片按钮无反应（严重）** → 根因：容器 onMouseDown/onMouseUp 在 result 阶段仍活跃，吃掉了按钮点击。修复：所有 touch/mouse handler 加 `if (phase !== 'ready') return` 守卫 + 结果卡片 div 加 stopPropagation
+
+---
+
 ## v0.21.3 — 修复移动端切瓜 pull-to-refresh（2026-02-16）
 
 ### 背景
