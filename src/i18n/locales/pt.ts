@@ -87,6 +87,8 @@ export const pt: Messages = {
 
   // Warehouse & Synthesis
   warehouseTitle: '🏠 Meu Galpão de Melancias',
+  warehouseTabShed: '🍉 Galpão',
+  warehouseTabBackpack: '🎒 Mochila',
   warehouseTotal: 'Total coletado',
   warehouseHighest: 'Nível mais alto',
   warehouseLocked: '🔒',

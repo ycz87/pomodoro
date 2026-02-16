@@ -36,6 +36,8 @@ export interface Messages {
 
   // Warehouse & Synthesis (v0.8.0)
   warehouseTitle: string;
+  warehouseTabShed: string;
+  warehouseTabBackpack: string;
   warehouseTotal: string;
   warehouseHighest: string;
   warehouseLocked: string;

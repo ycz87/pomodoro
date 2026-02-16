@@ -87,6 +87,8 @@ export const de: Messages = {
 
   // Warehouse & Synthesis
   warehouseTitle: '🏠 Mein Melonenschuppen',
+  warehouseTabShed: '🍉 Schuppen',
+  warehouseTabBackpack: '🎒 Rucksack',
   warehouseTotal: 'Gesamt gesammelt',
   warehouseHighest: 'Höchste Stufe',
   warehouseLocked: '🔒',

@@ -87,6 +87,8 @@ export const ko: Messages = {
 
   // Warehouse & Synthesis
   warehouseTitle: '🏠 내 수박 창고',
+  warehouseTabShed: '🍉 창고',
+  warehouseTabBackpack: '🎒 배낭',
   warehouseTotal: '총 수확',
   warehouseHighest: '최고 등급',
   warehouseLocked: '🔒',

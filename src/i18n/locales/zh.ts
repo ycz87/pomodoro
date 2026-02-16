@@ -87,6 +87,8 @@ export const zh: Messages = {
 
   // Warehouse & Synthesis
   warehouseTitle: '🏠 我的瓜棚',
+  warehouseTabShed: '🍉 瓜棚',
+  warehouseTabBackpack: '🎒 背包',
   warehouseTotal: '总收获',
   warehouseHighest: '最高阶',
   warehouseLocked: '🔒',

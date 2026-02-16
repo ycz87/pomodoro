@@ -87,6 +87,8 @@ export const ja: Messages = {
 
   // Warehouse & Synthesis
   warehouseTitle: '🏠 スイカ小屋',
+  warehouseTabShed: '🍉 小屋',
+  warehouseTabBackpack: '🎒 リュック',
   warehouseTotal: '総収穫数',
   warehouseHighest: '最高ランク',
   warehouseLocked: '🔒',

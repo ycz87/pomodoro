@@ -87,6 +87,8 @@ export const fr: Messages = {
 
   // Warehouse & Synthesis
   warehouseTitle: '🏠 Mon Abri à Melons',
+  warehouseTabShed: '🍉 Abri',
+  warehouseTabBackpack: '🎒 Sac à dos',
   warehouseTotal: 'Total collecté',
   warehouseHighest: 'Niveau le plus haut',
   warehouseLocked: '🔒',
