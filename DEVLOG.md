@@ -2,6 +2,21 @@
 
 ---
 
+## v0.20.1 — 徽章显示修复（2026-02-16）
+
+### 背景
+v0.20.0 接入徽章图片后，BadgeIcon 容器使用 `rounded-full overflow-hidden` 导致非圆形徽章（六边形、盾牌、星形、方形圆角）边角被裁切。同时已解锁容器的 `boxShadow` 在深色主题下呈现黑色方块背景。
+
+### 改动
+1. **移除圆形裁切** — 已解锁和未解锁图片容器去掉 `rounded-full` + `overflow-hidden`，图片用 `object-contain` 自适应透明背景 PNG 的原始形状
+2. **移除 boxShadow** — 已解锁容器去掉 `boxShadow`，背景完全透明
+3. **保留圆形背景** — 隐藏系列未解锁 ❓ 和无图片 fallback 🔒 保持圆形样式
+
+### 文件变更
+- 修改 `src/components/AchievementsPage.tsx` — BadgeIcon 容器样式
+
+---
+
 ## v0.20.0 — 徽章图片接入成就页面（2026-02-16）
 
 ### 背景
