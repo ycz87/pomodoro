@@ -11,6 +11,10 @@
 - **后端：** Cloudflare Workers（Hono）+ D1 数据库
 - **线上地址：** https://clock.cosmelon.app
 
+## 项目结构与代码风格
+
+详见 `AGENTS.md`，包含完整的目录结构、编码约定、i18n 规则和禁止修改的文件清单。审查时以此为基准。
+
 ## 审查重点
 
 ### 安全

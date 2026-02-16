@@ -130,7 +130,7 @@ npm run lint
 
 ## 注意事项
 
-- `package.json` 的 `version` 字段由人工管理，不要自行修改
+- `package.json` 的 `version` 字段按任务要求更新
 - 不要引入新的 npm 依赖，除非任务明确要求
 - 不要删除现有文件，只新增或修改
 - 音效用 Web Audio API 合成（见 `src/slicing/audio.ts`），不依赖外部音频文件
