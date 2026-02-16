@@ -94,6 +94,16 @@ export function useWarehouse(onSync?: (warehouse: Warehouse) => void) {
     return null;
   }, [warehouse.items]);
 
+  /** 切瓜时消耗一个大西瓜/金西瓜 */
+  const consumeMelon = useCallback((type: 'ripe' | 'legendary'): boolean => {
+    if (warehouse.items[type] <= 0) return false;
+    setWarehouse((prev) => ({
+      ...prev,
+      items: { ...prev.items, [type]: prev.items[type] - 1 },
+    }));
+    return true;
+  }, [warehouse.items, setWarehouse]);
+
   /** 批量添加收获物（测试用） */
   const addItems = useCallback((stage: GrowthStage, count: number) => {
     if (count <= 0) return;
@@ -115,6 +125,7 @@ export function useWarehouse(onSync?: (warehouse: Warehouse) => void) {
     addItem,
     addItems,
     updatePity,
+    consumeMelon,
     synthesize,
     synthesizeAll,
     getHighestStage,

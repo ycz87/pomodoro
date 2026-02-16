@@ -1,8 +1,5 @@
 /**
- * WarehousePage — 仓库页面（收获物展示 + 合成系统）
- *
- * 全屏 overlay，显示 6 种收获物 + 数量，合成入口，简单统计。
- * 金西瓜未获得时显示 🔒 + "???"。
+ * WarehousePage — 瓜棚页面（收获物 + 切瓜 + 种子 + 道具 + 合成）
  */
 import { useState, useCallback } from 'react';
 import { useTheme } from '../hooks/useTheme';
@@ -11,11 +8,15 @@ import type { GrowthStage, SynthesisRecipe } from '../types';
 import type { Warehouse } from '../types';
 import { SYNTHESIS_RECIPES } from '../types';
 import { GrowthIcon } from './GrowthIcon';
+import type { ShedStorage, ItemId } from '../types/slicing';
+import { ALL_ITEM_IDS, ITEM_DEFS } from '../types/slicing';
 
 interface WarehousePageProps {
   warehouse: Warehouse;
+  shed: ShedStorage;
   onSynthesize: (recipe: SynthesisRecipe, count?: number) => boolean;
   onSynthesizeAll: (recipe: SynthesisRecipe) => number;
+  onSlice: (type: 'ripe' | 'legendary') => void;
   highestStage: GrowthStage | null;
   onClose?: () => void;
   inline?: boolean;
@@ -35,13 +36,17 @@ function getStageName(stage: GrowthStage, t: ReturnType<typeof useI18n>): string
   return map[stage];
 }
 
-export function WarehousePage({ warehouse, onSynthesize, onSynthesizeAll, highestStage, onClose, inline }: WarehousePageProps) {
+export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, onSlice, highestStage, onClose, inline }: WarehousePageProps) {
   const theme = useTheme();
   const t = useI18n();
   const [toast, setToast] = useState<string | null>(null);
-  const [synthAnim, setSynthAnim] = useState<string | null>(null); // recipe.from key for animation
+  const [synthAnim, setSynthAnim] = useState<string | null>(null);
+  const [flavorTooltip, setFlavorTooltip] = useState<ItemId | null>(null);
 
   const legendaryUnlocked = warehouse.items.legendary > 0;
+  const canSliceRipe = warehouse.items.ripe > 0;
+  const canSliceLegendary = warehouse.items.legendary > 0;
+  const hasItems = ALL_ITEM_IDS.some(id => shed.items[id] > 0);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -118,8 +123,127 @@ export function WarehousePage({ warehouse, onSynthesize, onSynthesizeAll, highes
           </div>
         )}
 
+        {/* ─── Slice Section ─── */}
+        {(canSliceRipe || canSliceLegendary) && (
+          <div className="mb-5">
+            <h3 className="text-sm font-semibold mb-3" style={{ color: theme.text }}>{t.shedSliceSection}</h3>
+            <div className="flex flex-col gap-2">
+              {canSliceRipe && (
+                <div
+                  className="flex items-center justify-between p-3 rounded-xl border"
+                  style={{ backgroundColor: theme.inputBg, borderColor: theme.border }}
+                >
+                  <div className="flex items-center gap-2">
+                    <GrowthIcon stage="ripe" size={28} />
+                    <span className="text-sm font-medium" style={{ color: theme.text }}>
+                      {getStageName('ripe', t)} ×{warehouse.items.ripe}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => onSlice('ripe')}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all"
+                    style={{ backgroundColor: `${theme.accent}20`, color: theme.accent }}
+                  >
+                    {t.sliceButton}
+                  </button>
+                </div>
+              )}
+              {canSliceLegendary && (
+                <div
+                  className="flex items-center justify-between p-3 rounded-xl border"
+                  style={{ backgroundColor: '#fbbf2408', borderColor: '#fbbf2430' }}
+                >
+                  <div className="flex items-center gap-2">
+                    <GrowthIcon stage="legendary" size={28} />
+                    <span className="text-sm font-medium" style={{ color: '#fbbf24' }}>
+                      {getStageName('legendary', t)} ×{warehouse.items.legendary}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => onSlice('legendary')}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all"
+                    style={{ backgroundColor: '#fbbf2420', color: '#fbbf24' }}
+                  >
+                    {t.sliceButton}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ─── Seeds Section ─── */}
+        {shed.seeds > 0 && (
+          <div className="mb-5">
+            <h3 className="text-sm font-semibold mb-3" style={{ color: theme.text }}>{t.shedSeedsTitle}</h3>
+            <div
+              className="flex items-center justify-between p-3 rounded-xl border"
+              style={{ backgroundColor: theme.inputBg, borderColor: theme.border }}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🌰</span>
+                <span className="text-sm font-medium" style={{ color: theme.text }}>
+                  {t.shedSeedsCount(shed.seeds)}
+                </span>
+              </div>
+              <button
+                disabled
+                className="px-3 py-1.5 rounded-lg text-xs font-medium opacity-50 cursor-not-allowed"
+                style={{ backgroundColor: theme.inputBg, color: theme.textMuted, border: `1px solid ${theme.border}` }}
+                title={t.shedFarmComingSoon}
+              >
+                {t.shedGoFarm}
+              </button>
+            </div>
+            <p className="text-xs mt-1.5 ml-1" style={{ color: theme.textFaint }}>{t.shedFarmComingSoon}</p>
+          </div>
+        )}
+
+        {/* ─── Items Section ─── */}
+        <div className="mb-5">
+          <h3 className="text-sm font-semibold mb-3" style={{ color: theme.text }}>{t.shedItemsTitle}</h3>
+          {!hasItems ? (
+            <p className="text-xs py-3 text-center" style={{ color: theme.textFaint }}>{t.shedNoItems}</p>
+          ) : (
+            <div className="grid grid-cols-3 gap-2">
+              {ALL_ITEM_IDS.filter(id => shed.items[id] > 0).map((id) => {
+                const def = ITEM_DEFS[id];
+                const isRare = def.rarity === 'rare';
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setFlavorTooltip(flavorTooltip === id ? null : id)}
+                    className="flex flex-col items-center gap-1 p-2.5 rounded-xl border cursor-pointer transition-all"
+                    style={{
+                      backgroundColor: isRare ? '#fbbf2408' : theme.inputBg,
+                      borderColor: isRare ? '#fbbf2430' : theme.border,
+                    }}
+                  >
+                    <span className="text-xl">{def.emoji}</span>
+                    <span className="text-[10px] font-medium leading-tight text-center" style={{ color: theme.textMuted }}>
+                      {t.itemName(id).replace(/^[^\s]+\s/, '')}
+                    </span>
+                    <span className="text-xs font-semibold" style={{ color: isRare ? '#fbbf24' : theme.text }}>
+                      ×{shed.items[id]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {/* Flavor tooltip */}
+          {flavorTooltip && (
+            <div
+              className="mt-2 p-3 rounded-xl text-xs italic"
+              style={{ backgroundColor: theme.inputBg, color: theme.textMuted, border: `1px solid ${theme.border}` }}
+            >
+              {t.itemFlavor(flavorTooltip)}
+            </div>
+          )}
+        </div>
+
         {/* Stats */}
-        <div className="flex items-center justify-between px-2 py-3 mb-5 rounded-xl" style={{ backgroundColor: theme.inputBg }}>
+        <div className="flex items-center justify-between px-2 py-3 mb-5 rounded-xl flex-wrap gap-2" style={{ backgroundColor: theme.inputBg }}>
           <div className="text-xs" style={{ color: theme.textMuted }}>
             {t.warehouseTotal}: <span style={{ color: theme.text, fontWeight: 600 }}>{warehouse.totalCollected}</span>
           </div>
@@ -128,6 +252,11 @@ export function WarehousePage({ warehouse, onSynthesize, onSynthesizeAll, highes
               {highestStage ? getStageName(highestStage, t) : '—'}
             </span>
           </div>
+          {shed.totalSliced > 0 && (
+            <div className="text-xs" style={{ color: theme.textMuted }}>
+              {t.shedTotalSliced}: <span style={{ color: theme.text, fontWeight: 600 }}>{shed.totalSliced}</span>
+            </div>
+          )}
           {legendaryUnlocked && (
             <div className="text-xs" style={{ color: '#fbbf24', fontWeight: 600 }}>
               👑 {t.legendaryUnlocked}
@@ -152,7 +281,6 @@ export function WarehousePage({ warehouse, onSynthesize, onSynthesizeAll, highes
                     borderColor: theme.border,
                   }}
                 >
-                  {/* Recipe visual */}
                   <div className="flex items-center gap-1.5 flex-1 min-w-0">
                     <GrowthIcon stage={recipe.from} size={22} />
                     <span className="text-xs font-medium" style={{ color: theme.textMuted }}>×{recipe.cost}</span>
@@ -160,8 +288,6 @@ export function WarehousePage({ warehouse, onSynthesize, onSynthesizeAll, highes
                     <GrowthIcon stage={recipe.to} size={22} />
                     <span className="text-xs font-medium" style={{ color: theme.textMuted }}>×1</span>
                   </div>
-
-                  {/* Status + buttons */}
                   <div className="flex items-center gap-1.5 shrink-0">
                     {canMake > 0 ? (
                       <>

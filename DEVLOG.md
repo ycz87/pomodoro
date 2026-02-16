@@ -2,6 +2,31 @@
 
 ---
 
+## v0.21.0 — 切瓜系统 MVP（2026-02-16）
+
+### 背景
+切瓜是连接瓜棚（资源中心）和农场（养成中心）的核心环节。用户专注获得大西瓜后，需要通过切瓜获得种子和道具。
+
+### 改动
+1. **切瓜基础层** — 新增 `src/types/slicing.ts` (类型), `src/hooks/useShedStorage.ts` (本地存储), `src/slicing/engine.ts` (掉落逻辑)
+2. **全屏切瓜场景** — 新增 `src/components/SlicingScene.tsx`。实现触摸/滑动切割交互、CSS 裂开动画、粒子系统模拟汁水飞溅、物理弹跳动画展示掉落物
+3. **音效系统** — 新增 `src/slicing/audio.ts`。使用 Web Audio API 纯代码合成切割声、飞溅声和稀有掉落铃声，无需加载外部音频
+4. **瓜棚 UI 重构** — 修改 `src/components/WarehousePage.tsx`。布局重构，加入切瓜、种子展示、道具网格及道具风味文案 Tooltip
+5. **App 调度** — 在 `App.tsx` 中整合 hooks 和组件，管理切瓜状态流转
+
+### 文件变更
+- 新增 `src/types/slicing.ts`
+- 新增 `src/hooks/useShedStorage.ts`
+- 新增 `src/slicing/engine.ts`
+- 新增 `src/slicing/audio.ts`
+- 新增 `src/components/SlicingScene.tsx`
+- 修改 `src/components/WarehousePage.tsx`
+- 修改 `src/App.tsx`
+- 修改 `src/hooks/useWarehouse.ts`
+- 修改 `src/i18n/` 下所有 locale 文件
+
+---
+
 ## v0.20.2 — 庆祝效果增强（2026-02-16）
 
 ### 背景

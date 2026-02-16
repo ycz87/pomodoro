@@ -37,11 +37,13 @@ import { EncouragementBanner } from './components/EncouragementBanner';
 import { WarehousePage } from './components/WarehousePage';
 import { AchievementsPage } from './components/AchievementsPage';
 import { AchievementCelebration } from './components/AchievementCelebration';
+import { SlicingScene } from './components/SlicingScene';
 import { FarmPage } from './components/FarmPage';
 import { useTimer } from './hooks/useTimer';
 import type { TimerPhase } from './hooks/useTimer';
 import { useProjectTimer } from './hooks/useProjectTimer';
 import { useWarehouse } from './hooks/useWarehouse';
+import { useShedStorage } from './hooks/useShedStorage';
 import { useAchievements } from './hooks/useAchievements';
 import { useAuth } from './hooks/useAuth';
 import { useSync } from './hooks/useSync';
@@ -87,7 +89,13 @@ function App() {
   const { syncSettings, syncRecord, syncWarehouse, syncAchievements, pullAll, migrateLocalData } = useSync(auth.isAuthenticated);
 
   // Warehouse (with cloud sync callback)
-  const { warehouse, setWarehouse, addItem, addItems, updatePity, synthesize, synthesizeAll, getHighestStage, resetWarehouse } = useWarehouse(syncWarehouse);
+  const { warehouse, setWarehouse, addItem, addItems, updatePity, consumeMelon, synthesize, synthesizeAll, getHighestStage, resetWarehouse } = useWarehouse(syncWarehouse);
+
+  // Shed storage (seeds + items from slicing)
+  const { shed, addSeeds, addItem: addShedItem, incrementSliced } = useShedStorage();
+
+  // Slicing scene state
+  const [slicingMelon, setSlicingMelon] = useState<'ripe' | 'legendary' | null>(null);
 
   // Achievements (with cloud sync callback)
   const achievements = useAchievements(records, projectRecords.length, syncAchievements);
@@ -115,6 +123,28 @@ function App() {
     }
     return count;
   }, [synthesizeAll, warehouse, achievements]);
+
+  // Slicing handlers
+  const handleStartSlice = useCallback((type: 'ripe' | 'legendary') => {
+    if (consumeMelon(type)) {
+      setSlicingMelon(type);
+    }
+  }, [consumeMelon]);
+
+  const handleSliceComplete = useCallback((result: import('./types/slicing').SlicingResult) => {
+    addSeeds(result.seeds);
+    result.items.forEach(itemId => addShedItem(itemId));
+    incrementSliced();
+    setSlicingMelon(null);
+  }, [addSeeds, addShedItem, incrementSliced]);
+
+  const handleSliceCancel = useCallback(() => {
+    // Return the melon since user cancelled
+    if (slicingMelon) {
+      addItem(slicingMelon === 'legendary' ? 'legendary' : 'ripe');
+    }
+    setSlicingMelon(null);
+  }, [slicingMelon, addItem]);
 
   // Modal states
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
@@ -744,14 +774,25 @@ function App() {
         {activeTab === 'warehouse' && (
           <WarehousePage
             warehouse={warehouse}
+            shed={shed}
             onSynthesize={handleSynthesize}
             onSynthesizeAll={handleSynthesizeAll}
+            onSlice={handleStartSlice}
             highestStage={getHighestStage()}
             inline
           />
         )}
 
         {activeTab === 'farm' && <FarmPage />}
+
+        {/* 全屏切瓜场景 */}
+        {slicingMelon && (
+          <SlicingScene
+            melonType={slicingMelon}
+            onComplete={handleSliceComplete}
+            onCancel={handleSliceCancel}
+          />
+        )}
 
         {/* PWA 安装提示 */}
         <InstallPrompt />

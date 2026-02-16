@@ -296,6 +296,29 @@ export interface Messages {
   achievementsSeriesFarm: string;
   achievementsSeriesHidden: string;
 
+  // ─── Slicing system (v0.21.0) ───
+  sliceHint: string;
+  slicePerfect: string;
+  sliceResult: string;
+  sliceGoldResult: string;
+  sliceSeedsObtained: (n: number) => string;
+  slicePerfectBonus: string;
+  sliceRare: string;
+  sliceCollect: string;
+  sliceButton: string;
+  itemName: (id: string) => string;
+  itemFlavor: (id: string) => string;
+
+  // Shed sections
+  shedSeedsTitle: string;
+  shedSeedsCount: (n: number) => string;
+  shedGoFarm: string;
+  shedFarmComingSoon: string;
+  shedItemsTitle: string;
+  shedNoItems: string;
+  shedSliceSection: string;
+  shedTotalSliced: string;
+
   // ─── Nav tabs ───
   tabFocus: string;
   tabWarehouse: string;
