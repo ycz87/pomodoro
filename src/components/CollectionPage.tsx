@@ -7,9 +7,10 @@ import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../i18n';
 import type { CollectedVariety, VarietyId } from '../types/farm';
 import {
-  GALAXIES, BLUE_STAR_VARIETIES, VARIETY_DEFS,
+  ALL_VARIETY_IDS, GALAXIES, GALAXY_VARIETIES, VARIETY_DEFS,
   RARITY_COLOR, RARITY_STARS,
 } from '../types/farm';
+import { getUnlockedGalaxies } from '../farm/galaxy';
 
 interface CollectionPageProps {
   collection: CollectedVariety[];
@@ -21,7 +22,8 @@ export function CollectionPage({ collection }: CollectionPageProps) {
 
   const collectedIds = new Set(collection.map(c => c.varietyId));
   const collectedCount = collectedIds.size;
-  const totalCount = BLUE_STAR_VARIETIES.length; // Phase 1 只有蓝星
+  const totalCount = ALL_VARIETY_IDS.length;
+  const unlockedGalaxies = getUnlockedGalaxies(collection);
 
   return (
     <div className="flex-1 w-full px-4 pb-4 overflow-y-auto">
@@ -33,55 +35,57 @@ export function CollectionPage({ collection }: CollectionPageProps) {
       </div>
 
       {/* 星系列表 */}
-      {GALAXIES.map(galaxy => {
-        const isUnlocked = galaxy.id === 'thick-earth';
-        const varieties = galaxy.id === 'thick-earth' ? BLUE_STAR_VARIETIES : [];
+      {GALAXIES
+        .filter(galaxy => (GALAXY_VARIETIES[galaxy.id] ?? []).length > 0)
+        .map(galaxy => {
+          const varieties = GALAXY_VARIETIES[galaxy.id] ?? [];
+          const isUnlocked = unlockedGalaxies.includes(galaxy.id);
 
-        return (
-          <div key={galaxy.id} className="mb-5">
-            {/* 星系标题 */}
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">{galaxy.emoji}</span>
-              <span className="text-sm font-semibold" style={{ color: isUnlocked ? theme.text : theme.textMuted }}>
-                {t.galaxyName(galaxy.id)}
-              </span>
-              {!isUnlocked && (
-                <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: `${theme.border}50`, color: theme.textFaint }}>
-                  🔒 {t.collectionLocked}
+          return (
+            <div key={galaxy.id} className="mb-5">
+              {/* 星系标题 */}
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">{galaxy.emoji}</span>
+                <span className="text-sm font-semibold" style={{ color: isUnlocked ? theme.text : theme.textMuted }}>
+                  {t.galaxyName(galaxy.id)}
                 </span>
+                {!isUnlocked && (
+                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: `${theme.border}50`, color: theme.textFaint }}>
+                    🔒 {t.collectionLocked}
+                  </span>
+                )}
+              </div>
+
+              {/* 品种网格 */}
+              {isUnlocked ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {varieties.map(id => {
+                    const collected = collection.find(c => c.varietyId === id);
+                    return (
+                      <VarietyCard
+                        key={id}
+                        varietyId={id}
+                        collected={collected}
+                        theme={theme}
+                        t={t}
+                      />
+                    );
+                  })}
+                </div>
+              ) : (
+                <div
+                  className="rounded-xl border p-4 text-center"
+                  style={{ backgroundColor: `${theme.surface}50`, borderColor: theme.border }}
+                >
+                  <span className="text-2xl">🔒</span>
+                  <p className="text-xs mt-1" style={{ color: theme.textFaint }}>
+                    {t.collectionUnlockHint(galaxy.id)}
+                  </p>
+                </div>
               )}
             </div>
-
-            {/* 品种网格 */}
-            {isUnlocked ? (
-              <div className="grid grid-cols-2 gap-2">
-                {varieties.map(id => {
-                  const collected = collection.find(c => c.varietyId === id);
-                  return (
-                    <VarietyCard
-                      key={id}
-                      varietyId={id}
-                      collected={collected}
-                      theme={theme}
-                      t={t}
-                    />
-                  );
-                })}
-              </div>
-            ) : (
-              <div
-                className="rounded-xl border p-4 text-center"
-                style={{ backgroundColor: `${theme.surface}50`, borderColor: theme.border }}
-              >
-                <span className="text-2xl">🔒</span>
-                <p className="text-xs mt-1" style={{ color: theme.textFaint }}>
-                  {t.collectionUnlockHint(galaxy.id)}
-                </p>
-              </div>
-            )}
-          </div>
-        );
-      })}
+          );
+        })}
     </div>
   );
 }
