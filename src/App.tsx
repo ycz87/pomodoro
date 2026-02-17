@@ -60,7 +60,13 @@ import {
 } from './audio';
 import { getTodayKey } from './utils/time';
 import { getStreak, getDayMinutes } from './utils/stats';
-import { calculateDailyProgress, updatePlotGrowth, witherPlots, daysBetween } from './farm/growth';
+import {
+  calculateOfflineGrowth,
+  calculateFocusBoost,
+  getWitherStatus,
+  updatePlotGrowth,
+  witherPlots,
+} from './farm/growth';
 import { I18nProvider, getMessages } from './i18n';
 import type { PomodoroRecord, PomodoroSettings } from './types';
 import { DEFAULT_SETTINGS, migrateSettings, THEMES, getGrowthStage, GROWTH_EMOJI, rollLegendary } from './types';
@@ -113,30 +119,36 @@ function App() {
   const farmUpdatedRef = useRef(false);
 
   useEffect(() => {
+    const nowTimestamp = Date.now();
     if (farmUpdatedRef.current) return;
     if (!farm.lastActiveDate || farm.lastActiveDate === todayKey) {
       // First visit or same day — just mark active
-      updateActiveDate(todayKey, 0);
+      updateActiveDate(todayKey, 0, nowTimestamp);
       farmUpdatedRef.current = true;
       return;
     }
 
-    // Days since last active
-    const daysSince = daysBetween(farm.lastActiveDate, todayKey);
+    const parsedLastActiveTs = new Date(`${farm.lastActiveDate}T00:00:00`).getTime();
+    const effectiveLastActivityTs = farm.lastActivityTimestamp > 0
+      ? farm.lastActivityTimestamp
+      : (Number.isFinite(parsedLastActiveTs) ? parsedLastActiveTs : 0);
+    const witherStatus = getWitherStatus(effectiveLastActivityTs, nowTimestamp);
 
-    if (daysSince >= 3) {
+    if (witherStatus.shouldWither) {
       // Wither all growing/mature plots
-      updatePlots(witherPlots(farm.plots));
-      updateActiveDate(todayKey, daysSince);
+      updatePlots(witherPlots(farm.plots, nowTimestamp, effectiveLastActivityTs));
+      updateActiveDate(todayKey, witherStatus.inactiveDays, nowTimestamp);
     } else {
-      // Apply growth for today (using yesterday's focus as proxy, or today's if available)
-      const dailyDays = calculateDailyProgress(todayFocusMinutes);
+      // Apply minute-based growth: offline growth + focus boost
+      const offlineGrowthMinutes = calculateOfflineGrowth(witherStatus.inactiveMinutes);
+      const focusBoostMinutes = calculateFocusBoost(todayFocusMinutes);
+      const totalGrowthMinutes = offlineGrowthMinutes + focusBoostMinutes;
       const newPlots = farm.plots.map(p => {
         if (p.state !== 'growing') return p;
-        return updatePlotGrowth(p, dailyDays, todayKey).plot;
+        return updatePlotGrowth(p, totalGrowthMinutes, nowTimestamp).plot;
       });
       updatePlots(newPlots);
-      updateActiveDate(todayKey, 0);
+      updateActiveDate(todayKey, witherStatus.inactiveDays, nowTimestamp);
     }
     farmUpdatedRef.current = true;
   }, [todayKey]); // eslint-disable-line react-hooks/exhaustive-deps

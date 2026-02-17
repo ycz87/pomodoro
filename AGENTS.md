@@ -124,6 +124,9 @@ npm run lint
 | `android/` | Capacitor 自动生成，不要手动改 |
 | `wrangler.toml` | Cloudflare 部署配置 |
 | `capacitor.config.ts` | 移动端配置 |
+| `tsconfig*.json` | TypeScript 编译配置 |
+| `eslint.config.js` | Lint 配置 |
+| `vite.config.ts` | 构建配置 |
 | `public/badges/*.png` | 设计资产，不要替换或删除 |
 | `docs/` | 设计文档，只读参考 |
 | `.env*` | 环境变量/密钥 |

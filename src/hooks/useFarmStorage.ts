@@ -49,7 +49,8 @@ export function useFarmStorage() {
 
   /** 种植种子到指定地块 */
   const plantSeed = useCallback((plotId: number, seedQuality: SeedQuality, todayKey: string) => {
-    const varietyId = rollVariety(seedQuality);
+    const nowTimestamp = Date.now();
+    const varietyId = rollVariety('thick-earth', seedQuality);
     setFarm(prev => ({
       ...prev,
       plots: prev.plots.map(p =>
@@ -59,8 +60,10 @@ export function useFarmStorage() {
           seedQuality,
           varietyId,
           progress: 0,
+          accumulatedMinutes: 0,
           plantedDate: todayKey,
           lastUpdateDate: todayKey,
+          lastActivityTimestamp: nowTimestamp,
         } : p
       ),
     }));
@@ -112,8 +115,18 @@ export function useFarmStorage() {
   }, [setFarm]);
 
   /** 更新活跃日信息 */
-  const updateActiveDate = useCallback((todayKey: string, consecutiveInactiveDays: number) => {
-    setFarm(prev => ({ ...prev, lastActiveDate: todayKey, consecutiveInactiveDays }));
+  const updateActiveDate = useCallback((todayKey: string, consecutiveInactiveDays: number, activityTimestamp: number = Date.now()) => {
+    setFarm(prev => ({
+      ...prev,
+      lastActiveDate: todayKey,
+      consecutiveInactiveDays,
+      lastActivityTimestamp: activityTimestamp,
+      plots: prev.plots.map(p => (
+        p.state === 'growing' || p.state === 'mature'
+          ? { ...p, lastActivityTimestamp: activityTimestamp, lastUpdateDate: todayKey }
+          : p
+      )),
+    }));
   }, [setFarm]);
 
   return { farm, plantSeed, harvestPlot, clearPlot, updatePlots, updateActiveDate };
