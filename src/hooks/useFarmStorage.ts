@@ -18,6 +18,7 @@ function migrateFarm(raw: unknown): FarmStorage {
     collection: [],
     lastActiveDate: '',
     consecutiveInactiveDays: 0,
+    lastActivityTimestamp: 0,
   };
 
   if (Array.isArray(s.plots)) {
@@ -38,6 +39,7 @@ function migrateFarm(raw: unknown): FarmStorage {
 
   if (typeof s.lastActiveDate === 'string') result.lastActiveDate = s.lastActiveDate;
   if (typeof s.consecutiveInactiveDays === 'number') result.consecutiveInactiveDays = s.consecutiveInactiveDays;
+  if (typeof s.lastActivityTimestamp === 'number') result.lastActivityTimestamp = s.lastActivityTimestamp;
 
   return result;
 }

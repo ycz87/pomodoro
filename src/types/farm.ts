@@ -6,27 +6,29 @@
 import type { SeedQuality } from './slicing';
 
 // ─── 星系 ───
-export type GalaxyId = 'blue-star' | 'flame-crystal' | 'frost-moon' | 'rainbow' | 'dark-matter';
+export type GalaxyId = 'thick-earth' | 'fire' | 'water' | 'wood' | 'metal' | 'rainbow' | 'dark-matter';
 
 export interface GalaxyDef {
   id: GalaxyId;
   emoji: string;
-  unlockCondition: string; // 描述性，Phase 1 只解锁 blue-star
+  unlockCondition: string; // 描述性，解锁顺序由数据定义
 }
 
 export const GALAXIES: GalaxyDef[] = [
-  { id: 'blue-star', emoji: '🌍', unlockCondition: 'default' },
-  { id: 'flame-crystal', emoji: '🔥', unlockCondition: 'collect-5' },
-  { id: 'frost-moon', emoji: '🧊', unlockCondition: 'collect-8-bluestar' },
-  { id: 'rainbow', emoji: '🌈', unlockCondition: 'collect-15' },
-  { id: 'dark-matter', emoji: '🌑', unlockCondition: 'collect-20' },
+  { id: 'thick-earth', emoji: '🌍', unlockCondition: 'default' },
+  { id: 'fire', emoji: '🔥', unlockCondition: 'collect-5-thick-earth' },
+  { id: 'water', emoji: '💧', unlockCondition: 'collect-5-fire' },
+  { id: 'wood', emoji: '🌿', unlockCondition: 'collect-5-water' },
+  { id: 'metal', emoji: '✨', unlockCondition: 'collect-5-wood' },
+  { id: 'rainbow', emoji: '🌈', unlockCondition: 'collect-5-metal' },
+  { id: 'dark-matter', emoji: '🌑', unlockCondition: 'collect-all' },
 ];
 
 // ─── 稀有度 ───
-export type Rarity = 'common' | 'rare' | 'epic' | 'legendary' | 'hidden';
+export type Rarity = 'common' | 'rare' | 'epic' | 'legendary';
 
 export const RARITY_STARS: Record<Rarity, number> = {
-  common: 1, rare: 2, epic: 3, legendary: 4, hidden: 5,
+  common: 1, rare: 2, epic: 3, legendary: 4,
 };
 
 export const RARITY_COLOR: Record<Rarity, string> = {
@@ -34,14 +36,27 @@ export const RARITY_COLOR: Record<Rarity, string> = {
   rare: '#60a5fa',     // 蓝
   epic: '#a78bfa',     // 紫
   legendary: '#fbbf24', // 金
-  hidden: '#f472b6',   // 粉
 };
 
 // ─── 品种 ───
+export type BreedType = 'pure' | 'hybrid' | 'prismatic';
+
 export type VarietyId =
-  // 蓝星 8 个
+  // 厚土星系 8 个
   | 'jade-stripe' | 'black-pearl' | 'honey-bomb' | 'mini-round'
-  | 'star-moon' | 'golden-heart' | 'ice-sugar-snow' | 'cube-melon';
+  | 'star-moon' | 'golden-heart' | 'ice-sugar-snow' | 'cube-melon'
+  // 火星系 8 个
+  | 'lava-melon' | 'caramel-crack' | 'charcoal-roast' | 'flame-pattern'
+  | 'molten-core' | 'sun-stone' | 'ash-rebirth' | 'phoenix-nirvana'
+  // 水星系 8 个
+  | 'snow-velvet' | 'ice-crystal' | 'tidal-melon' | 'aurora-melon'
+  | 'moonlight-melon' | 'diamond-melon' | 'abyss-melon' | 'permafrost'
+  // 木星系 8 个
+  | 'vine-melon' | 'moss-melon' | 'mycelium-melon' | 'flower-whisper'
+  | 'tree-ring' | 'world-tree' | 'spirit-root' | 'all-spirit'
+  // 金星系 8 个
+  | 'golden-armor' | 'copper-patina' | 'tinfoil-melon' | 'galaxy-stripe'
+  | 'mercury-melon' | 'meteorite-melon' | 'alloy-melon' | 'eternal-melon';
 
 export interface VarietyDef {
   id: VarietyId;
@@ -49,22 +64,230 @@ export interface VarietyDef {
   rarity: Rarity;
   dropRate: number;  // 基础掉率（0-1）
   emoji: string;
+  breedType: BreedType;
+  matureMinutes: number;
 }
 
-/** 蓝星品种定义 */
+const PURE_MATURE_MINUTES = 10000;
+
+/** Phase 2 品种定义（当前全部为 pure） */
 export const VARIETY_DEFS: Record<VarietyId, VarietyDef> = {
-  'jade-stripe':     { id: 'jade-stripe',     galaxy: 'blue-star', rarity: 'common',    dropRate: 0.18, emoji: '🍉' },
-  'black-pearl':     { id: 'black-pearl',     galaxy: 'blue-star', rarity: 'common',    dropRate: 0.16, emoji: '🖤' },
-  'honey-bomb':      { id: 'honey-bomb',      galaxy: 'blue-star', rarity: 'common',    dropRate: 0.15, emoji: '🍯' },
-  'mini-round':      { id: 'mini-round',      galaxy: 'blue-star', rarity: 'common',    dropRate: 0.14, emoji: '🔴' },
-  'star-moon':       { id: 'star-moon',       galaxy: 'blue-star', rarity: 'rare',      dropRate: 0.07, emoji: '🌙' },
-  'golden-heart':    { id: 'golden-heart',    galaxy: 'blue-star', rarity: 'rare',      dropRate: 0.06, emoji: '💛' },
-  'ice-sugar-snow':  { id: 'ice-sugar-snow',  galaxy: 'blue-star', rarity: 'epic',      dropRate: 0.03, emoji: '❄️' },
-  'cube-melon':      { id: 'cube-melon',      galaxy: 'blue-star', rarity: 'legendary', dropRate: 0.01, emoji: '🧊' },
+  // thick-earth
+  'jade-stripe': {
+    id: 'jade-stripe', galaxy: 'thick-earth', rarity: 'common', dropRate: 0.15, emoji: '🍉',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'black-pearl': {
+    id: 'black-pearl', galaxy: 'thick-earth', rarity: 'common', dropRate: 0.13, emoji: '🖤',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'honey-bomb': {
+    id: 'honey-bomb', galaxy: 'thick-earth', rarity: 'common', dropRate: 0.12, emoji: '🍯',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'mini-round': {
+    id: 'mini-round', galaxy: 'thick-earth', rarity: 'rare', dropRate: 0.07, emoji: '🔴',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'star-moon': {
+    id: 'star-moon', galaxy: 'thick-earth', rarity: 'rare', dropRate: 0.06, emoji: '🌙',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'golden-heart': {
+    id: 'golden-heart', galaxy: 'thick-earth', rarity: 'epic', dropRate: 0.03, emoji: '💛',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'ice-sugar-snow': {
+    id: 'ice-sugar-snow', galaxy: 'thick-earth', rarity: 'epic', dropRate: 0.02, emoji: '❄️',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'cube-melon': {
+    id: 'cube-melon', galaxy: 'thick-earth', rarity: 'legendary', dropRate: 0.01, emoji: '🧊',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+
+  // fire
+  'lava-melon': {
+    id: 'lava-melon', galaxy: 'fire', rarity: 'common', dropRate: 0.15, emoji: '🌋',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'caramel-crack': {
+    id: 'caramel-crack', galaxy: 'fire', rarity: 'common', dropRate: 0.13, emoji: '🍮',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'charcoal-roast': {
+    id: 'charcoal-roast', galaxy: 'fire', rarity: 'common', dropRate: 0.12, emoji: '🔥',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'flame-pattern': {
+    id: 'flame-pattern', galaxy: 'fire', rarity: 'rare', dropRate: 0.07, emoji: '🔶',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'molten-core': {
+    id: 'molten-core', galaxy: 'fire', rarity: 'rare', dropRate: 0.06, emoji: '💎',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'sun-stone': {
+    id: 'sun-stone', galaxy: 'fire', rarity: 'epic', dropRate: 0.03, emoji: '☀️',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'ash-rebirth': {
+    id: 'ash-rebirth', galaxy: 'fire', rarity: 'epic', dropRate: 0.02, emoji: '🌅',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'phoenix-nirvana': {
+    id: 'phoenix-nirvana', galaxy: 'fire', rarity: 'legendary', dropRate: 0.01, emoji: '🦅',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+
+  // water
+  'snow-velvet': {
+    id: 'snow-velvet', galaxy: 'water', rarity: 'common', dropRate: 0.15, emoji: '🤍',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'ice-crystal': {
+    id: 'ice-crystal', galaxy: 'water', rarity: 'common', dropRate: 0.13, emoji: '💠',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'tidal-melon': {
+    id: 'tidal-melon', galaxy: 'water', rarity: 'common', dropRate: 0.12, emoji: '🌊',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'aurora-melon': {
+    id: 'aurora-melon', galaxy: 'water', rarity: 'rare', dropRate: 0.07, emoji: '🌌',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'moonlight-melon': {
+    id: 'moonlight-melon', galaxy: 'water', rarity: 'rare', dropRate: 0.06, emoji: '🌕',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'diamond-melon': {
+    id: 'diamond-melon', galaxy: 'water', rarity: 'epic', dropRate: 0.03, emoji: '💎',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'abyss-melon': {
+    id: 'abyss-melon', galaxy: 'water', rarity: 'epic', dropRate: 0.02, emoji: '🫧',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'permafrost': {
+    id: 'permafrost', galaxy: 'water', rarity: 'legendary', dropRate: 0.01, emoji: '🧊',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+
+  // wood
+  'vine-melon': {
+    id: 'vine-melon', galaxy: 'wood', rarity: 'common', dropRate: 0.15, emoji: '🌱',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'moss-melon': {
+    id: 'moss-melon', galaxy: 'wood', rarity: 'common', dropRate: 0.13, emoji: '🍀',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'mycelium-melon': {
+    id: 'mycelium-melon', galaxy: 'wood', rarity: 'common', dropRate: 0.12, emoji: '🍄',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'flower-whisper': {
+    id: 'flower-whisper', galaxy: 'wood', rarity: 'rare', dropRate: 0.07, emoji: '🌸',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'tree-ring': {
+    id: 'tree-ring', galaxy: 'wood', rarity: 'rare', dropRate: 0.06, emoji: '🪵',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'world-tree': {
+    id: 'world-tree', galaxy: 'wood', rarity: 'epic', dropRate: 0.03, emoji: '🌳',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'spirit-root': {
+    id: 'spirit-root', galaxy: 'wood', rarity: 'epic', dropRate: 0.02, emoji: '🌿',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'all-spirit': {
+    id: 'all-spirit', galaxy: 'wood', rarity: 'legendary', dropRate: 0.01, emoji: '🧚',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+
+  // metal
+  'golden-armor': {
+    id: 'golden-armor', galaxy: 'metal', rarity: 'common', dropRate: 0.15, emoji: '🛡️',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'copper-patina': {
+    id: 'copper-patina', galaxy: 'metal', rarity: 'common', dropRate: 0.13, emoji: '🪙',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'tinfoil-melon': {
+    id: 'tinfoil-melon', galaxy: 'metal', rarity: 'common', dropRate: 0.12, emoji: '🔔',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'galaxy-stripe': {
+    id: 'galaxy-stripe', galaxy: 'metal', rarity: 'rare', dropRate: 0.07, emoji: '🌀',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'mercury-melon': {
+    id: 'mercury-melon', galaxy: 'metal', rarity: 'rare', dropRate: 0.06, emoji: '🪩',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'meteorite-melon': {
+    id: 'meteorite-melon', galaxy: 'metal', rarity: 'epic', dropRate: 0.03, emoji: '☄️',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'alloy-melon': {
+    id: 'alloy-melon', galaxy: 'metal', rarity: 'epic', dropRate: 0.02, emoji: '⚙️',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
+  'eternal-melon': {
+    id: 'eternal-melon', galaxy: 'metal', rarity: 'legendary', dropRate: 0.01, emoji: '👑',
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+  },
 };
 
-export const ALL_VARIETY_IDS: VarietyId[] = Object.keys(VARIETY_DEFS) as VarietyId[];
-export const BLUE_STAR_VARIETIES: VarietyId[] = ALL_VARIETY_IDS.filter(id => VARIETY_DEFS[id].galaxy === 'blue-star');
+export const THICK_EARTH_VARIETIES: VarietyId[] = [
+  'jade-stripe', 'black-pearl', 'honey-bomb', 'mini-round',
+  'star-moon', 'golden-heart', 'ice-sugar-snow', 'cube-melon',
+];
+
+export const FIRE_VARIETIES: VarietyId[] = [
+  'lava-melon', 'caramel-crack', 'charcoal-roast', 'flame-pattern',
+  'molten-core', 'sun-stone', 'ash-rebirth', 'phoenix-nirvana',
+];
+
+export const WATER_VARIETIES: VarietyId[] = [
+  'snow-velvet', 'ice-crystal', 'tidal-melon', 'aurora-melon',
+  'moonlight-melon', 'diamond-melon', 'abyss-melon', 'permafrost',
+];
+
+export const WOOD_VARIETIES: VarietyId[] = [
+  'vine-melon', 'moss-melon', 'mycelium-melon', 'flower-whisper',
+  'tree-ring', 'world-tree', 'spirit-root', 'all-spirit',
+];
+
+export const METAL_VARIETIES: VarietyId[] = [
+  'golden-armor', 'copper-patina', 'tinfoil-melon', 'galaxy-stripe',
+  'mercury-melon', 'meteorite-melon', 'alloy-melon', 'eternal-melon',
+];
+
+// 兼容旧逻辑：蓝星品种等价于 thick-earth 品种池
+export const BLUE_STAR_VARIETIES: VarietyId[] = THICK_EARTH_VARIETIES;
+
+export const GALAXY_VARIETIES: Record<GalaxyId, VarietyId[]> = {
+  'thick-earth': THICK_EARTH_VARIETIES,
+  fire: FIRE_VARIETIES,
+  water: WATER_VARIETIES,
+  wood: WOOD_VARIETIES,
+  metal: METAL_VARIETIES,
+  rainbow: [],
+  'dark-matter': [],
+};
+
+export const ALL_VARIETY_IDS: VarietyId[] = [
+  ...THICK_EARTH_VARIETIES,
+  ...FIRE_VARIETIES,
+  ...WATER_VARIETIES,
+  ...WOOD_VARIETIES,
+  ...METAL_VARIETIES,
+];
 
 // ─── 生长阶段 ───
 export type GrowthStage = 'seed' | 'sprout' | 'leaf' | 'flower' | 'fruit';
@@ -92,12 +315,20 @@ export interface Plot {
   seedQuality?: SeedQuality;
   varietyId?: VarietyId;
   progress: number;       // 0-1
+  accumulatedMinutes: number; // 累积成长分钟（Phase 2）
   plantedDate?: string;   // ISO date
   lastUpdateDate?: string; // ISO date (最后一次生长更新)
+  lastActivityTimestamp: number; // 最近活跃时间戳（ms）
 }
 
 export function createEmptyPlot(id: number): Plot {
-  return { id, state: 'empty', progress: 0 };
+  return {
+    id,
+    state: 'empty',
+    progress: 0,
+    accumulatedMinutes: 0,
+    lastActivityTimestamp: 0,
+  };
 }
 
 // ─── 图鉴 ───
@@ -113,6 +344,7 @@ export interface FarmStorage {
   collection: CollectedVariety[];
   lastActiveDate: string; // YYYY-MM-DD
   consecutiveInactiveDays: number; // 连续未活跃天数（用于枯萎检测）
+  lastActivityTimestamp: number; // 最近活跃时间戳（ms）
 }
 
 export const DEFAULT_FARM_STORAGE: FarmStorage = {
@@ -120,4 +352,14 @@ export const DEFAULT_FARM_STORAGE: FarmStorage = {
   collection: [],
   lastActiveDate: '',
   consecutiveInactiveDays: 0,
+  lastActivityTimestamp: 0,
 };
+
+export const PLOT_MILESTONES = [
+  { requiredVarieties: 0, totalPlots: 4 },
+  { requiredVarieties: 3, totalPlots: 5 },
+  { requiredVarieties: 5, totalPlots: 6 },
+  { requiredVarieties: 8, totalPlots: 7 },
+  { requiredVarieties: 15, totalPlots: 8 },
+  { requiredVarieties: 22, totalPlots: 9 },
+];
