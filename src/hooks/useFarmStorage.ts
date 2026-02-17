@@ -3,12 +3,22 @@
  */
 import { useCallback } from 'react';
 import { useLocalStorage } from './useLocalStorage';
-import type { FarmStorage, Plot, CollectedVariety, VarietyId } from '../types/farm';
+import type { FarmStorage, Plot, CollectedVariety, VarietyId, GalaxyId } from '../types/farm';
 import type { SeedQuality } from '../types/slicing';
 import { DEFAULT_FARM_STORAGE, createEmptyPlot } from '../types/farm';
 import { rollVariety } from '../farm/growth';
+import { getPlotCount } from '../farm/galaxy';
 
 const FARM_KEY = 'watermelon-farm';
+
+function ensurePlotCapacity(plots: Plot[], requiredCount: number): Plot[] {
+  if (plots.length >= requiredCount) return plots;
+  const nextPlots = [...plots];
+  while (nextPlots.length < requiredCount) {
+    nextPlots.push(createEmptyPlot(nextPlots.length));
+  }
+  return nextPlots;
+}
 
 function migrateFarm(raw: unknown): FarmStorage {
   if (!raw || typeof raw !== 'object') return DEFAULT_FARM_STORAGE;
@@ -21,21 +31,20 @@ function migrateFarm(raw: unknown): FarmStorage {
     lastActivityTimestamp: 0,
   };
 
+  if (Array.isArray(s.collection)) {
+    result.collection = s.collection as CollectedVariety[];
+  }
+
   if (Array.isArray(s.plots)) {
     result.plots = (s.plots as Plot[]).map((p, i) => ({
       ...createEmptyPlot(i),
       ...p,
       id: i,
     }));
-    // Ensure at least 4 plots
-    while (result.plots.length < 4) {
-      result.plots.push(createEmptyPlot(result.plots.length));
-    }
   }
 
-  if (Array.isArray(s.collection)) {
-    result.collection = s.collection as CollectedVariety[];
-  }
+  const targetPlotCount = getPlotCount(result.collection);
+  result.plots = ensurePlotCapacity(result.plots, targetPlotCount);
 
   if (typeof s.lastActiveDate === 'string') result.lastActiveDate = s.lastActiveDate;
   if (typeof s.consecutiveInactiveDays === 'number') result.consecutiveInactiveDays = s.consecutiveInactiveDays;
@@ -48,9 +57,9 @@ export function useFarmStorage() {
   const [farm, setFarm] = useLocalStorage<FarmStorage>(FARM_KEY, DEFAULT_FARM_STORAGE, migrateFarm);
 
   /** 种植种子到指定地块 */
-  const plantSeed = useCallback((plotId: number, seedQuality: SeedQuality, todayKey: string) => {
+  const plantSeed = useCallback((plotId: number, galaxyId: GalaxyId, seedQuality: SeedQuality, todayKey: string) => {
     const nowTimestamp = Date.now();
-    const varietyId = rollVariety('thick-earth', seedQuality);
+    const varietyId = rollVariety(galaxyId, seedQuality);
     setFarm(prev => ({
       ...prev,
       plots: prev.plots.map(p =>
@@ -75,6 +84,7 @@ export function useFarmStorage() {
     let harvestedVariety: VarietyId | undefined;
     let isNew = false;
     let collectedCount = 0;
+    let rewardSeedQuality: SeedQuality | undefined;
 
     setFarm(prev => {
       const plot = prev.plots.find(p => p.id === plotId);
@@ -84,21 +94,24 @@ export function useFarmStorage() {
       const existing = prev.collection.find(c => c.varietyId === plot.varietyId);
       isNew = !existing;
       collectedCount = existing ? existing.count + 1 : 1;
+      rewardSeedQuality = isNew ? (plot.seedQuality ?? 'normal') : undefined;
 
       const newCollection = existing
         ? prev.collection.map(c =>
             c.varietyId === plot.varietyId ? { ...c, count: c.count + 1 } : c
           )
         : [...prev.collection, { varietyId: plot.varietyId, firstObtainedDate: todayKey, count: 1 }];
+      const targetPlotCount = getPlotCount(newCollection);
+      const nextPlots = prev.plots.map(p => (p.id === plotId ? createEmptyPlot(plotId) : p));
 
       return {
         ...prev,
-        plots: prev.plots.map(p => p.id === plotId ? createEmptyPlot(plotId) : p),
+        plots: ensurePlotCapacity(nextPlots, targetPlotCount),
         collection: newCollection,
       };
     });
 
-    return { varietyId: harvestedVariety, isNew, collectedCount };
+    return { varietyId: harvestedVariety, isNew, collectedCount, rewardSeedQuality };
   }, [setFarm]);
 
   /** 清除枯萎地块 */

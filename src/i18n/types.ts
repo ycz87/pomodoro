@@ -338,6 +338,7 @@ export interface Messages {
   farmHarvest: string;
   farmWithered: string;
   farmClear: string;
+  farmSelectGalaxy: string;
   farmSelectSeed: string;
   farmSeedHint: string;
   farmNoSeeds: string;

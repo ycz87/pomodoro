@@ -4,21 +4,23 @@
  * 4 块地块网格 + 种植/收获/清除交互 + 品种揭晓动画 + 收获动画。
  * 内嵌图鉴入口（顶部 tab 切换）。
  */
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../i18n';
-import type { Plot, VarietyId, FarmStorage } from '../types/farm';
+import type { Plot, VarietyId, FarmStorage, GalaxyId } from '../types/farm';
 import type { SeedQuality, SeedCounts } from '../types/slicing';
-import { VARIETY_DEFS, RARITY_COLOR, RARITY_STARS } from '../types/farm';
+import { VARIETY_DEFS, RARITY_COLOR, RARITY_STARS, GALAXIES } from '../types/farm';
 import { getGrowthStage, getStageEmoji, isVarietyRevealed } from '../farm/growth';
+import { getUnlockedGalaxies } from '../farm/galaxy';
 import { CollectionPage } from './CollectionPage';
 
 interface FarmPageProps {
   farm: FarmStorage;
   seeds: SeedCounts;
   todayFocusMinutes: number;
-  onPlant: (plotId: number, quality: SeedQuality) => VarietyId;
-  onHarvest: (plotId: number) => { varietyId?: VarietyId; isNew: boolean; collectedCount?: number };
+  addSeeds: (count: number, quality?: SeedQuality) => void;
+  onPlant: (plotId: number, galaxyId: GalaxyId, quality: SeedQuality) => VarietyId;
+  onHarvest: (plotId: number) => { varietyId?: VarietyId; isNew: boolean; collectedCount?: number; rewardSeedQuality?: SeedQuality };
   onClear: (plotId: number) => void;
   onGoWarehouse: () => void;
 }
@@ -27,7 +29,12 @@ type SubTab = 'plots' | 'collection';
 
 // ─── 动画 overlay 类型 ───
 interface RevealAnim { varietyId: VarietyId; plotId: number }
-interface HarvestAnim { varietyId: VarietyId; isNew: boolean; collectedCount: number }
+interface HarvestAnim {
+  varietyId: VarietyId;
+  isNew: boolean;
+  collectedCount: number;
+  rewardSeedQuality?: SeedQuality;
+}
 
 const REVEAL_DURATION_MS = 3000;
 const REVEAL_DURATION_RARE_PLUS_MS = 3800;
@@ -35,9 +42,10 @@ const HARVEST_DURATION_NEW_MS = 4200;
 const HARVEST_DURATION_REPEAT_MS = 2800;
 const REVEAL_RARE_PLUS_MIN_STARS = 2;
 
-export function FarmPage({ farm, seeds, todayFocusMinutes, onPlant, onHarvest, onClear, onGoWarehouse }: FarmPageProps) {
+export function FarmPage({ farm, seeds, todayFocusMinutes, addSeeds, onPlant, onHarvest, onClear, onGoWarehouse }: FarmPageProps) {
   const theme = useTheme();
   const t = useI18n();
+  const unlockedGalaxies = useMemo(() => getUnlockedGalaxies(farm.collection), [farm.collection]);
 
   const [subTab, setSubTab] = useState<SubTab>('plots');
   const [plantingPlotId, setPlantingPlotId] = useState<number | null>(null);
@@ -84,23 +92,31 @@ export function FarmPage({ farm, seeds, todayFocusMinutes, onPlant, onHarvest, o
     };
   });
 
-  const handlePlant = useCallback((quality: SeedQuality) => {
+  const handlePlant = useCallback((galaxyId: GalaxyId, quality: SeedQuality) => {
     if (plantingPlotId === null) return;
-    onPlant(plantingPlotId, quality);
+    onPlant(plantingPlotId, galaxyId, quality);
     setPlantingPlotId(null);
   }, [plantingPlotId, onPlant]);
 
   const handleHarvest = useCallback((plotId: number) => {
     const result = onHarvest(plotId);
     if (result.varietyId) {
+      if (result.isNew && result.rewardSeedQuality) {
+        addSeeds(1, result.rewardSeedQuality);
+      }
       const collectedCount = Math.max(result.isNew ? 1 : 2, result.collectedCount ?? (result.isNew ? 1 : 2));
-      setHarvestAnim({ varietyId: result.varietyId, isNew: result.isNew, collectedCount });
+      setHarvestAnim({
+        varietyId: result.varietyId,
+        isNew: result.isNew,
+        collectedCount,
+        rewardSeedQuality: result.rewardSeedQuality,
+      });
       setTimeout(
         () => setHarvestAnim(null),
         result.isNew ? HARVEST_DURATION_NEW_MS : HARVEST_DURATION_REPEAT_MS,
       );
     }
-  }, [onHarvest]);
+  }, [onHarvest, addSeeds]);
 
   if (subTab === 'collection') {
     return (
@@ -193,6 +209,7 @@ export function FarmPage({ farm, seeds, todayFocusMinutes, onPlant, onHarvest, o
       {plantingPlotId !== null && (
         <PlantModal
           seeds={seeds}
+          unlockedGalaxies={unlockedGalaxies}
           theme={theme}
           t={t}
           onSelect={handlePlant}
@@ -211,6 +228,7 @@ export function FarmPage({ farm, seeds, todayFocusMinutes, onPlant, onHarvest, o
           varietyId={harvestAnim.varietyId}
           isNew={harvestAnim.isNew}
           collectedCount={harvestAnim.collectedCount}
+          rewardSeedQuality={harvestAnim.rewardSeedQuality}
           t={t}
         />
       )}
@@ -450,13 +468,34 @@ function PlotCard({ plot, theme, t, onPlantClick, onHarvestClick, onClearClick }
 }
 
 // ─── 种植弹窗 ───
-function PlantModal({ seeds, theme, t, onSelect, onClose }: {
+function PlantModal({ seeds, unlockedGalaxies, theme, t, onSelect, onClose }: {
   seeds: SeedCounts;
+  unlockedGalaxies: GalaxyId[];
   theme: ReturnType<typeof useTheme>;
   t: ReturnType<typeof useI18n>;
-  onSelect: (quality: SeedQuality) => void;
+  onSelect: (galaxyId: GalaxyId, quality: SeedQuality) => void;
   onClose: () => void;
 }) {
+  const [selectedGalaxyId, setSelectedGalaxyId] = useState<GalaxyId | null>(
+    unlockedGalaxies.length === 1 ? unlockedGalaxies[0] : null,
+  );
+  const galaxyEmojiMap = useMemo(
+    () => Object.fromEntries(GALAXIES.map(g => [g.id, g.emoji])) as Record<GalaxyId, string>,
+    [],
+  );
+
+  useEffect(() => {
+    if (unlockedGalaxies.length === 1) {
+      setSelectedGalaxyId(unlockedGalaxies[0]);
+      return;
+    }
+    if (selectedGalaxyId && !unlockedGalaxies.includes(selectedGalaxyId)) {
+      setSelectedGalaxyId(null);
+    }
+  }, [selectedGalaxyId, unlockedGalaxies]);
+
+  const showGalaxyStep = unlockedGalaxies.length > 1 && selectedGalaxyId === null;
+  const activeGalaxyId = selectedGalaxyId ?? unlockedGalaxies[0] ?? 'thick-earth';
   const options: { quality: SeedQuality; emoji: string; count: number; color: string }[] = [
     { quality: 'normal', emoji: '🌰', count: seeds.normal, color: '#a3a3a3' },
     { quality: 'epic', emoji: '💎', count: seeds.epic, color: '#a78bfa' },
@@ -467,35 +506,74 @@ function PlantModal({ seeds, theme, t, onSelect, onClose }: {
     <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
       <div className="rounded-2xl border p-5 mx-4 max-w-sm w-full" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
         <h3 className="text-base font-semibold text-center mb-4" style={{ color: theme.text }}>
-          {t.farmSelectSeed}
+          {showGalaxyStep ? t.farmSelectGalaxy : t.farmSelectSeed}
         </h3>
-        <div className="flex flex-col gap-2">
-          {options.map(opt => (
-            <button
-              key={opt.quality}
-              disabled={opt.count <= 0}
-              onClick={() => onSelect(opt.quality)}
-              className="flex items-center justify-between p-3 rounded-xl border transition-all"
-              style={{
-                backgroundColor: opt.count > 0 ? `${opt.color}08` : theme.inputBg,
-                borderColor: opt.count > 0 ? `${opt.color}30` : theme.border,
-                opacity: opt.count > 0 ? 1 : 0.4,
-                cursor: opt.count > 0 ? 'pointer' : 'not-allowed',
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-xl">{opt.emoji}</span>
-                <span className="text-sm font-medium" style={{ color: opt.count > 0 ? opt.color : theme.textMuted }}>
-                  {t.seedQualityLabel(opt.quality)}
-                </span>
-              </div>
-              <span className="text-sm" style={{ color: theme.textMuted }}>×{opt.count}</span>
-            </button>
-          ))}
-        </div>
-        <p className="text-xs text-center mt-3" style={{ color: theme.textFaint }}>
-          {t.farmSeedHint}
-        </p>
+        {showGalaxyStep ? (
+          <div className="flex flex-col gap-2">
+            {unlockedGalaxies.map(galaxyId => (
+              <button
+                key={galaxyId}
+                onClick={() => setSelectedGalaxyId(galaxyId)}
+                className="flex items-center justify-between p-3 rounded-xl border transition-all"
+                style={{
+                  backgroundColor: `${theme.accent}08`,
+                  borderColor: `${theme.accent}30`,
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">{galaxyEmojiMap[galaxyId] ?? '🪐'}</span>
+                  <span className="text-sm font-medium" style={{ color: theme.text }}>
+                    {t.galaxyName(galaxyId)}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="mb-3 rounded-xl border px-3 py-2 text-xs flex items-center justify-between" style={{ borderColor: theme.border, backgroundColor: `${theme.inputBg}80` }}>
+              <span style={{ color: theme.textMuted }}>
+                {`${galaxyEmojiMap[activeGalaxyId] ?? '🪐'} ${t.galaxyName(activeGalaxyId)}`}
+              </span>
+              {unlockedGalaxies.length > 1 && (
+                <button
+                  onClick={() => setSelectedGalaxyId(null)}
+                  className="font-medium"
+                  style={{ color: theme.accent }}
+                >
+                  {t.farmSelectGalaxy}
+                </button>
+              )}
+            </div>
+            <div className="flex flex-col gap-2">
+              {options.map(opt => (
+                <button
+                  key={opt.quality}
+                  disabled={opt.count <= 0}
+                  onClick={() => onSelect(activeGalaxyId, opt.quality)}
+                  className="flex items-center justify-between p-3 rounded-xl border transition-all"
+                  style={{
+                    backgroundColor: opt.count > 0 ? `${opt.color}08` : theme.inputBg,
+                    borderColor: opt.count > 0 ? `${opt.color}30` : theme.border,
+                    opacity: opt.count > 0 ? 1 : 0.4,
+                    cursor: opt.count > 0 ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{opt.emoji}</span>
+                    <span className="text-sm font-medium" style={{ color: opt.count > 0 ? opt.color : theme.textMuted }}>
+                      {t.seedQualityLabel(opt.quality)}
+                    </span>
+                  </div>
+                  <span className="text-sm" style={{ color: theme.textMuted }}>×{opt.count}</span>
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-center mt-3" style={{ color: theme.textFaint }}>
+              {t.farmSeedHint}
+            </p>
+          </>
+        )}
         <button
           onClick={onClose}
           className="w-full mt-3 py-2.5 rounded-xl text-sm"
@@ -686,10 +764,11 @@ function RevealOverlay({ varietyId, t }: {
 }
 
 // ─── 收获动画 ───
-function HarvestOverlay({ varietyId, isNew, collectedCount, t }: {
+function HarvestOverlay({ varietyId, isNew, collectedCount, rewardSeedQuality, t }: {
   varietyId: VarietyId;
   isNew: boolean;
   collectedCount: number;
+  rewardSeedQuality?: SeedQuality;
   t: ReturnType<typeof useI18n>;
 }) {
   const variety = VARIETY_DEFS[varietyId];
@@ -810,6 +889,18 @@ function HarvestOverlay({ varietyId, isNew, collectedCount, t }: {
             }}>
               ✨ {t.farmNewVariety}
             </div>
+            {rewardSeedQuality && (
+              <div
+                className="px-3 py-1 rounded-full text-xs font-semibold"
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.14)',
+                  color: '#fff',
+                  border: '1px solid rgba(255,255,255,0.28)',
+                }}
+              >
+                {`🌰 +1 ${t.seedQualityLabel(rewardSeedQuality)}`}
+              </div>
+            )}
           </div>
         ) : (
           <span className="text-sm font-medium" style={{

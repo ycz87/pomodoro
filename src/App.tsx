@@ -213,9 +213,13 @@ function App() {
   const canContinueSlicing = warehouse.items.ripe > 0 || warehouse.items.legendary > 0;
 
   // ─── Farm handlers ───
-  const handleFarmPlant = useCallback((plotId: number, quality: import('./types/slicing').SeedQuality) => {
+  const handleFarmPlant = useCallback((
+    plotId: number,
+    galaxyId: import('./types/farm').GalaxyId,
+    quality: import('./types/slicing').SeedQuality,
+  ) => {
     if (!consumeSeed(quality)) return '' as import('./types/farm').VarietyId;
-    return plantSeed(plotId, quality, todayKey);
+    return plantSeed(plotId, galaxyId, quality, todayKey);
   }, [consumeSeed, plantSeed, todayKey]);
 
   const handleFarmHarvest = useCallback((plotId: number) => {
@@ -864,6 +868,7 @@ function App() {
             farm={farm}
             seeds={shed.seeds}
             todayFocusMinutes={todayFocusMinutes}
+            addSeeds={addSeeds}
             onPlant={handleFarmPlant}
             onHarvest={handleFarmHarvest}
             onClear={clearPlot}
