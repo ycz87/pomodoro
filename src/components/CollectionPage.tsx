@@ -34,8 +34,8 @@ export function CollectionPage({ collection }: CollectionPageProps) {
 
       {/* 星系列表 */}
       {GALAXIES.map(galaxy => {
-        const isUnlocked = galaxy.id === 'blue-star';
-        const varieties = galaxy.id === 'blue-star' ? BLUE_STAR_VARIETIES : [];
+        const isUnlocked = galaxy.id === 'thick-earth';
+        const varieties = galaxy.id === 'thick-earth' ? BLUE_STAR_VARIETIES : [];
 
         return (
           <div key={galaxy.id} className="mb-5">
