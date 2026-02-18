@@ -18,8 +18,11 @@ export default defineConfig({
     {
       name: 'mobile',
       use: {
-        ...devices['iPhone SE'],
         browserName: 'chromium',
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+        deviceScaleFactor: 3,
       },
     },
     {
