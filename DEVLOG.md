@@ -2,6 +2,34 @@
 
 ---
 
+## v0.26.0 — 基因片段系统 Phase 3 Step 1（2026-02-18）
+
+### 背景
+农场 Phase 3 路线图：收获品种时获得基因片段，为后续基因合成/突变做数据基础。
+
+### 改动
+
+| 文件 | 变更 |
+|------|------|
+| `src/types/gene.ts` | 新增 GeneFragment / GeneInventory 类型 + DEFAULT_GENE_INVENTORY |
+| `src/hooks/useGeneStorage.ts` | 基因背包 hook（addFragment / removeFragment / migration / onSync 预留） |
+| `src/App.tsx` | handleFarmHarvest 收获时调用 addFragment；传 geneInventory 给 FarmPage |
+| `src/components/FarmPage.tsx` | 三 tab SubTabHeader（地块/图鉴/实验室），Lab tab 渲染 GeneLabPage |
+| `src/components/GeneLabPage.tsx` | 基因背包 UI：按星系分组、展开/折叠、空状态、总数 footer |
+| `src/i18n/types.ts` | 新增 8 个 gene lab i18n key |
+| `src/i18n/locales/*.ts` | 8 种语言翻译 |
+| `e2e/gene-lab.spec.ts` | 4 个测试用例 × 3 视口 = 12 tests，覆盖 AC1-7 |
+| `package.json` | 版本 0.25.0 → 0.26.0 |
+
+### 审查
+- Claude Code 审查通过，修复 1 项：移除 FarmPage 中未使用的 addFragment prop
+
+### 测试
+- `npm run build` 通过
+- E2E 12/12 通过（mobile / mobile-wide / desktop）
+
+---
+
 ## v0.25.0 — 青瓜阶段 + 揭晓延后 + 种植修复 + 流程简化（2026-02-18）
 
 ### 背景
