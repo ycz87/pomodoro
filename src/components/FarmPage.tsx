@@ -158,7 +158,7 @@ export function FarmPage({ farm, seeds, todayFocusMinutes, addSeeds, onPlant, on
             }}
           />
           <div
-            className="farm-grid-perspective relative grid grid-cols-3 gap-2"
+            className="farm-grid-perspective relative grid grid-cols-3 gap-1.5 sm:gap-2"
           >
             {plotSlots.map((slot, index) => (
               <div key={slot.kind === 'plot' ? `plot-${slot.plot.id}` : `locked-${index}`}>
@@ -184,13 +184,13 @@ export function FarmPage({ farm, seeds, todayFocusMinutes, addSeeds, onPlant, on
       </div>
       <style>{`
         .farm-grid-perspective {
-          transform: perspective(600px) rotateX(12deg);
+          transform: perspective(600px) rotateX(8deg);
           transform-origin: center top;
           transform-style: flat;
         }
         @media (min-width: 640px) {
           .farm-grid-perspective {
-            transform: perspective(800px) rotateX(18deg);
+            transform: perspective(800px) rotateX(14deg);
           }
         }
       `}</style>
@@ -316,7 +316,7 @@ function PlotCard({ plot, theme, t, onPlantClick, onHarvestClick, onClearClick }
     : '0 10px 20px rgba(0,0,0,0.2), inset 0 -10px 16px rgba(0,0,0,0.14)';
 
   return (
-    <div className="group relative aspect-[4/3] sm:aspect-square w-full select-none">
+    <div className="group relative aspect-[3/4] w-full select-none">
       <div className="relative h-full w-full transition-transform duration-200 group-hover:-translate-y-1">
         <div
           className="absolute inset-0 rounded-2xl border-2"
@@ -474,7 +474,7 @@ function LockedPlotCard({ requiredVarieties, theme, t }: {
   t: ReturnType<typeof useI18n>;
 }) {
   return (
-    <div className="relative aspect-[4/3] sm:aspect-square w-full select-none">
+    <div className="relative aspect-[3/4] w-full select-none">
       <div
         className="absolute inset-0 rounded-2xl border-2"
         style={{
