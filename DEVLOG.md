@@ -2,6 +2,32 @@
 
 ---
 
+## v0.24.1 — 农场体验优化（2026-02-18）
+
+### 背景
+农场 growing 地块缺乏生命力感，用户无法直观了解生长进度和规则。
+
+### 改动
+
+| 文件 | 变更 |
+|------|------|
+| `src/components/FarmPage.tsx` | 新增时间显示（PC完整/手机精简）、加速提示、摇摆动画、FarmHelpModal 组件 |
+| `src/i18n/types.ts` | 新增 10 个 i18n key（farmGrowthTime/farmRemainingTime/farmFocusBoostHint/farmHelp*/formatDuration） |
+| `src/i18n/locales/*.ts` | 8 种语言全部补齐新增 key |
+| `e2e/farm-vitality.spec.ts` | 新建，5 条 E2E 测试覆盖全部 AC |
+
+### 功能清单
+- 进度可视化：Growing 地块显示「已生长 XX / 共需 XX」，手机端精简为「32% · 还需 XX」
+- 加速提示：进度 < 50% 显示「专注可加速生长 ⚡」
+- 生命力动画：植物 Emoji 微风摇摆（plantSwaySm/Md/Lg），不同阶段幅度递减
+- 规则弹窗：ℹ️ 按钮入口，涵盖种植/生长/收获/枯萎/解锁五条规则
+- i18n：8 种语言完整覆盖
+
+### 测试
+- 5 passed / 7 skipped（viewport 自动跳过不相关端）
+
+---
+
 ## v0.24.0 — Debug Toolbar 调试工具栏（2026-02-18）
 
 ### 背景
