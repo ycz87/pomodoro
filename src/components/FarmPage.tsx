@@ -134,12 +134,12 @@ export function FarmPage({ farm, seeds, todayFocusMinutes, addSeeds, onPlant, on
   }
 
   return (
-    <div className="flex-1 flex flex-col w-full px-4 pb-4">
+    <div className="flex-1 flex flex-col w-full px-4 pb-2 sm:pb-4">
       {/* Sub-tab header */}
       <SubTabHeader subTab={subTab} setSubTab={setSubTab} theme={theme} t={t} />
 
       {/* 今日专注信息 */}
-      <div className="flex items-center justify-between mb-3 px-1">
+      <div className="flex items-center justify-between mb-2 sm:mb-3 px-1">
         <span className="text-xs" style={{ color: theme.textFaint }}>
           {t.farmTodayFocus(todayFocusMinutes)}
         </span>
@@ -149,7 +149,7 @@ export function FarmPage({ farm, seeds, todayFocusMinutes, addSeeds, onPlant, on
       </div>
 
       {/* 3×3 俯视网格 */}
-      <div className="relative mb-5">
+      <div className="relative mb-3 sm:mb-5">
         <div className="relative mx-auto w-full max-w-[760px]">
           <div
             className="pointer-events-none absolute inset-0 rounded-[30px]"
@@ -158,7 +158,7 @@ export function FarmPage({ farm, seeds, todayFocusMinutes, addSeeds, onPlant, on
             }}
           />
           <div
-            className="farm-grid-perspective relative grid grid-cols-3 gap-1.5 sm:gap-2"
+            className="farm-grid-perspective relative grid grid-cols-3 gap-1 sm:gap-2"
           >
             {plotSlots.map((slot, index) => (
               <div key={slot.kind === 'plot' ? `plot-${slot.plot.id}` : `locked-${index}`}>
@@ -316,7 +316,7 @@ function PlotCard({ plot, theme, t, onPlantClick, onHarvestClick, onClearClick }
     : '0 10px 20px rgba(0,0,0,0.2), inset 0 -10px 16px rgba(0,0,0,0.14)';
 
   return (
-    <div className="group relative aspect-[3/4] w-full select-none">
+    <div className="group relative aspect-square sm:aspect-[3/4] w-full select-none">
       <div className="relative h-full w-full transition-transform duration-200 group-hover:-translate-y-1">
         <div
           className="absolute inset-0 rounded-2xl border-2"
@@ -474,7 +474,7 @@ function LockedPlotCard({ requiredVarieties, theme, t }: {
   t: ReturnType<typeof useI18n>;
 }) {
   return (
-    <div className="relative aspect-[3/4] w-full select-none">
+    <div className="relative aspect-square sm:aspect-[3/4] w-full select-none">
       <div
         className="absolute inset-0 rounded-2xl border-2"
         style={{
