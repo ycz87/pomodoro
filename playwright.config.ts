@@ -26,6 +26,16 @@ export default defineConfig({
       },
     },
     {
+      name: 'mobile-wide',
+      use: {
+        browserName: 'chromium',
+        viewport: { width: 500, height: 900 },
+        isMobile: true,
+        hasTouch: true,
+        deviceScaleFactor: 2,
+      },
+    },
+    {
       name: 'desktop',
       use: { ...devices['Desktop Chrome'] },
     },
