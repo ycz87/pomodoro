@@ -48,3 +48,4 @@ android/capacitor-status-bar/build/
 
 # Capacitor resources (generated)
 resources/
+test-results/

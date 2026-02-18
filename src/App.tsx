@@ -40,6 +40,7 @@ import { AchievementCelebration } from './components/AchievementCelebration';
 import { SlicingScene } from './components/SlicingScene';
 import { updatePity as updatePityCalc } from './slicing/engine';
 import { FarmPage } from './components/FarmPage';
+import { DebugToolbar } from './components/DebugToolbar';
 import { useTimer } from './hooks/useTimer';
 import type { TimerPhase } from './hooks/useTimer';
 import { useProjectTimer } from './hooks/useProjectTimer';
@@ -73,6 +74,8 @@ import { DEFAULT_SETTINGS, migrateSettings, THEMES, getGrowthStage, GROWTH_EMOJI
 import type { GrowthStage } from './types';
 import type { AppMode } from './types/project';
 import type { ProjectRecord } from './types/project';
+import { DEFAULT_FARM_STORAGE } from './types/farm';
+import type { CollectedVariety, Plot } from './types/farm';
 
 function App() {
   const [currentTask, setCurrentTask] = useState('');
@@ -86,7 +89,10 @@ function App() {
   const [showGuide, setShowGuide] = useState(false);
   const [lastRolledStage, setLastRolledStage] = useState<GrowthStage | null>(null);
   const [activeTab, setActiveTab] = useState<'focus' | 'warehouse' | 'farm'>('focus');
+  const [debugMode, setDebugMode] = useState(() => localStorage.getItem('watermelon-debug') === 'true');
+  const [timeMultiplier, setTimeMultiplier] = useState(1);
   const suppressCelebrationRef = useRef(false);
+  const timeMultiplierRef = useRef(timeMultiplier);
 
   // PC drag-to-scroll (mouse drag = touch scroll)
   useDragScroll();
@@ -104,11 +110,15 @@ function App() {
   const { shed, addSeeds, addItem: addShedItem, incrementSliced, updatePityCounter, consumeSeed } = useShedStorage();
 
   // Farm storage
-  const { farm, plantSeed, harvestPlot, clearPlot, updatePlots, updateActiveDate } = useFarmStorage();
+  const { farm, setFarm, plantSeed, harvestPlot, clearPlot, updatePlots, updateActiveDate } = useFarmStorage();
 
   // Slicing scene state
   const [slicingMelon, setSlicingMelon] = useState<'ripe' | 'legendary' | null>(null);
   const [comboCount, setComboCount] = useState(0);
+
+  useEffect(() => {
+    timeMultiplierRef.current = timeMultiplier;
+  }, [timeMultiplier]);
 
   // Achievements (with cloud sync callback)
   const achievements = useAchievements(records, projectRecords.length, syncAchievements);
@@ -142,7 +152,7 @@ function App() {
       // Apply minute-based growth: offline growth + focus boost
       const offlineGrowthMinutes = calculateOfflineGrowth(witherStatus.inactiveMinutes);
       const focusBoostMinutes = calculateFocusBoost(todayFocusMinutes);
-      const totalGrowthMinutes = offlineGrowthMinutes + focusBoostMinutes;
+      const totalGrowthMinutes = (offlineGrowthMinutes + focusBoostMinutes) * timeMultiplierRef.current;
       const newPlots = farm.plots.map(p => {
         if (p.state !== 'growing') return p;
         return updatePlotGrowth(p, totalGrowthMinutes, nowTimestamp).plot;
@@ -225,6 +235,34 @@ function App() {
   const handleFarmHarvest = useCallback((plotId: number) => {
     return harvestPlot(plotId, todayKey);
   }, [harvestPlot, todayKey]);
+
+  // ─── Debug mode ───
+  const activateDebugMode = useCallback(() => {
+    localStorage.setItem('watermelon-debug', 'true');
+    setDebugMode(true);
+  }, []);
+
+  const deactivateDebugMode = useCallback(() => {
+    localStorage.removeItem('watermelon-debug');
+    setDebugMode(false);
+    setTimeMultiplier(1);
+  }, []);
+
+  const setFarmPlots = useCallback((plots: Plot[]) => {
+    updatePlots(plots);
+  }, [updatePlots]);
+
+  const setFarmCollection = useCallback((collection: CollectedVariety[]) => {
+    setFarm((prev) => ({ ...prev, collection }));
+  }, [setFarm]);
+
+  const resetFarm = useCallback(() => {
+    setFarm({
+      ...DEFAULT_FARM_STORAGE,
+      plots: DEFAULT_FARM_STORAGE.plots.map((plot) => ({ ...plot })),
+      collection: [...DEFAULT_FARM_STORAGE.collection],
+    });
+  }, [setFarm]);
 
   // Modal states
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
@@ -743,9 +781,9 @@ function App() {
               disabled={timer.status !== 'idle'}
               isWorkRunning={(timer.status === 'running' && timer.phase === 'work') || isProjectWorking === true}
               onExport={handleExport}
+              onActivateDebug={activateDebugMode}
               onShowGuide={() => setShowGuide(true)}
               auth={auth}
-              testMode={{ addItems, resetWarehouse }}
             />
           </div>
         </header>
@@ -961,6 +999,22 @@ function App() {
             unlockedIds={achievementCelebrationIds}
             onComplete={() => setAchievementCelebrationIds([])}
             language={settings.language}
+          />
+        )}
+
+        {debugMode && (
+          <DebugToolbar
+            addItems={addItems}
+            resetWarehouse={resetWarehouse}
+            farm={farm}
+            setFarmPlots={setFarmPlots}
+            setFarmCollection={setFarmCollection}
+            resetFarm={resetFarm}
+            timerStatus={timer.status}
+            skipTimer={timer.skip}
+            timeMultiplier={timeMultiplier}
+            setTimeMultiplier={setTimeMultiplier}
+            onClose={deactivateDebugMode}
           />
         )}
       </div>

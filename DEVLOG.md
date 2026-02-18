@@ -2,6 +2,33 @@
 
 ---
 
+## v0.24.0 — Debug Toolbar 调试工具栏（2026-02-18）
+
+### 背景
+Charles 需要一个隐藏的调试工具栏替代之前 Settings 里的 Test Mode，方便快速测试各模块功能。
+
+### 改动
+
+| 文件 | 变更 |
+|------|------|
+| `src/components/DebugToolbar.tsx` | 新建，底部固定半透明可折叠面板，5 个功能区 |
+| `src/components/Settings.tsx` | 移除 testMode prop，新增版本号 7 连击激活逻辑 |
+| `src/App.tsx` | 集成 DebugToolbar，管理 debugMode/timeMultiplier 状态 |
+| `src/hooks/useFarmStorage.ts` | 暴露 setFarm setter 供调试直接操作 |
+| `e2e/debug-toolbar.spec.ts` | 12 条 E2E 测试覆盖全部功能 |
+
+### 功能清单
+- 瓜棚道具：添加各阶段物品 + 清空
+- 农场：立即成熟 / +3/5/10 品种 / 重置
+- 专注：快速完成计时器
+- 时间倍率：1x~100x 加速农场生长
+- 数据：重置所有 localStorage
+
+### 测试
+- 12 passed（mobile + mobile-wide + desktop × 4 用例）
+
+---
+
 ## v0.23.3 — 手机端裁切彻底修复（2026-02-18）
 
 ### 背景
