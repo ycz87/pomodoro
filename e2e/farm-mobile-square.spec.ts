@@ -187,3 +187,27 @@ test.describe('AC6: Interactions', () => {
     expect(text!.replace('🔒', '').trim().length).toBeGreaterThan(0);
   });
 });
+
+// ─── AC7: 手机端底部行不被裁切 ───
+test.describe('AC7: Mobile — bottom row not clipped', () => {
+  test('bottom row plots are fully within viewport horizontally', async ({ page }, testInfo) => {
+    if (testInfo.project.name !== 'mobile') { test.skip(); return; }
+    await goToFarm(page);
+
+    const viewport = page.viewportSize();
+    expect(viewport).not.toBeNull();
+
+    // Get all 9 slots and check the last 3 (bottom row)
+    const slots = page.locator('.farm-grid-perspective > div');
+    await expect(slots).toHaveCount(9);
+
+    for (let i = 6; i < 9; i++) {
+      const box = await slots.nth(i).boundingBox();
+      expect(box, `bottom row slot ${i} should have a bounding box`).not.toBeNull();
+      // Left edge should be >= 0
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      // Right edge should be <= viewport width
+      expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width);
+    }
+  });
+});

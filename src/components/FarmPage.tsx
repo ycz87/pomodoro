@@ -149,8 +149,8 @@ export function FarmPage({ farm, seeds, todayFocusMinutes, addSeeds, onPlant, on
       </div>
 
       {/* 3×3 俯视网格 */}
-      <div className="relative mb-3 sm:mb-5">
-        <div className="relative mx-auto w-full max-w-[760px]">
+      <div className="relative mb-3 sm:mb-5 overflow-visible">
+        <div className="relative mx-auto w-full max-w-[760px] px-2 sm:px-0">
           <div
             className="pointer-events-none absolute inset-0 rounded-[30px]"
             style={{
