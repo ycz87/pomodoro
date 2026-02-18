@@ -54,6 +54,7 @@ export function FarmPage({ farm, seeds, todayFocusMinutes, addSeeds, onPlant, on
   const [plantingPlotId, setPlantingPlotId] = useState<number | null>(null);
   const [revealAnim, setRevealAnim] = useState<RevealAnim | null>(null);
   const [harvestAnim, setHarvestAnim] = useState<HarvestAnim | null>(null);
+  const [showFarmHelp, setShowFarmHelp] = useState(false);
 
   // 追踪已揭晓的地块（避免重复触发动画）
   const revealedRef = useRef<Set<number>>(new Set());
@@ -140,9 +141,24 @@ export function FarmPage({ farm, seeds, todayFocusMinutes, addSeeds, onPlant, on
 
       {/* 今日专注信息 */}
       <div className="flex items-center justify-between mb-2 sm:mb-3 px-1">
-        <span className="text-xs" style={{ color: theme.textFaint }}>
-          {t.farmTodayFocus(todayFocusMinutes)}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs" style={{ color: theme.textFaint }}>
+            {t.farmTodayFocus(todayFocusMinutes)}
+          </span>
+          <button
+            onClick={() => setShowFarmHelp(true)}
+            className="h-5 w-5 rounded-full border text-[11px] leading-none flex items-center justify-center"
+            style={{
+              borderColor: theme.border,
+              backgroundColor: `${theme.inputBg}cc`,
+              color: theme.textFaint,
+            }}
+            title={t.farmHelpTitle}
+            aria-label={t.farmHelpTitle}
+          >
+            ℹ️
+          </button>
+        </div>
         <span className="text-xs" style={{ color: theme.textFaint }}>
           🌰 {totalSeeds}
         </span>
@@ -218,6 +234,15 @@ export function FarmPage({ farm, seeds, todayFocusMinutes, addSeeds, onPlant, on
           t={t}
           onSelect={handlePlant}
           onClose={() => setPlantingPlotId(null)}
+        />
+      )}
+
+      {/* 农场规则弹窗 */}
+      {showFarmHelp && (
+        <FarmHelpModal
+          theme={theme}
+          t={t}
+          onClose={() => setShowFarmHelp(false)}
         />
       )}
 
@@ -301,6 +326,13 @@ function PlotCard({ plot, theme, t, onPlantClick, onHarvestClick, onClearClick }
     : `0 0 6px ${rarityColor}66`;
   const hasFlowingShine = variety ? (variety.rarity === 'epic' || variety.rarity === 'legendary') : false;
   const flowShineColor = variety?.rarity === 'legendary' ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.62)';
+  const matureMinutes = variety?.matureMinutes ?? 10000;
+  const remainingMinutes = Math.max(0, matureMinutes - plot.accumulatedMinutes);
+  const stageSwayAnimation = stage === 'seed' || stage === 'sprout'
+    ? 'plantSwaySm 4s ease-in-out infinite'
+    : stage === 'leaf' || stage === 'flower'
+      ? 'plantSwayMd 3.5s ease-in-out infinite'
+      : 'plantSwayLg 3.8s ease-in-out infinite';
   const tileBackground = plot.state === 'empty'
     ? 'linear-gradient(145deg, #8b5a2b 0%, #6f4424 100%)'
     : plot.state === 'withered'
@@ -358,6 +390,8 @@ function PlotCard({ plot, theme, t, onPlantClick, onHarvestClick, onClearClick }
                 filter: variety && revealed && variety.rarity !== 'common'
                   ? `drop-shadow(0 0 6px ${rarityColor})`
                   : 'none',
+                animation: stageSwayAnimation,
+                transformOrigin: 'bottom center',
               }}
             >
               {stageEmoji}
@@ -393,6 +427,17 @@ function PlotCard({ plot, theme, t, onPlantClick, onHarvestClick, onClearClick }
             <span className="mt-1 text-[10px]" style={{ color: theme.textFaint }}>
               {t.farmStage(stage)}
             </span>
+            <span className="mt-0.5 hidden sm:block text-[9px]" style={{ color: theme.textFaint }}>
+              {t.farmGrowthTime(plot.accumulatedMinutes, matureMinutes)}
+            </span>
+            <span className="mt-0.5 sm:hidden text-[9px]" style={{ color: theme.textFaint }}>
+              {`${Math.round(progressPercent)}% · ${t.farmRemainingTime(remainingMinutes)}`}
+            </span>
+            {plot.progress < 0.5 && (
+              <span className="mt-0.5 text-[9px]" style={{ color: theme.textFaint, animation: 'fadeIn 0.45s ease-out' }}>
+                {t.farmFocusBoostHint}
+              </span>
+            )}
           </div>
         )}
 
@@ -454,6 +499,22 @@ function PlotCard({ plot, theme, t, onPlantClick, onHarvestClick, onClearClick }
       </div>
 
       <style>{`
+        @keyframes plantSwaySm {
+          0%, 100% { transform: rotate(-2deg); }
+          50% { transform: rotate(2deg); }
+        }
+        @keyframes plantSwayMd {
+          0%, 100% { transform: rotate(-4deg); }
+          50% { transform: rotate(4deg); }
+        }
+        @keyframes plantSwayLg {
+          0%, 100% { transform: rotate(-3deg); }
+          50% { transform: rotate(3deg); }
+        }
+        @keyframes fadeIn {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
+        }
         @keyframes maturePulse {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.08); }
@@ -1002,6 +1063,29 @@ function HarvestOverlay({ varietyId, isNew, collectedCount, rewardSeedQuality, t
           50%, 100% { opacity: 0.25; }
         }
       `}</style>
+    </div>
+  );
+}
+
+function FarmHelpModal({ theme, t, onClose }: {
+  theme: ReturnType<typeof useTheme>;
+  t: ReturnType<typeof useI18n>;
+  onClose: () => void;
+}) {
+  const rules = [t.farmHelpPlant, t.farmHelpGrow, t.farmHelpHarvest, t.farmHelpWither, t.farmHelpUnlock];
+  return (
+    <div className='fixed inset-0 z-[60] flex items-center justify-center' style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+      <div className='rounded-2xl border p-5 mx-4 max-w-sm w-full' style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
+        <h3 className='text-base font-semibold text-center mb-4' style={{ color: theme.text }}>{t.farmHelpTitle}</h3>
+        <div className='flex flex-col gap-3'>
+          {rules.map((rule, i) => (
+            <p key={i} className='text-sm leading-relaxed' style={{ color: theme.textMuted }}>{rule}</p>
+          ))}
+        </div>
+        <button onClick={onClose} className='w-full mt-4 py-2.5 rounded-xl text-sm' style={{ color: theme.textMuted, backgroundColor: theme.border + '30' }}>
+          {t.cancel}
+        </button>
+      </div>
     </div>
   );
 }

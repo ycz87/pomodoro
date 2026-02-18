@@ -1,5 +1,18 @@
 import type { Messages } from '../types';
 
+const formatDuration = (minutes: number): string => {
+  const safeMinutes = Math.max(0, Math.round(minutes));
+  if (safeMinutes < 60) return `${safeMinutes} Min.`;
+  if (safeMinutes < 1440) {
+    const hours = Math.floor(safeMinutes / 60);
+    const remainMinutes = safeMinutes % 60;
+    return `${hours} Std. ${remainMinutes} Min.`;
+  }
+  const days = Math.floor(safeMinutes / 1440);
+  const remainHours = Math.floor((safeMinutes % 1440) / 60);
+  return `${days} T. ${remainHours} Std.`;
+};
+
 /** Deutsche Übersetzungen */
 export const de: Messages = {
   // App
@@ -494,6 +507,16 @@ export const de: Messages = {
   farmNewFlash: 'NEW',
   farmAlreadyCollected: 'Bereits gesammelt',
   farmStage: (s) => ({ seed: 'Samen', sprout: 'Keimling', leaf: 'Blatt', flower: 'Blüte', fruit: 'Frucht' }[s] ?? s),
+  farmGrowthTime: (a, t) => `Gewachsen ${formatDuration(a)} / ${formatDuration(t)} benötigt`,
+  farmRemainingTime: (r) => `Noch ${formatDuration(r)}`,
+  farmFocusBoostHint: 'Fokus beschleunigt das Wachstum ⚡',
+  farmHelpTitle: '🌱 Farm-Regeln',
+  farmHelpPlant: '🌱 Pflanzen: Wähle Galaxie und Samenqualität, dann startet das Wachstum',
+  farmHelpGrow: '⏱️ Wachstum: Reinzuchten brauchen ~10000 Min. Fokus beschleunigt (≤2 Std.: 10x, >2 Std.: 20x). Offline-Zeit zählt mit',
+  farmHelpHarvest: '🍉 Ernte: Reife Pflanzen antippen, um Sorten fürs Album zu sammeln',
+  farmHelpWither: '💀 Verwelken: Nach 72 Std. Inaktivität verwelken Pflanzen',
+  farmHelpUnlock: '🔓 Freischalten: Sammle mehr Sorten, um neue Beete und Galaxien freizuschalten',
+  formatDuration,
   farmGoFarm: 'Zur Farm 🌱',
   farmUnlockHint: (n) => `${n} Sorten sammeln zum Freischalten`,
 

@@ -348,6 +348,16 @@ export interface Messages {
   farmNewFlash: string;
   farmAlreadyCollected: string;
   farmStage: (stage: string) => string;
+  farmGrowthTime: (accumulated: number, total: number) => string;
+  farmRemainingTime: (remaining: number) => string;
+  farmFocusBoostHint: string;
+  farmHelpTitle: string;
+  farmHelpPlant: string;
+  farmHelpGrow: string;
+  farmHelpHarvest: string;
+  farmHelpWither: string;
+  farmHelpUnlock: string;
+  formatDuration: (minutes: number) => string;
   farmGoFarm: string;
   farmUnlockHint: (requiredVarieties: number) => string;
 

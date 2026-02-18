@@ -1,5 +1,18 @@
 import type { Messages } from '../types';
 
+const formatDuration = (minutes: number): string => {
+  const safeMinutes = Math.max(0, Math.round(minutes));
+  if (safeMinutes < 60) return `${safeMinutes} 分钟`;
+  if (safeMinutes < 1440) {
+    const hours = Math.floor(safeMinutes / 60);
+    const remainMinutes = safeMinutes % 60;
+    return `${hours} 小时 ${remainMinutes} 分钟`;
+  }
+  const days = Math.floor(safeMinutes / 1440);
+  const remainHours = Math.floor((safeMinutes % 1440) / 60);
+  return `${days} 天 ${remainHours} 小时`;
+};
+
 /** 中文翻译 — 默认语言 */
 export const zh: Messages = {
   // App
@@ -495,6 +508,16 @@ export const zh: Messages = {
   farmNewFlash: 'NEW',
   farmAlreadyCollected: '已收藏',
   farmStage: (s) => ({ seed: '种子期', sprout: '发芽期', leaf: '长叶期', flower: '开花期', fruit: '结果期' }[s] ?? s),
+  farmGrowthTime: (a, t) => `已生长 ${formatDuration(a)} / 共需 ${formatDuration(t)}`,
+  farmRemainingTime: (r) => `还需 ${formatDuration(r)}`,
+  farmFocusBoostHint: '专注可加速生长 ⚡',
+  farmHelpTitle: '🌱 农场规则',
+  farmHelpPlant: '🌱 种植：选择星系和种子品质，种下后开始生长',
+  farmHelpGrow: '⏱️ 生长：纯种需要约 10000 分钟成熟。专注时加速（≤2h 10倍，>2h 20倍），离线也会推进',
+  farmHelpHarvest: '🍉 收获：成熟后点击收获，获得品种记入图鉴',
+  farmHelpWither: '💀 枯萎：超过 72 小时未活跃，植物会枯萎',
+  farmHelpUnlock: '🔓 解锁：收集更多品种可解锁新地块和新星系',
+  formatDuration,
   farmGoFarm: '去农场种植 🌱',
   farmUnlockHint: (n) => `集齐 ${n} 个品种解锁`,
 

@@ -1,5 +1,18 @@
 import type { Messages } from '../types';
 
+const formatDuration = (minutes: number): string => {
+  const safeMinutes = Math.max(0, Math.round(minutes));
+  if (safeMinutes < 60) return `${safeMinutes} min`;
+  if (safeMinutes < 1440) {
+    const hours = Math.floor(safeMinutes / 60);
+    const remainMinutes = safeMinutes % 60;
+    return `${hours} h ${remainMinutes} min`;
+  }
+  const days = Math.floor(safeMinutes / 1440);
+  const remainHours = Math.floor((safeMinutes % 1440) / 60);
+  return `${days} d ${remainHours} h`;
+};
+
 /** Traducciones al español */
 export const es: Messages = {
   // App
@@ -494,6 +507,16 @@ export const es: Messages = {
   farmNewFlash: 'NEW',
   farmAlreadyCollected: 'Ya coleccionada',
   farmStage: (s) => ({ seed: 'Semilla', sprout: 'Brote', leaf: 'Hoja', flower: 'Flor', fruit: 'Fruto' }[s] ?? s),
+  farmGrowthTime: (a, t) => `Crecido ${formatDuration(a)} / ${formatDuration(t)} necesarios`,
+  farmRemainingTime: (r) => `Faltan ${formatDuration(r)}`,
+  farmFocusBoostHint: 'Concéntrate para crecer más rápido ⚡',
+  farmHelpTitle: '🌱 Reglas de la granja',
+  farmHelpPlant: '🌱 Plantar: Elige galaxia y calidad de semilla para empezar a crecer',
+  farmHelpGrow: '⏱️ Crecimiento: Las variedades puras tardan ~10000 min en madurar. El foco acelera (≤2 h: 10x, >2 h: 20x). El tiempo offline también cuenta',
+  farmHelpHarvest: '🍉 Cosecha: Toca plantas maduras para recolectar variedades en tu álbum',
+  farmHelpWither: '💀 Marchitar: Las plantas se marchitan tras 72 h de inactividad',
+  farmHelpUnlock: '🔓 Desbloquear: Recolecta más variedades para abrir nuevas parcelas y galaxias',
+  formatDuration,
   farmGoFarm: 'Ir a la granja 🌱',
   farmUnlockHint: (n) => `Recolecta ${n} variedades para desbloquear`,
 

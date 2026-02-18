@@ -1,5 +1,18 @@
 import type { Messages } from '../types';
 
+const formatDuration = (minutes: number): string => {
+  const safeMinutes = Math.max(0, Math.round(minutes));
+  if (safeMinutes < 60) return `${safeMinutes} 分`;
+  if (safeMinutes < 1440) {
+    const hours = Math.floor(safeMinutes / 60);
+    const remainMinutes = safeMinutes % 60;
+    return `${hours} 時間 ${remainMinutes} 分`;
+  }
+  const days = Math.floor(safeMinutes / 1440);
+  const remainHours = Math.floor((safeMinutes % 1440) / 60);
+  return `${days} 日 ${remainHours} 時間`;
+};
+
 /** 日本語翻訳 */
 export const ja: Messages = {
   // App
@@ -494,6 +507,16 @@ export const ja: Messages = {
   farmNewFlash: 'NEW',
   farmAlreadyCollected: '収集済み',
   farmStage: (s) => ({ seed: '種子期', sprout: '発芽期', leaf: '成長期', flower: '開花期', fruit: '結実期' }[s] ?? s),
+  farmGrowthTime: (a, t) => `成長 ${formatDuration(a)} / 必要 ${formatDuration(t)}`,
+  farmRemainingTime: (r) => `あと ${formatDuration(r)}`,
+  farmFocusBoostHint: '集中で成長加速 ⚡',
+  farmHelpTitle: '🌱 農場ルール',
+  farmHelpPlant: '🌱 植える：銀河と種の品質を選ぶと成長が始まります',
+  farmHelpGrow: '⏱️ 成長：純血種は成熟まで約10000分。集中中は加速（≤2時間: 10倍、>2時間: 20倍）。オフライン時間も進みます',
+  farmHelpHarvest: '🍉 収穫：成熟後にタップして収穫すると、品種が図鑑に登録されます',
+  farmHelpWither: '💀 枯れる：72時間以上アクティブでないと植物は枯れます',
+  farmHelpUnlock: '🔓 解放：品種を集めるほど新しい区画と銀河が解放されます',
+  formatDuration,
   farmGoFarm: '農場へ 🌱',
   farmUnlockHint: (n) => `${n}品種集めて解放`,
 

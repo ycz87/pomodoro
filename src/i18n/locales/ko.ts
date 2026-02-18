@@ -1,5 +1,18 @@
 import type { Messages } from '../types';
 
+const formatDuration = (minutes: number): string => {
+  const safeMinutes = Math.max(0, Math.round(minutes));
+  if (safeMinutes < 60) return `${safeMinutes}분`;
+  if (safeMinutes < 1440) {
+    const hours = Math.floor(safeMinutes / 60);
+    const remainMinutes = safeMinutes % 60;
+    return `${hours}시간 ${remainMinutes}분`;
+  }
+  const days = Math.floor(safeMinutes / 1440);
+  const remainHours = Math.floor((safeMinutes % 1440) / 60);
+  return `${days}일 ${remainHours}시간`;
+};
+
 /** 한국어 번역 */
 export const ko: Messages = {
   // App
@@ -494,6 +507,16 @@ export const ko: Messages = {
   farmNewFlash: 'NEW',
   farmAlreadyCollected: '이미 수집됨',
   farmStage: (s) => ({ seed: '씨앗기', sprout: '발아기', leaf: '성장기', flower: '개화기', fruit: '결실기' }[s] ?? s),
+  farmGrowthTime: (a, t) => `성장 ${formatDuration(a)} / 필요 ${formatDuration(t)}`,
+  farmRemainingTime: (r) => `${formatDuration(r)} 남음`,
+  farmFocusBoostHint: '집중하면 더 빨리 자라요 ⚡',
+  farmHelpTitle: '🌱 농장 규칙',
+  farmHelpPlant: '🌱 심기: 은하와 씨앗 품질을 고르면 성장이 시작됩니다',
+  farmHelpGrow: '⏱️ 성장: 순종은 성숙까지 약 10000분이 필요합니다. 집중 시 가속(≤2시간: 10배, >2시간: 20배), 오프라인 시간도 반영됩니다',
+  farmHelpHarvest: '🍉 수확: 성숙 후 탭해서 수확하면 품종이 도감에 기록됩니다',
+  farmHelpWither: '💀 시듦: 72시간 이상 활동이 없으면 식물이 시듭니다',
+  farmHelpUnlock: '🔓 해제: 더 많은 품종을 모으면 새 밭과 은하가 해제됩니다',
+  formatDuration,
   farmGoFarm: '농장으로 🌱',
   farmUnlockHint: (n) => `${n}품종 수집 시 해제`,
 

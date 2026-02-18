@@ -1,5 +1,18 @@
 import type { Messages } from '../types';
 
+const formatDuration = (minutes: number): string => {
+  const safeMinutes = Math.max(0, Math.round(minutes));
+  if (safeMinutes < 60) return `${safeMinutes} min`;
+  if (safeMinutes < 1440) {
+    const hours = Math.floor(safeMinutes / 60);
+    const remainMinutes = safeMinutes % 60;
+    return `${hours} h ${remainMinutes} min`;
+  }
+  const days = Math.floor(safeMinutes / 1440);
+  const remainHours = Math.floor((safeMinutes % 1440) / 60);
+  return `${days} j ${remainHours} h`;
+};
+
 /** Traductions françaises */
 export const fr: Messages = {
   // App
@@ -494,6 +507,16 @@ export const fr: Messages = {
   farmNewFlash: 'NEW',
   farmAlreadyCollected: 'Déjà collectée',
   farmStage: (s) => ({ seed: 'Graine', sprout: 'Pousse', leaf: 'Feuille', flower: 'Fleur', fruit: 'Fruit' }[s] ?? s),
+  farmGrowthTime: (a, t) => `Poussée ${formatDuration(a)} / ${formatDuration(t)} requis`,
+  farmRemainingTime: (r) => `Encore ${formatDuration(r)}`,
+  farmFocusBoostHint: 'Concentre-toi pour accélérer la pousse ⚡',
+  farmHelpTitle: '🌱 Règles de la ferme',
+  farmHelpPlant: '🌱 Planter : Choisissez une galaxie et une qualité de graine pour lancer la croissance',
+  farmHelpGrow: '⏱️ Croissance : Les variétés pures demandent ~10000 min. Le focus accélère (≤2 h : x10, >2 h : x20). Le temps hors ligne compte aussi',
+  farmHelpHarvest: '🍉 Récolte : Touchez les plantes mûres pour ajouter des variétés à votre album',
+  farmHelpWither: '💀 Flétrissement : Après 72 h d’inactivité, les plantes se flétrissent',
+  farmHelpUnlock: '🔓 Déblocage : Collectez plus de variétés pour débloquer de nouvelles parcelles et galaxies',
+  formatDuration,
   farmGoFarm: 'Aller à la ferme 🌱',
   farmUnlockHint: (n) => `Collectez ${n} variétés pour débloquer`,
 

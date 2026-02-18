@@ -1,5 +1,18 @@
 import type { Messages } from '../types';
 
+const formatDuration = (minutes: number): string => {
+  const safeMinutes = Math.max(0, Math.round(minutes));
+  if (safeMinutes < 60) return `${safeMinutes} min`;
+  if (safeMinutes < 1440) {
+    const hours = Math.floor(safeMinutes / 60);
+    const remainMinutes = safeMinutes % 60;
+    return `${hours}h ${remainMinutes}m`;
+  }
+  const days = Math.floor(safeMinutes / 1440);
+  const remainHours = Math.floor((safeMinutes % 1440) / 60);
+  return `${days}d ${remainHours}h`;
+};
+
 /** English translations */
 export const en: Messages = {
   // App
@@ -494,6 +507,16 @@ export const en: Messages = {
   farmNewFlash: 'NEW',
   farmAlreadyCollected: 'Already collected',
   farmStage: (s) => ({ seed: 'Seed', sprout: 'Sprout', leaf: 'Leaf', flower: 'Flower', fruit: 'Fruit' }[s] ?? s),
+  farmGrowthTime: (a, t) => `Grown ${formatDuration(a)} / ${formatDuration(t)} needed`,
+  farmRemainingTime: (r) => `${formatDuration(r)} left`,
+  farmFocusBoostHint: 'Focus to grow faster ⚡',
+  farmHelpTitle: '🌱 Farm Rules',
+  farmHelpPlant: '🌱 Plant: Choose a galaxy and seed quality to start growing',
+  farmHelpGrow: '⏱️ Growth: Pure breeds need ~10000 min. Focus boosts growth (≤2h: 10x, >2h: 20x). Offline time also counts',
+  farmHelpHarvest: '🍉 Harvest: Tap mature plants to collect varieties for your album',
+  farmHelpWither: '💀 Wither: Plants wither after 72h of inactivity',
+  farmHelpUnlock: '🔓 Unlock: Collect more varieties to unlock new plots and galaxies',
+  formatDuration,
   farmGoFarm: 'Go Farm 🌱',
   farmUnlockHint: (n) => `Collect ${n} varieties to unlock`,
 

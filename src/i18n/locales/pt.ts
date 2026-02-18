@@ -1,5 +1,18 @@
 import type { Messages } from '../types';
 
+const formatDuration = (minutes: number): string => {
+  const safeMinutes = Math.max(0, Math.round(minutes));
+  if (safeMinutes < 60) return `${safeMinutes} min`;
+  if (safeMinutes < 1440) {
+    const hours = Math.floor(safeMinutes / 60);
+    const remainMinutes = safeMinutes % 60;
+    return `${hours} h ${remainMinutes} min`;
+  }
+  const days = Math.floor(safeMinutes / 1440);
+  const remainHours = Math.floor((safeMinutes % 1440) / 60);
+  return `${days} d ${remainHours} h`;
+};
+
 /** Traduções em português (Brasil) */
 export const pt: Messages = {
   // App
@@ -494,6 +507,16 @@ export const pt: Messages = {
   farmNewFlash: 'NEW',
   farmAlreadyCollected: 'Já coletada',
   farmStage: (s) => ({ seed: 'Semente', sprout: 'Broto', leaf: 'Folha', flower: 'Flor', fruit: 'Fruto' }[s] ?? s),
+  farmGrowthTime: (a, t) => `Cresceu ${formatDuration(a)} / ${formatDuration(t)} necessários`,
+  farmRemainingTime: (r) => `Faltam ${formatDuration(r)}`,
+  farmFocusBoostHint: 'Foco acelera o crescimento ⚡',
+  farmHelpTitle: '🌱 Regras da fazenda',
+  farmHelpPlant: '🌱 Plantio: Escolha a galáxia e a qualidade da semente para começar o crescimento',
+  farmHelpGrow: '⏱️ Crescimento: Variedades puras levam ~10000 min para amadurecer. O foco acelera (≤2 h: 10x, >2 h: 20x). O tempo offline também conta',
+  farmHelpHarvest: '🍉 Colheita: Toque nas plantas maduras para coletar variedades no álbum',
+  farmHelpWither: '💀 Murchar: Plantas murcham após 72 h de inatividade',
+  farmHelpUnlock: '🔓 Desbloqueio: Colete mais variedades para liberar novos canteiros e galáxias',
+  formatDuration,
   farmGoFarm: 'Ir para fazenda 🌱',
   farmUnlockHint: (n) => `Colete ${n} variedades para desbloquear`,
 
