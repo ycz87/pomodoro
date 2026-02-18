@@ -2,6 +2,22 @@
 
 ---
 
+## v0.23.3 — 手机端裁切彻底修复（2026-02-18）
+
+### 背景
+v0.23.2 的 `calc(100%-36px)` 固定补偿在 500px 视口下仍溢出 3px，改用百分比约束。
+
+### 改动
+1. **max-width 百分比** — `max-w-[calc(100%-36px)]` → `max-w-[90%]`，任何视口宽度都有足够余量
+2. **E2E 测试** — 新增 mobile-wide（500×900）测试项目，AC7 在 390px 和 500px 视口都验证通过
+
+### 影响范围
+- 修改：src/components/FarmPage.tsx（1 处 class）
+- 修改：playwright.config.ts（+mobile-wide project）
+- 修改：e2e/farm-mobile-square.spec.ts（AC7 支持 mobile-wide）
+
+---
+
 ## v0.23.2 — 手机端底部地块左右裁切修复（2026-02-18）
 
 ### 背景
