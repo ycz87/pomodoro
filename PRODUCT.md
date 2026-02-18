@@ -9,7 +9,7 @@
 - **GitHub：** https://github.com/ycz87/cosmelon
 
 ## 技术架构
-- **前端：** React 19 + Vite 7 + Tailwind CSS 4 + TypeScript（当前 v0.21.4）
+- **前端：** React 19 + Vite 7 + Tailwind CSS 4 + TypeScript（当前 v0.23.0）
 - **后端：** Cloudflare Workers（Hono）+ D1 数据库
 - **认证：** auth.cosmelon.app（邮箱验证码 + Google/Microsoft OAuth）
 - **API：** api.clock.cosmelon.app
@@ -34,7 +34,10 @@
 - 道具收集
 
 ### 农场（进行中）
-- 4 地块种植、收获、品种收集
+- 俯视微倾斜 3×3 瓜田（CSS Grid + perspective rotateX 伪 3D）
+- 9 块地块：4 块已开发 + 5 块锁定（LockedPlotCard）
+- 地块比例 3:4，圆角矩形，手机端一屏显示
+- 种植、收获、品种收集
 - 品种揭晓 Overlay（rare+ 稀有度强化特效）
 - 收获 Overlay 区分新品种/重复品种反馈
 - 外星人到访、瓜贼防御（后续）

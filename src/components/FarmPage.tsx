@@ -184,13 +184,13 @@ export function FarmPage({ farm, seeds, todayFocusMinutes, addSeeds, onPlant, on
       </div>
       <style>{`
         .farm-grid-perspective {
-          transform: perspective(600px) rotateX(8deg);
+          transform: perspective(600px) rotateX(12deg);
           transform-origin: center top;
           transform-style: flat;
         }
         @media (min-width: 640px) {
           .farm-grid-perspective {
-            transform: perspective(800px) rotateX(14deg);
+            transform: perspective(800px) rotateX(18deg);
           }
         }
       `}</style>
