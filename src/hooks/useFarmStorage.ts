@@ -142,5 +142,5 @@ export function useFarmStorage() {
     }));
   }, [setFarm]);
 
-  return { farm, plantSeed, harvestPlot, clearPlot, updatePlots, updateActiveDate };
+  return { farm, setFarm, plantSeed, harvestPlot, clearPlot, updatePlots, updateActiveDate };
 }

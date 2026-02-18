@@ -24,6 +24,7 @@ interface SettingsProps {
   disabled: boolean;
   isWorkRunning: boolean;
   onExport: () => void;
+  onActivateDebug: () => void;
   onShowGuide?: () => void;
   auth?: {
     user: User | null;
@@ -31,10 +32,6 @@ interface SettingsProps {
     login: (token: string) => Promise<void>;
     logout: () => Promise<void>;
     updateProfile: (data: { displayName?: string; avatarUrl?: string }) => void;
-  };
-  testMode?: {
-    addItems: (stage: import('../types').GrowthStage, count: number) => void;
-    resetWarehouse: () => void;
   };
 }
 
@@ -146,12 +143,13 @@ const LANGUAGE_DISPLAY: Record<Locale, { flag: string; name: string }> = {
 };
 // Divider color is now theme-aware via theme.border
 
-export function Settings({ settings, onChange, disabled, isWorkRunning, onExport, onShowGuide, auth, testMode }: SettingsProps) {
+export function Settings({ settings, onChange, disabled, isWorkRunning, onExport, onActivateDebug, onShowGuide, auth }: SettingsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showAmbienceModal, setShowAmbienceModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showLoginPanel, setShowLoginPanel] = useState(false);
+  const versionClickTimestampsRef = useRef<number[]>([]);
   const panelRef = useRef<HTMLDivElement>(null);
   const theme = useTheme();
   const i18n = useI18n();
@@ -194,6 +192,17 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
   };
 
   const ambienceSummary = getActiveSoundsSummary(settings.ambienceMixer, i18n.ambienceNames);
+  const handleVersionClick = () => {
+    const now = Date.now();
+    versionClickTimestampsRef.current = [
+      ...versionClickTimestampsRef.current.filter((ts) => now - ts <= 2000),
+      now,
+    ];
+    if (versionClickTimestampsRef.current.length >= 7) {
+      versionClickTimestampsRef.current = [];
+      onActivateDebug();
+    }
+  };
 
   return (
     <>
@@ -372,46 +381,13 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
                 </div>
               </div>
 
-              {/* 🧪 Test Mode */}
-              {testMode && (
-                <div className="mt-4 p-3 rounded-xl border" style={{ borderColor: theme.border, backgroundColor: theme.inputBg }}>
-                  <div className="text-xs font-semibold mb-2" style={{ color: theme.textMuted }}>🧪 Test Mode</div>
-                  {([
-                    ['seed', '🌱', [1, 10, 50]],
-                    ['sprout', '🌿', [1, 10]],
-                    ['bloom', '🌼', [1, 10]],
-                    ['green', '🍈', [1, 5]],
-                    ['ripe', '🍉', [1, 5]],
-                    ['legendary', '👑', [1]],
-                  ] as const).map(([stage, emoji, counts]) => (
-                    <div key={stage} className="flex items-center gap-1 mb-1">
-                      {counts.map((n) => (
-                        <button
-                          key={n}
-                          onClick={() => testMode.addItems(stage, n)}
-                          className="px-2 py-0.5 rounded text-[11px] cursor-pointer transition-colors"
-                          style={{ backgroundColor: `${theme.accent}15`, color: theme.accent }}
-                        >
-                          {emoji} +{n}
-                        </button>
-                      ))}
-                    </div>
-                  ))}
-                  <div className="flex gap-2 mt-2 pt-2 border-t" style={{ borderColor: theme.border }}>
-                    <button
-                      onClick={testMode.resetWarehouse}
-                      className="px-2 py-1 rounded text-[11px] cursor-pointer"
-                      style={{ backgroundColor: 'rgba(239,68,68,0.15)', color: '#ef4444' }}
-                    >
-                      清空瓜棚
-                    </button>
-                  </div>
-                </div>
-              )}
-
               {/* 版本号 */}
               <div className="text-center pt-4 pb-1">
-                <span className="text-[11px]" style={{ color: theme.textFaint }}>
+                <span
+                  className="text-[11px] cursor-pointer select-none"
+                  style={{ color: theme.textFaint }}
+                  onClick={handleVersionClick}
+                >
                   v{__APP_VERSION__}
                 </span>
               </div>
