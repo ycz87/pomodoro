@@ -489,6 +489,19 @@ export const zh: Messages = {
   tabFocus: '专注',
   tabWarehouse: '瓜棚',
   tabFarm: '农场',
+  tabMarket: '商城',
+
+  marketTitle: '🏪 商城',
+  marketBalance: '瓜币余额',
+  marketTabBuy: '🛒 买',
+  marketTabSell: '💰 卖',
+  marketBuyComingSoon: '即将开放',
+  marketSellEmpty: '暂无可卖出的西瓜',
+  marketSellOwned: (count) => `持有 ×${count}`,
+  marketSellConfirmTitle: '确认卖出',
+  marketSellConfirmMessage: (name, price) => `确定卖出 ${name}？获得 ${price} 💰`,
+  marketSellConfirmButton: '卖出',
+  marketSellCancelButton: '取消',
 
   // Farm
   farmPlotsTab: '地块',

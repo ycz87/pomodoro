@@ -83,6 +83,7 @@ export interface VarietyDef {
   emoji: string;
   breedType: BreedType;
   matureMinutes: number;
+  sellPrice: number;
 }
 
 const PURE_MATURE_MINUTES = 10000;
@@ -93,311 +94,311 @@ export const VARIETY_DEFS: Record<VarietyId, VarietyDef> = {
   // thick-earth
   'jade-stripe': {
     id: 'jade-stripe', galaxy: 'thick-earth', rarity: 'common', dropRate: 0.15, emoji: '🍉',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 8,
   },
   'black-pearl': {
     id: 'black-pearl', galaxy: 'thick-earth', rarity: 'common', dropRate: 0.13, emoji: '🖤',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 10,
   },
   'honey-bomb': {
     id: 'honey-bomb', galaxy: 'thick-earth', rarity: 'common', dropRate: 0.12, emoji: '🍯',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 12,
   },
   'mini-round': {
     id: 'mini-round', galaxy: 'thick-earth', rarity: 'rare', dropRate: 0.07, emoji: '🔴',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 25,
   },
   'star-moon': {
     id: 'star-moon', galaxy: 'thick-earth', rarity: 'rare', dropRate: 0.06, emoji: '🌙',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 30,
   },
   'golden-heart': {
     id: 'golden-heart', galaxy: 'thick-earth', rarity: 'epic', dropRate: 0.03, emoji: '💛',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 80,
   },
   'ice-sugar-snow': {
     id: 'ice-sugar-snow', galaxy: 'thick-earth', rarity: 'epic', dropRate: 0.02, emoji: '❄️',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 120,
   },
   'cube-melon': {
     id: 'cube-melon', galaxy: 'thick-earth', rarity: 'legendary', dropRate: 0.01, emoji: '🧊',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 300,
   },
 
   // fire
   'lava-melon': {
     id: 'lava-melon', galaxy: 'fire', rarity: 'common', dropRate: 0.15, emoji: '🌋',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 8,
   },
   'caramel-crack': {
     id: 'caramel-crack', galaxy: 'fire', rarity: 'common', dropRate: 0.13, emoji: '🍮',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 10,
   },
   'charcoal-roast': {
     id: 'charcoal-roast', galaxy: 'fire', rarity: 'common', dropRate: 0.12, emoji: '🔥',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 12,
   },
   'flame-pattern': {
     id: 'flame-pattern', galaxy: 'fire', rarity: 'rare', dropRate: 0.07, emoji: '🔶',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 25,
   },
   'molten-core': {
     id: 'molten-core', galaxy: 'fire', rarity: 'rare', dropRate: 0.06, emoji: '💎',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 30,
   },
   'sun-stone': {
     id: 'sun-stone', galaxy: 'fire', rarity: 'epic', dropRate: 0.03, emoji: '☀️',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 80,
   },
   'ash-rebirth': {
     id: 'ash-rebirth', galaxy: 'fire', rarity: 'epic', dropRate: 0.02, emoji: '🌅',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 120,
   },
   'phoenix-nirvana': {
     id: 'phoenix-nirvana', galaxy: 'fire', rarity: 'legendary', dropRate: 0.01, emoji: '🦅',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 300,
   },
 
   // water
   'snow-velvet': {
     id: 'snow-velvet', galaxy: 'water', rarity: 'common', dropRate: 0.15, emoji: '🤍',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 8,
   },
   'ice-crystal': {
     id: 'ice-crystal', galaxy: 'water', rarity: 'common', dropRate: 0.13, emoji: '💠',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 10,
   },
   'tidal-melon': {
     id: 'tidal-melon', galaxy: 'water', rarity: 'common', dropRate: 0.12, emoji: '🌊',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 12,
   },
   'aurora-melon': {
     id: 'aurora-melon', galaxy: 'water', rarity: 'rare', dropRate: 0.07, emoji: '🌌',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 25,
   },
   'moonlight-melon': {
     id: 'moonlight-melon', galaxy: 'water', rarity: 'rare', dropRate: 0.06, emoji: '🌕',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 30,
   },
   'diamond-melon': {
     id: 'diamond-melon', galaxy: 'water', rarity: 'epic', dropRate: 0.03, emoji: '💎',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 80,
   },
   'abyss-melon': {
     id: 'abyss-melon', galaxy: 'water', rarity: 'epic', dropRate: 0.02, emoji: '🫧',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 120,
   },
   'permafrost': {
     id: 'permafrost', galaxy: 'water', rarity: 'legendary', dropRate: 0.01, emoji: '🧊',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 300,
   },
 
   // wood
   'vine-melon': {
     id: 'vine-melon', galaxy: 'wood', rarity: 'common', dropRate: 0.15, emoji: '🌱',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 8,
   },
   'moss-melon': {
     id: 'moss-melon', galaxy: 'wood', rarity: 'common', dropRate: 0.13, emoji: '🍀',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 10,
   },
   'mycelium-melon': {
     id: 'mycelium-melon', galaxy: 'wood', rarity: 'common', dropRate: 0.12, emoji: '🍄',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 12,
   },
   'flower-whisper': {
     id: 'flower-whisper', galaxy: 'wood', rarity: 'rare', dropRate: 0.07, emoji: '🌸',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 25,
   },
   'tree-ring': {
     id: 'tree-ring', galaxy: 'wood', rarity: 'rare', dropRate: 0.06, emoji: '🪵',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 30,
   },
   'world-tree': {
     id: 'world-tree', galaxy: 'wood', rarity: 'epic', dropRate: 0.03, emoji: '🌳',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 80,
   },
   'spirit-root': {
     id: 'spirit-root', galaxy: 'wood', rarity: 'epic', dropRate: 0.02, emoji: '🌿',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 120,
   },
   'all-spirit': {
     id: 'all-spirit', galaxy: 'wood', rarity: 'legendary', dropRate: 0.01, emoji: '🧚',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 300,
   },
 
   // metal
   'golden-armor': {
     id: 'golden-armor', galaxy: 'metal', rarity: 'common', dropRate: 0.15, emoji: '🛡️',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 8,
   },
   'copper-patina': {
     id: 'copper-patina', galaxy: 'metal', rarity: 'common', dropRate: 0.13, emoji: '🪙',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 10,
   },
   'tinfoil-melon': {
     id: 'tinfoil-melon', galaxy: 'metal', rarity: 'common', dropRate: 0.12, emoji: '🔔',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 12,
   },
   'galaxy-stripe': {
     id: 'galaxy-stripe', galaxy: 'metal', rarity: 'rare', dropRate: 0.07, emoji: '🌀',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 25,
   },
   'mercury-melon': {
     id: 'mercury-melon', galaxy: 'metal', rarity: 'rare', dropRate: 0.06, emoji: '🪩',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 30,
   },
   'meteorite-melon': {
     id: 'meteorite-melon', galaxy: 'metal', rarity: 'epic', dropRate: 0.03, emoji: '☄️',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 80,
   },
   'alloy-melon': {
     id: 'alloy-melon', galaxy: 'metal', rarity: 'epic', dropRate: 0.02, emoji: '⚙️',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 120,
   },
   'eternal-melon': {
     id: 'eternal-melon', galaxy: 'metal', rarity: 'legendary', dropRate: 0.01, emoji: '👑',
-    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES,
+    breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 300,
   },
 
   // earth-fire
   'lava-field': {
     id: 'lava-field', galaxy: 'thick-earth', hybridPair: 'earth-fire', rarity: 'common', dropRate: 0.60, emoji: '🌋',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 30,
   },
   'volcanic-ash': {
     id: 'volcanic-ash', galaxy: 'thick-earth', hybridPair: 'earth-fire', rarity: 'rare', dropRate: 0.30, emoji: '🌫️',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 80,
   },
   'earth-core': {
     id: 'earth-core', galaxy: 'thick-earth', hybridPair: 'earth-fire', rarity: 'epic', dropRate: 0.10, emoji: '🌎',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 250,
   },
 
   // earth-water
   'hot-spring': {
     id: 'hot-spring', galaxy: 'thick-earth', hybridPair: 'earth-water', rarity: 'common', dropRate: 0.60, emoji: '♨️',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 30,
   },
   'mud-pool': {
     id: 'mud-pool', galaxy: 'thick-earth', hybridPair: 'earth-water', rarity: 'rare', dropRate: 0.30, emoji: '🟤',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 80,
   },
   oasis: {
     id: 'oasis', galaxy: 'thick-earth', hybridPair: 'earth-water', rarity: 'epic', dropRate: 0.10, emoji: '🏝️',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 250,
   },
 
   // earth-wood
   'ancient-root': {
     id: 'ancient-root', galaxy: 'thick-earth', hybridPair: 'earth-wood', rarity: 'common', dropRate: 0.60, emoji: '🌱',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 30,
   },
   fossil: {
     id: 'fossil', galaxy: 'thick-earth', hybridPair: 'earth-wood', rarity: 'rare', dropRate: 0.30, emoji: '🦴',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 80,
   },
   'earth-mother': {
     id: 'earth-mother', galaxy: 'thick-earth', hybridPair: 'earth-wood', rarity: 'epic', dropRate: 0.10, emoji: '🌳',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 250,
   },
 
   // earth-metal
   'ore-vein': {
     id: 'ore-vein', galaxy: 'thick-earth', hybridPair: 'earth-metal', rarity: 'common', dropRate: 0.60, emoji: '⛏️',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 30,
   },
   amber: {
     id: 'amber', galaxy: 'thick-earth', hybridPair: 'earth-metal', rarity: 'rare', dropRate: 0.30, emoji: '🟠',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 80,
   },
   gemstone: {
     id: 'gemstone', galaxy: 'thick-earth', hybridPair: 'earth-metal', rarity: 'epic', dropRate: 0.10, emoji: '💎',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 250,
   },
 
   // fire-water
   steam: {
     id: 'steam', galaxy: 'thick-earth', hybridPair: 'fire-water', rarity: 'common', dropRate: 0.60, emoji: '☁️',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 30,
   },
   geyser: {
     id: 'geyser', galaxy: 'thick-earth', hybridPair: 'fire-water', rarity: 'rare', dropRate: 0.30, emoji: '⛲',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 80,
   },
   mist: {
     id: 'mist', galaxy: 'thick-earth', hybridPair: 'fire-water', rarity: 'epic', dropRate: 0.10, emoji: '🌫️',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 250,
   },
 
   // fire-wood
   wildfire: {
     id: 'wildfire', galaxy: 'thick-earth', hybridPair: 'fire-wood', rarity: 'common', dropRate: 0.60, emoji: '🔥',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 30,
   },
   'ash-bloom': {
     id: 'ash-bloom', galaxy: 'thick-earth', hybridPair: 'fire-wood', rarity: 'rare', dropRate: 0.30, emoji: '🌸',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 80,
   },
   'fire-seed': {
     id: 'fire-seed', galaxy: 'thick-earth', hybridPair: 'fire-wood', rarity: 'epic', dropRate: 0.10, emoji: '🌰',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 250,
   },
 
   // fire-metal
   forge: {
     id: 'forge', galaxy: 'thick-earth', hybridPair: 'fire-metal', rarity: 'common', dropRate: 0.60, emoji: '🔨',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 30,
   },
   'molten-iron': {
     id: 'molten-iron', galaxy: 'thick-earth', hybridPair: 'fire-metal', rarity: 'rare', dropRate: 0.30, emoji: '🧲',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 80,
   },
   'solar-furnace': {
     id: 'solar-furnace', galaxy: 'thick-earth', hybridPair: 'fire-metal', rarity: 'epic', dropRate: 0.10, emoji: '☀️',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 250,
   },
 
   // water-wood
   rainforest: {
     id: 'rainforest', galaxy: 'thick-earth', hybridPair: 'water-wood', rarity: 'common', dropRate: 0.60, emoji: '🌴',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 30,
   },
   lotus: {
     id: 'lotus', galaxy: 'thick-earth', hybridPair: 'water-wood', rarity: 'rare', dropRate: 0.30, emoji: '🪷',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 80,
   },
   dewdrop: {
     id: 'dewdrop', galaxy: 'thick-earth', hybridPair: 'water-wood', rarity: 'epic', dropRate: 0.10, emoji: '💧',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 250,
   },
 
   // water-metal
   'ice-blade': {
     id: 'ice-blade', galaxy: 'thick-earth', hybridPair: 'water-metal', rarity: 'common', dropRate: 0.60, emoji: '🗡️',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 30,
   },
   mirror: {
     id: 'mirror', galaxy: 'thick-earth', hybridPair: 'water-metal', rarity: 'rare', dropRate: 0.30, emoji: '🪞',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 80,
   },
   'mercury-spring': {
     id: 'mercury-spring', galaxy: 'thick-earth', hybridPair: 'water-metal', rarity: 'epic', dropRate: 0.10, emoji: '⚗️',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 250,
   },
 
   // wood-metal
   'golden-leaf': {
     id: 'golden-leaf', galaxy: 'thick-earth', hybridPair: 'wood-metal', rarity: 'common', dropRate: 0.60, emoji: '🍁',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 30,
   },
   'iron-tree': {
     id: 'iron-tree', galaxy: 'thick-earth', hybridPair: 'wood-metal', rarity: 'rare', dropRate: 0.30, emoji: '🌲',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 80,
   },
   'mech-vine': {
     id: 'mech-vine', galaxy: 'thick-earth', hybridPair: 'wood-metal', rarity: 'epic', dropRate: 0.10, emoji: '🤖',
-    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES,
+    breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 250,
   },
 };
 

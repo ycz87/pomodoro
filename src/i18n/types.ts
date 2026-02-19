@@ -329,6 +329,20 @@ export interface Messages {
   tabFocus: string;
   tabWarehouse: string;
   tabFarm: string;
+  tabMarket: string;
+
+  // Market (v0.29.0)
+  marketTitle: string;
+  marketBalance: string;
+  marketTabBuy: string;
+  marketTabSell: string;
+  marketBuyComingSoon: string;
+  marketSellEmpty: string;
+  marketSellOwned: (count: number) => string;
+  marketSellConfirmTitle: string;
+  marketSellConfirmMessage: (name: string, price: number) => string;
+  marketSellConfirmButton: string;
+  marketSellCancelButton: string;
 
   // ─── Farm ───
   farmPlotsTab: string;

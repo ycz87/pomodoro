@@ -4,6 +4,15 @@
 
 ---
 
+## [0.29.0] - 2026-02-19
+### Added
+- 💰 Melon coin system with localStorage persistence
+- 🏪 Market page (4th main module) with buy/sell tabs
+- Sell varieties for melon coins (count-1, collection preserved)
+- First harvest bonus: earn sell price in melon coins
+- Sell prices for all 70 varieties
+- i18n: 8 languages for market UI
+
 ## v0.28.0（2026-02-19）
 - **双元素融合系统（Phase 3 Step 3）**：两个不同星系基因融合产出杂交种子
 - **5档成功率表**（⭐×⭐→30% 到 ⭐⭐⭐⭐×任意→90%）
