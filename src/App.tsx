@@ -70,6 +70,7 @@ import {
   witherPlots,
 } from './farm/growth';
 import { getUnlockedGalaxies } from './farm/galaxy';
+import { rollInjectedVariety, createInjectedSeedId } from './farm/gene';
 import { I18nProvider, getMessages } from './i18n';
 import type { PomodoroRecord, PomodoroSettings } from './types';
 import { DEFAULT_SETTINGS, migrateSettings, THEMES, getGrowthStage, GROWTH_EMOJI, rollLegendary } from './types';
@@ -109,11 +110,11 @@ function App() {
   const { warehouse, setWarehouse, addItem, addItems, updatePity, consumeMelon, synthesize, synthesizeAll, getHighestStage, resetWarehouse } = useWarehouse(syncWarehouse);
 
   // Shed storage (seeds + items from slicing)
-  const { shed, addSeeds, addItem: addShedItem, incrementSliced, updatePityCounter, consumeSeed } = useShedStorage();
+  const { shed, addSeeds, addItem: addShedItem, incrementSliced, updatePityCounter, consumeSeed, addInjectedSeed, consumeInjectedSeed } = useShedStorage();
 
   // Farm storage
-  const { farm, setFarm, plantSeed, harvestPlot, clearPlot, updatePlots, updateActiveDate } = useFarmStorage();
-  const { geneInventory, addFragment } = useGeneStorage();
+  const { farm, setFarm, plantSeed, plantSeedWithVariety, harvestPlot, clearPlot, updatePlots, updateActiveDate } = useFarmStorage();
+  const { geneInventory, addFragment, removeFragmentsByGalaxy } = useGeneStorage();
   const farmPlotsRef = useRef(farm.plots);
   const updatePlotsRef = useRef(updatePlots);
 
@@ -273,6 +274,29 @@ function App() {
     }
     return result;
   }, [addFragment, harvestPlot, todayKey]);
+
+  // ─── Gene injection handler ───
+  const handleGeneInject = useCallback((galaxyId: import('./types/farm').GalaxyId, quality: import('./types/slicing').SeedQuality) => {
+    removeFragmentsByGalaxy(galaxyId, 1);
+    consumeSeed(quality);
+    addInjectedSeed({
+      id: createInjectedSeedId(),
+      quality,
+      targetGalaxyId: galaxyId,
+    });
+  }, [removeFragmentsByGalaxy, consumeSeed, addInjectedSeed]);
+
+  // ─── Plant injected seed handler ───
+  const handleFarmPlantInjected = useCallback((plotId: number, seedId: string) => {
+    const seed = shed.injectedSeeds.find(s => s.id === seedId);
+    if (!seed) return;
+    const unlockedGalaxies = getUnlockedGalaxies(farm.collection);
+    const varietyId = rollInjectedVariety(seed.targetGalaxyId, unlockedGalaxies, seed.quality);
+    const success = plantSeedWithVariety(plotId, varietyId, seed.quality, todayKey);
+    if (success) {
+      consumeInjectedSeed(seedId);
+    }
+  }, [shed.injectedSeeds, farm.collection, plantSeedWithVariety, consumeInjectedSeed, todayKey]);
 
   // ─── Debug mode ───
   const activateDebugMode = useCallback(() => {
@@ -944,11 +968,14 @@ function App() {
             farm={farm}
             geneInventory={geneInventory}
             seeds={shed.seeds}
+            injectedSeeds={shed.injectedSeeds}
             todayFocusMinutes={todayFocusMinutes}
             addSeeds={addSeeds}
             onPlant={handleFarmPlant}
+            onPlantInjected={handleFarmPlantInjected}
             onHarvest={handleFarmHarvest}
             onClear={clearPlot}
+            onInject={handleGeneInject}
             onGoWarehouse={() => setActiveTab('warehouse')}
           />
         )}

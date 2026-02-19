@@ -7,9 +7,9 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../i18n';
-import type { Plot, VarietyId, FarmStorage } from '../types/farm';
+import type { Plot, VarietyId, FarmStorage, GalaxyId } from '../types/farm';
 import type { GeneInventory } from '../types/gene';
-import type { SeedQuality, SeedCounts } from '../types/slicing';
+import type { SeedQuality, SeedCounts, InjectedSeed } from '../types/slicing';
 import { VARIETY_DEFS, RARITY_COLOR, RARITY_STARS, PLOT_MILESTONES } from '../types/farm';
 import { getGrowthStage, getStageEmoji, isVarietyRevealed } from '../farm/growth';
 import { CollectionPage } from './CollectionPage';
@@ -19,9 +19,12 @@ interface FarmPageProps {
   farm: FarmStorage;
   geneInventory: GeneInventory;
   seeds: SeedCounts;
+  injectedSeeds: InjectedSeed[];
   todayFocusMinutes: number;
   addSeeds: (count: number, quality?: SeedQuality) => void;
   onPlant: (plotId: number, quality: SeedQuality) => VarietyId;
+  onPlantInjected: (plotId: number, seedId: string) => void;
+  onInject: (galaxyId: GalaxyId, quality: SeedQuality) => void;
   onHarvest: (plotId: number) => { varietyId?: VarietyId; isNew: boolean; collectedCount?: number; rewardSeedQuality?: SeedQuality };
   onClear: (plotId: number) => void;
   onGoWarehouse: () => void;
@@ -51,9 +54,12 @@ export function FarmPage({
   farm,
   geneInventory,
   seeds,
+  injectedSeeds,
   todayFocusMinutes,
   addSeeds,
   onPlant,
+  onPlantInjected,
+  onInject,
   onHarvest,
   onClear,
   onGoWarehouse,
@@ -92,7 +98,8 @@ export function FarmPage({
     }
   }, [farm.plots]);
 
-  const totalSeeds = seeds.normal + seeds.epic + seeds.legendary;
+  const totalBaseSeeds = seeds.normal + seeds.epic + seeds.legendary;
+  const totalPlantableSeeds = totalBaseSeeds + injectedSeeds.length;
   const plotSlots = useMemo(
     () => Array.from({ length: TOTAL_PLOT_SLOTS }, (_, index) => {
       const plot = farm.plots[index];
@@ -115,6 +122,12 @@ export function FarmPage({
     onPlant(plantingPlotId, quality);
     setPlantingPlotId(null);
   }, [plantingPlotId, onPlant]);
+
+  const handlePlantInjected = useCallback((seedId: string) => {
+    if (plantingPlotId === null) return;
+    onPlantInjected(plantingPlotId, seedId);
+    setPlantingPlotId(null);
+  }, [plantingPlotId, onPlantInjected]);
 
   const handleHarvest = useCallback((plotId: number) => {
     const result = onHarvest(plotId);
@@ -151,7 +164,7 @@ export function FarmPage({
       <div className="flex-1 flex flex-col w-full">
         {/* Sub-tab header */}
         <SubTabHeader subTab={subTab} setSubTab={setSubTab} theme={theme} t={t} />
-        <GeneLabPage geneInventory={geneInventory} />
+        <GeneLabPage geneInventory={geneInventory} seeds={seeds} onInject={onInject} />
       </div>
     );
   }
@@ -181,8 +194,8 @@ export function FarmPage({
             ℹ️
           </button>
         </div>
-        <span className="text-xs" style={{ color: theme.textFaint }}>
-          🌰 {totalSeeds}
+        <span className="text-xs whitespace-nowrap" style={{ color: theme.textFaint }}>
+          {`🌰 ${totalBaseSeeds} · 🧬 ${injectedSeeds.length}`}
         </span>
       </div>
 
@@ -211,7 +224,7 @@ export function FarmPage({
                       setActiveTooltipPlotId((prev) => (prev === slot.plot.id ? null : slot.plot.id));
                     }}
                     onPlantClick={() => {
-                      if (totalSeeds > 0) setPlantingPlotId(slot.plot.id);
+                      if (totalPlantableSeeds > 0) setPlantingPlotId(slot.plot.id);
                       else onGoWarehouse();
                     }}
                     onHarvestClick={() => handleHarvest(slot.plot.id)}
@@ -239,7 +252,7 @@ export function FarmPage({
       `}</style>
 
       {/* 没有种子提示 */}
-      {totalSeeds === 0 && farm.plots.every(p => p.state === 'empty') && (
+      {totalPlantableSeeds === 0 && farm.plots.every(p => p.state === 'empty') && (
         <div className="text-center py-4">
           <p className="text-sm mb-2" style={{ color: theme.textMuted }}>{t.farmNoSeeds}</p>
           <button
@@ -256,9 +269,11 @@ export function FarmPage({
       {plantingPlotId !== null && (
         <PlantModal
           seeds={seeds}
+          injectedSeeds={injectedSeeds}
           theme={theme}
           t={t}
           onSelect={handlePlant}
+          onSelectInjected={handlePlantInjected}
           onClose={() => setPlantingPlotId(null)}
         />
       )}
@@ -624,11 +639,13 @@ function LockedPlotCard({ requiredVarieties, theme, t }: {
 }
 
 // ─── 种植弹窗 ───
-function PlantModal({ seeds, theme, t, onSelect, onClose }: {
+function PlantModal({ seeds, injectedSeeds, theme, t, onSelect, onSelectInjected, onClose }: {
   seeds: SeedCounts;
+  injectedSeeds: InjectedSeed[];
   theme: ReturnType<typeof useTheme>;
   t: ReturnType<typeof useI18n>;
   onSelect: (quality: SeedQuality) => void;
+  onSelectInjected: (seedId: string) => void;
   onClose: () => void;
 }) {
   const options = [
@@ -636,6 +653,11 @@ function PlantModal({ seeds, theme, t, onSelect, onClose }: {
     { quality: 'epic' as SeedQuality, emoji: '💎', count: seeds.epic, color: '#a78bfa' },
     { quality: 'legendary' as SeedQuality, emoji: '🌟', count: seeds.legendary, color: '#fbbf24' },
   ];
+  const qualityColor: Record<SeedQuality, string> = {
+    normal: '#a3a3a3',
+    epic: '#a78bfa',
+    legendary: '#fbbf24',
+  };
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
@@ -663,6 +685,41 @@ function PlantModal({ seeds, theme, t, onSelect, onClose }: {
             </button>
           ))}
         </div>
+
+        {injectedSeeds.length > 0 && (
+          <div className="mt-3 pt-3 border-t" style={{ borderColor: theme.border }}>
+            <p className="text-xs mb-2 text-center" style={{ color: theme.textFaint }}>
+              {t.injectedSeedHint}
+            </p>
+            <div className="flex flex-col gap-2 max-h-44 overflow-y-auto">
+              {injectedSeeds.map((seed) => {
+                const badgeColor = qualityColor[seed.quality];
+                return (
+                  <button
+                    key={seed.id}
+                    onClick={() => onSelectInjected(seed.id)}
+                    className="flex items-center justify-between p-3 rounded-xl border transition-colors text-left"
+                    style={{
+                      backgroundColor: `${badgeColor}10`,
+                      borderColor: `${badgeColor}45`,
+                    }}
+                  >
+                    <span className="text-sm font-medium truncate pr-3" style={{ color: theme.text }}>
+                      {t.injectedSeedLabel(t.galaxyName(seed.targetGalaxyId))}
+                    </span>
+                    <span
+                      className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                      style={{ color: badgeColor, backgroundColor: `${badgeColor}22` }}
+                    >
+                      {t.seedQualityLabel(seed.quality)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <p className="text-xs text-center mt-3" style={{ color: theme.textFaint }}>{t.farmSeedHint}</p>
         <button onClick={onClose} className="w-full mt-3 py-2.5 rounded-xl text-sm" style={{ color: theme.textMuted, backgroundColor: theme.border + '30' }}>
           {t.cancel}

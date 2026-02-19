@@ -5,10 +5,14 @@
  */
 import { useCallback } from 'react';
 import { useLocalStorage } from './useLocalStorage';
-import type { ItemId, ShedStorage, SeedQuality, PityCounter } from '../types/slicing';
+import type { ItemId, ShedStorage, SeedQuality, PityCounter, InjectedSeed } from '../types/slicing';
 import { DEFAULT_SHED_STORAGE, ALL_ITEM_IDS, DEFAULT_PITY, DEFAULT_SEED_COUNTS } from '../types/slicing';
 
 const SHED_KEY = 'watermelon-shed';
+const INJECTED_SEED_QUALITIES: SeedQuality[] = ['normal', 'epic', 'legendary'];
+const INJECTED_SEED_GALAXIES: InjectedSeed['targetGalaxyId'][] = [
+  'thick-earth', 'fire', 'water', 'wood', 'metal', 'rainbow', 'dark-matter',
+];
 
 function migrateShed(raw: unknown): ShedStorage {
   if (!raw || typeof raw !== 'object') return DEFAULT_SHED_STORAGE;
@@ -18,6 +22,7 @@ function migrateShed(raw: unknown): ShedStorage {
     items: { ...DEFAULT_SHED_STORAGE.items },
     totalSliced: 0,
     pity: { ...DEFAULT_PITY },
+    injectedSeeds: [],
   };
 
   // Migrate seeds: old format was a single number, new format is { normal, epic, legendary }
@@ -43,6 +48,24 @@ function migrateShed(raw: unknown): ShedStorage {
     const p = s.pity as Record<string, number>;
     if (typeof p.epicPity === 'number') result.pity.epicPity = p.epicPity;
     if (typeof p.legendaryPity === 'number') result.pity.legendaryPity = p.legendaryPity;
+  }
+
+  if (Array.isArray(s.injectedSeeds)) {
+    for (const seed of s.injectedSeeds) {
+      if (!seed || typeof seed !== 'object') continue;
+      const candidate = seed as Record<string, unknown>;
+      if (
+        typeof candidate.id === 'string'
+        && INJECTED_SEED_QUALITIES.includes(candidate.quality as SeedQuality)
+        && INJECTED_SEED_GALAXIES.includes(candidate.targetGalaxyId as InjectedSeed['targetGalaxyId'])
+      ) {
+        result.injectedSeeds.push({
+          id: candidate.id,
+          quality: candidate.quality as SeedQuality,
+          targetGalaxyId: candidate.targetGalaxyId as InjectedSeed['targetGalaxyId'],
+        });
+      }
+    }
   }
 
   return result;
@@ -79,7 +102,33 @@ export function useShedStorage() {
       items: { ...DEFAULT_SHED_STORAGE.items },
       totalSliced: 0,
       pity: { ...DEFAULT_PITY },
+      injectedSeeds: [],
     });
+  }, [setShed]);
+
+  const addInjectedSeed = useCallback((seed: InjectedSeed): void => {
+    setShed(prev => ({
+      ...prev,
+      injectedSeeds: [...prev.injectedSeeds, seed],
+    }));
+  }, [setShed]);
+
+  /** 消耗一颗注入种子（返回是否成功） */
+  const consumeInjectedSeed = useCallback((id: string): boolean => {
+    let success = false;
+    setShed(prev => {
+      const index = prev.injectedSeeds.findIndex(seed => seed.id === id);
+      if (index < 0) return prev;
+      success = true;
+      return {
+        ...prev,
+        injectedSeeds: [
+          ...prev.injectedSeeds.slice(0, index),
+          ...prev.injectedSeeds.slice(index + 1),
+        ],
+      };
+    });
+    return success;
   }, [setShed]);
 
   /** 消耗一颗种子（种植时调用），返回是否成功 */
@@ -93,5 +142,15 @@ export function useShedStorage() {
     return success;
   }, [setShed]);
 
-  return { shed, addSeeds, addItem, incrementSliced, updatePityCounter, consumeSeed, resetShed };
+  return {
+    shed,
+    addSeeds,
+    addItem,
+    incrementSliced,
+    updatePityCounter,
+    consumeSeed,
+    addInjectedSeed,
+    consumeInjectedSeed,
+    resetShed,
+  };
 }

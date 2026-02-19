@@ -1,6 +1,7 @@
 /**
  * 切瓜系统类型定义
  */
+import type { GalaxyId } from './farm';
 
 // 9种道具ID
 export type ItemId =
@@ -68,12 +69,19 @@ export interface PityCounter {
 
 export const DEFAULT_PITY: PityCounter = { epicPity: 0, legendaryPity: 0 };
 
+export interface InjectedSeed {
+  id: string;
+  quality: SeedQuality;
+  targetGalaxyId: GalaxyId;
+}
+
 /** 瓜棚扩展存储（种子+道具+保底） */
 export interface ShedStorage {
   seeds: SeedCounts;
   items: Record<ItemId, number>;
   totalSliced: number;
   pity: PityCounter;
+  injectedSeeds: InjectedSeed[];
 }
 
 export const DEFAULT_SHED_STORAGE: ShedStorage = {
@@ -81,4 +89,5 @@ export const DEFAULT_SHED_STORAGE: ShedStorage = {
   items: Object.fromEntries(ALL_ITEM_IDS.map(id => [id, 0])) as Record<ItemId, number>,
   totalSliced: 0,
   pity: { ...DEFAULT_PITY },
+  injectedSeeds: [],
 };

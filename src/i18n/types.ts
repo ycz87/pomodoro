@@ -383,5 +383,18 @@ export interface Messages {
   geneLabObtainedAt: string;
   geneLabGalaxySection: (galaxyName: string, count: number) => string;
 
+  // ─── Gene Injection (v0.27.0) ───
+  geneInjectTitle: string;
+  geneInjectDesc: string;
+  geneInjectSelectGalaxy: string;
+  geneInjectSelectSeed: string;
+  geneInjectButton: string;
+  geneInjectSuccess: string;
+  geneInjectNoFragments: string;
+  geneInjectNoSeeds: string;
+  geneInjectCost: string;
+  injectedSeedLabel: (galaxyName: string) => string;
+  injectedSeedHint: string;
+
   varietyDetailClose: string;
 }

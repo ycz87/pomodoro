@@ -176,13 +176,13 @@ test.describe('Gene Lab & Fragments', () => {
     // AC5: Verify grouped display
     await expect(page.getByText('基因背包')).toBeVisible();
 
-    // Thick-earth group (厚土星系)
-    const earthGroup = page.locator('section button').filter({ hasText: '厚土星系' });
+    // Thick-earth group (厚土星系) - use aria-expanded to target the inventory section
+    const earthGroup = page.locator('button[aria-expanded]').filter({ hasText: '厚土星系' });
     await expect(earthGroup).toBeVisible();
     await expect(earthGroup).toContainText('2 份');
 
     // Fire group (火焰星系)
-    const fireGroup = page.locator('section button').filter({ hasText: '火焰星系' });
+    const fireGroup = page.locator('button[aria-expanded]').filter({ hasText: '火焰星系' });
     await expect(fireGroup).toBeVisible();
     await expect(fireGroup).toContainText('1 份');
 

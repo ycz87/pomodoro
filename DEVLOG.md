@@ -2,6 +2,39 @@
 
 ---
 
+## v0.27.0 — 基因注入系统 Phase 3 Step 2（2026-02-19）
+
+### 背景
+Phase 3 路线图第二步：将基因片段注入种子，定向培育目标星系品种。
+
+### 改动
+
+| 文件 | 变更 |
+|------|------|
+| `src/types/slicing.ts` | 新增 InjectedSeed 接口（id/quality/targetGalaxyId），ShedStorage 扩展 injectedSeeds 字段 |
+| `src/farm/gene.ts` | 新增 rollInjectedVariety（定向星系品种随机）+ createInjectedSeedId（唯一 ID 生成） |
+| `src/hooks/useShedStorage.ts` | 新增 addInjectedSeed / consumeInjectedSeed + injectedSeeds 迁移兼容 |
+| `src/hooks/useFarmStorage.ts` | 新增 plantSeedWithVariety（已确定品种的种植方法） |
+| `src/hooks/useGeneStorage.ts` | 新增 removeFragmentsByGalaxy（按星系消耗片段） |
+| `src/components/GeneLabPage.tsx` | 注入操作区 UI：选星系基因 → 选种子品质 → 注入按钮 + toast 反馈 |
+| `src/components/FarmPage.tsx` | PlantModal 新增注入种子选项（🧬标记 + 目标星系名称），新 props 接入 |
+| `src/App.tsx` | handleGeneInject（消耗片段+种子→创建注入种子）+ handleFarmPlantInjected（种植注入种子） |
+| `src/i18n/types.ts` | 新增 11 个 gene inject i18n key |
+| `src/i18n/locales/*.ts` | 8 种语言翻译（zh/en/ja/ko/de/fr/es/pt） |
+| `e2e/gene-inject.spec.ts` | 6 个测试用例 × 3 视口 = 18 tests，覆盖注入/种植/消耗/i18n |
+| `e2e/gene-lab.spec.ts` | 修复选择器（注入区按钮导致 strict mode violation） |
+| `package.json` | 版本 0.26.0 → 0.27.0 |
+
+### 审查
+- Claude Code API 不可用（连续 3 次 pre-flight timeout），经小西确认跳过审查直接提交
+- build 通过 + E2E 30/30 全绿保障代码质量
+
+### 测试
+- `npm run build` 通过
+- E2E 30/30 通过（gene-lab 12 + gene-inject 18，mobile / mobile-wide / desktop）
+
+---
+
 ## v0.26.0 — 基因片段系统 Phase 3 Step 1（2026-02-18）
 
 ### 背景

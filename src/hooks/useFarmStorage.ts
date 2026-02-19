@@ -90,6 +90,39 @@ export function useFarmStorage() {
     return success ? varietyId : ('' as VarietyId);
   }, [setFarm]);
 
+  /** 种植已确定品种的种子（注入种子用） */
+  const plantSeedWithVariety = useCallback((plotId: number, varietyId: VarietyId, seedQuality: SeedQuality, todayKey: string) => {
+    const nowTimestamp = Date.now();
+    let success = true;
+
+    setFarm(prev => {
+      const targetPlot = prev.plots.find(p => p.id === plotId);
+      if (!targetPlot || targetPlot.state !== 'empty') {
+        success = false;
+        return prev;
+      }
+
+      return {
+        ...prev,
+        plots: prev.plots.map(p =>
+          p.id === plotId ? {
+            ...p,
+            state: 'growing' as const,
+            seedQuality,
+            varietyId,
+            progress: 0,
+            accumulatedMinutes: 0,
+            plantedDate: todayKey,
+            lastUpdateDate: todayKey,
+            lastActivityTimestamp: nowTimestamp,
+          } : p
+        ),
+      };
+    });
+
+    return success;
+  }, [setFarm]);
+
   /** 收获地块 */
   const harvestPlot = useCallback((plotId: number, todayKey: string) => {
     let harvestedVariety: VarietyId | undefined;
@@ -153,5 +186,5 @@ export function useFarmStorage() {
     }));
   }, [setFarm]);
 
-  return { farm, setFarm, plantSeed, harvestPlot, clearPlot, updatePlots, updateActiveDate };
+  return { farm, setFarm, plantSeed, plantSeedWithVariety, harvestPlot, clearPlot, updatePlots, updateActiveDate };
 }
