@@ -8,6 +8,13 @@ export interface GeneFragment {
   obtainedAt: string; // 获得时间 ISO date string
 }
 
+export interface FusionResult {
+  success: boolean;
+  successRate: number;
+  seedVarietyId?: VarietyId;
+  returnedGene?: GeneFragment;
+}
+
 export interface GeneInventory {
   fragments: GeneFragment[];
 }

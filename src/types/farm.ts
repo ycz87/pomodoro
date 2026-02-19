@@ -62,6 +62,8 @@ export type VarietyId =
   // 金星系 8 个
   | 'golden-armor' | 'copper-patina' | 'tinfoil-melon' | 'galaxy-stripe'
   | 'mercury-melon' | 'meteorite-melon' | 'alloy-melon' | 'eternal-melon'
+  // 幻彩星系 5 个
+  | 'prism-melon' | 'bubble-melon' | 'nebula-melon' | 'aurora-cascade' | 'dream-melon'
   // 杂交品种 30 个（10 组 x 3）
   | 'lava-field' | 'volcanic-ash' | 'earth-core'
   | 'hot-spring' | 'mud-pool' | 'oasis'
@@ -88,6 +90,7 @@ export interface VarietyDef {
 
 const PURE_MATURE_MINUTES = 10000;
 export const HYBRID_MATURE_MINUTES = 20000;
+export const PRISMATIC_MATURE_MINUTES = 50000;
 
 /** Phase 2 品种定义（当前全部为 pure） */
 export const VARIETY_DEFS: Record<VarietyId, VarietyDef> = {
@@ -261,6 +264,28 @@ export const VARIETY_DEFS: Record<VarietyId, VarietyDef> = {
     breedType: 'pure', matureMinutes: PURE_MATURE_MINUTES, sellPrice: 300,
   },
 
+  // rainbow (prismatic)
+  'prism-melon': {
+    id: 'prism-melon', galaxy: 'rainbow', rarity: 'rare', dropRate: 0.30, emoji: '🔷',
+    breedType: 'prismatic', matureMinutes: PRISMATIC_MATURE_MINUTES, sellPrice: 150,
+  },
+  'bubble-melon': {
+    id: 'bubble-melon', galaxy: 'rainbow', rarity: 'rare', dropRate: 0.30, emoji: '🫧',
+    breedType: 'prismatic', matureMinutes: PRISMATIC_MATURE_MINUTES, sellPrice: 150,
+  },
+  'nebula-melon': {
+    id: 'nebula-melon', galaxy: 'rainbow', rarity: 'epic', dropRate: 0.20, emoji: '🌌',
+    breedType: 'prismatic', matureMinutes: PRISMATIC_MATURE_MINUTES, sellPrice: 600,
+  },
+  'aurora-cascade': {
+    id: 'aurora-cascade', galaxy: 'rainbow', rarity: 'epic', dropRate: 0.15, emoji: '🌈',
+    breedType: 'prismatic', matureMinutes: PRISMATIC_MATURE_MINUTES, sellPrice: 600,
+  },
+  'dream-melon': {
+    id: 'dream-melon', galaxy: 'rainbow', rarity: 'legendary', dropRate: 0.05, emoji: '💭',
+    breedType: 'prismatic', matureMinutes: PRISMATIC_MATURE_MINUTES, sellPrice: 2000,
+  },
+
   // earth-fire
   'lava-field': {
     id: 'lava-field', galaxy: 'thick-earth', hybridPair: 'earth-fire', rarity: 'common', dropRate: 0.60, emoji: '🌋',
@@ -427,6 +452,10 @@ export const METAL_VARIETIES: VarietyId[] = [
   'mercury-melon', 'meteorite-melon', 'alloy-melon', 'eternal-melon',
 ];
 
+export const PRISMATIC_VARIETIES: VarietyId[] = [
+  'prism-melon', 'bubble-melon', 'nebula-melon', 'aurora-cascade', 'dream-melon',
+];
+
 export const HYBRID_GALAXY_PAIRS: HybridGalaxyPair[] = [
   'earth-fire',
   'earth-water',
@@ -462,7 +491,7 @@ export const GALAXY_VARIETIES: Record<GalaxyId, VarietyId[]> = {
   water: WATER_VARIETIES,
   wood: WOOD_VARIETIES,
   metal: METAL_VARIETIES,
-  rainbow: [],
+  rainbow: PRISMATIC_VARIETIES,
   'dark-matter': [],
 };
 
@@ -472,6 +501,7 @@ export const ALL_VARIETY_IDS: VarietyId[] = [
   ...WATER_VARIETIES,
   ...WOOD_VARIETIES,
   ...METAL_VARIETIES,
+  ...PRISMATIC_VARIETIES,
   ...HYBRID_VARIETIES['earth-fire'],
   ...HYBRID_VARIETIES['earth-water'],
   ...HYBRID_VARIETIES['earth-wood'],
@@ -534,6 +564,8 @@ export interface Plot {
   plantedDate?: string;   // ISO date
   lastUpdateDate?: string; // ISO date (最后一次生长更新)
   lastActivityTimestamp: number; // 最近活跃时间戳（ms）
+  pausedAt?: number; // 幻彩暂停开始时间戳（ms）
+  pausedProgress?: number; // 幻彩暂停基线进度（0-1）
   hasTracker: boolean;    // 星际追踪器
   thief?: ThiefStatus;
 }
@@ -559,6 +591,17 @@ export interface CollectedVariety {
   firstObtainedDate: string;
   count: number;
 }
+
+export interface FusionHistory {
+  lastVarietyId?: VarietyId;
+  sameVarietyStreak: number;
+  obtainedPrismaticVarietyIds: VarietyId[];
+}
+
+export const DEFAULT_FUSION_HISTORY: FusionHistory = {
+  sameVarietyStreak: 0,
+  obtainedPrismaticVarietyIds: [],
+};
 
 // ─── 农场存储 ───
 export interface FarmStorage {

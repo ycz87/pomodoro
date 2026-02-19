@@ -3,11 +3,11 @@
  *
  * 管理切瓜产出的种子（三品质）、道具和保底计数器，持久化到 localStorage。
  */
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useLocalStorage } from './useLocalStorage';
-import type { ItemId, ShedStorage, SeedQuality, PityCounter, InjectedSeed, HybridSeed } from '../types/slicing';
+import type { ItemId, ShedStorage, SeedQuality, PityCounter, InjectedSeed, HybridSeed, PrismaticSeed } from '../types/slicing';
 import { DEFAULT_SHED_STORAGE, DEFAULT_PITY, DEFAULT_SEED_COUNTS } from '../types/slicing';
-import { HYBRID_GALAXY_PAIRS } from '../types/farm';
+import { HYBRID_GALAXY_PAIRS, PRISMATIC_VARIETIES } from '../types/farm';
 
 const SHED_KEY = 'watermelon-shed';
 const INJECTED_SEED_QUALITIES: SeedQuality[] = ['normal', 'epic', 'legendary'];
@@ -25,6 +25,7 @@ function migrateShed(raw: unknown): ShedStorage {
     pity: { ...DEFAULT_PITY },
     injectedSeeds: [],
     hybridSeeds: [],
+    prismaticSeeds: [],
   };
 
   // Migrate seeds: old format was a single number, new format is { normal, epic, legendary }
@@ -89,11 +90,29 @@ function migrateShed(raw: unknown): ShedStorage {
     }
   }
 
+  if (Array.isArray(s.prismaticSeeds)) {
+    for (const seed of s.prismaticSeeds) {
+      if (!seed || typeof seed !== 'object') continue;
+      const candidate = seed as Record<string, unknown>;
+      if (
+        typeof candidate.id === 'string'
+        && PRISMATIC_VARIETIES.includes(candidate.varietyId as PrismaticSeed['varietyId'])
+      ) {
+        result.prismaticSeeds.push({
+          id: candidate.id,
+          varietyId: candidate.varietyId as PrismaticSeed['varietyId'],
+        });
+      }
+    }
+  }
+
   return result;
 }
 
 export function useShedStorage() {
   const [shed, setShed] = useLocalStorage<ShedStorage>(SHED_KEY, DEFAULT_SHED_STORAGE, migrateShed);
+  const consumePrismaticSeedMutexRef = useRef(false);
+  const consumePrismaticSeedResultRef = useRef(false);
 
   const addSeeds = useCallback((count: number, quality: SeedQuality = 'normal') => {
     setShed(prev => ({
@@ -130,6 +149,7 @@ export function useShedStorage() {
       pity: { ...DEFAULT_PITY },
       injectedSeeds: [],
       hybridSeeds: [],
+      prismaticSeeds: [],
     });
   }, [setShed]);
 
@@ -183,6 +203,38 @@ export function useShedStorage() {
     return success;
   }, [setShed]);
 
+  const addPrismaticSeed = useCallback((seed: PrismaticSeed): void => {
+    setShed(prev => ({
+      ...prev,
+      prismaticSeeds: [...prev.prismaticSeeds, seed],
+    }));
+  }, [setShed]);
+
+  /** 消耗一颗幻彩种子（返回是否成功） */
+  const consumePrismaticSeed = useCallback((id: string): boolean => {
+    if (consumePrismaticSeedMutexRef.current) return false;
+    consumePrismaticSeedMutexRef.current = true;
+    consumePrismaticSeedResultRef.current = false;
+    try {
+      setShed(prev => {
+        const index = prev.prismaticSeeds.findIndex(seed => seed.id === id);
+        if (index < 0) return prev;
+        consumePrismaticSeedResultRef.current = true;
+        return {
+          ...prev,
+          prismaticSeeds: [
+            ...prev.prismaticSeeds.slice(0, index),
+            ...prev.prismaticSeeds.slice(index + 1),
+          ],
+        };
+      });
+      return consumePrismaticSeedResultRef.current;
+    } finally {
+      consumePrismaticSeedResultRef.current = false;
+      consumePrismaticSeedMutexRef.current = false;
+    }
+  }, [setShed]);
+
   /** 消耗一颗种子（种植时调用），返回是否成功 */
   const consumeSeed = useCallback((quality: SeedQuality): boolean => {
     let success = false;
@@ -233,6 +285,8 @@ export function useShedStorage() {
     consumeInjectedSeed,
     addHybridSeed,
     consumeHybridSeed,
+    addPrismaticSeed,
+    consumePrismaticSeed,
     resetShed,
   };
 }

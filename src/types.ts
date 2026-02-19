@@ -152,7 +152,23 @@ export function migrateSettings(raw: unknown): PomodoroSettings {
   if (typeof s.autoStartBreak === 'boolean') result.autoStartBreak = s.autoStartBreak;
   if (typeof s.autoStartWork === 'boolean') result.autoStartWork = s.autoStartWork;
   if (typeof s.theme === 'string' && s.theme in THEMES) result.theme = s.theme as ThemeId;
-  if (typeof s.language === 'string') result.language = s.language as Locale;
+  if (typeof s.language === 'string') {
+    const normalizedLanguage = s.language.toLowerCase();
+    if (
+      normalizedLanguage === 'zh'
+      || normalizedLanguage === 'en'
+      || normalizedLanguage === 'ja'
+      || normalizedLanguage === 'ko'
+      || normalizedLanguage === 'es'
+      || normalizedLanguage === 'fr'
+      || normalizedLanguage === 'de'
+      || normalizedLanguage === 'ru'
+    ) {
+      result.language = normalizedLanguage as Locale;
+    } else if (normalizedLanguage === 'pt') {
+      result.language = 'en';
+    }
+  }
 
   // New alert fields
   if (typeof s.alertSound === 'string') result.alertSound = s.alertSound as AlertSoundId;

@@ -139,7 +139,7 @@ const LANGUAGE_DISPLAY: Record<Locale, { flag: string; name: string }> = {
   es: { flag: '🇪🇸', name: 'Español' },
   fr: { flag: '🇫🇷', name: 'Français' },
   de: { flag: '🇩🇪', name: 'Deutsch' },
-  pt: { flag: '🇧🇷', name: 'Português' },
+  ru: { flag: '🇷🇺', name: 'Русский' },
 };
 // Divider color is now theme-aware via theme.border
 

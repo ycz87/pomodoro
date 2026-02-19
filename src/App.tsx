@@ -74,19 +74,59 @@ import {
   witherPlots,
 } from './farm/growth';
 import { getUnlockedGalaxies } from './farm/galaxy';
-import { rollInjectedVariety, createInjectedSeedId, attemptFusion, rollHybridVariety } from './farm/gene';
+import {
+  rollInjectedVariety,
+  createInjectedSeedId,
+  attemptFusion,
+  rollHybridVariety,
+  canFuseFiveElements,
+  fiveElementFusionSuccessRate,
+  getBestFiveElementFragments,
+  rollPrismaticVariety,
+} from './farm/gene';
 import { I18nProvider, getMessages } from './i18n';
 import type { PomodoroRecord, PomodoroSettings } from './types';
 import { DEFAULT_SETTINGS, migrateSettings, THEMES, getGrowthStage, GROWTH_EMOJI, rollLegendary } from './types';
 import type { GrowthStage } from './types';
 import type { AppMode } from './types/project';
 import type { ProjectRecord } from './types/project';
-import { DEFAULT_FARM_STORAGE, VARIETY_DEFS } from './types/farm';
-import type { CollectedVariety, Plot, VarietyId } from './types/farm';
+import {
+  DEFAULT_FARM_STORAGE,
+  DEFAULT_FUSION_HISTORY,
+  PRISMATIC_VARIETIES,
+  VARIETY_DEFS,
+} from './types/farm';
+import type { CollectedVariety, FusionHistory, Plot, VarietyId } from './types/farm';
 import { SHOP_ITEMS, PLOT_PRICES } from './types/market';
 import type { ShopItemId } from './types/market';
+import type { FusionResult } from './types/gene';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const FUSION_HISTORY_KEY = 'watermelon-fusion-history';
+
+function migrateFusionHistory(raw: unknown): FusionHistory {
+  if (!raw || typeof raw !== 'object') return DEFAULT_FUSION_HISTORY;
+  const data = raw as Record<string, unknown>;
+
+  const normalizedObtained = Array.isArray(data.obtainedPrismaticVarietyIds)
+    ? data.obtainedPrismaticVarietyIds.filter(
+        (id): id is VarietyId => typeof id === 'string' && PRISMATIC_VARIETIES.includes(id as VarietyId),
+      )
+    : [];
+
+  const lastVarietyId = typeof data.lastVarietyId === 'string' && PRISMATIC_VARIETIES.includes(data.lastVarietyId as VarietyId)
+    ? (data.lastVarietyId as VarietyId)
+    : undefined;
+  const sameVarietyStreak = typeof data.sameVarietyStreak === 'number' && Number.isFinite(data.sameVarietyStreak)
+    ? Math.max(0, Math.floor(data.sameVarietyStreak))
+    : 0;
+
+  return {
+    lastVarietyId,
+    sameVarietyStreak,
+    obtainedPrismaticVarietyIds: Array.from(new Set(normalizedObtained)),
+  };
+}
 
 function App() {
   const [currentTask, setCurrentTask] = useState('');
@@ -140,7 +180,14 @@ function App() {
     consumeInjectedSeed,
     addHybridSeed,
     consumeHybridSeed,
+    addPrismaticSeed,
+    consumePrismaticSeed,
   } = useShedStorage();
+  const [fusionHistory, setFusionHistory] = useLocalStorage<FusionHistory>(
+    FUSION_HISTORY_KEY,
+    DEFAULT_FUSION_HISTORY,
+    migrateFusionHistory,
+  );
 
   // Farm storage
   const {
@@ -162,7 +209,7 @@ function App() {
     revivePlot,
     upgradePlotRarity,
   } = useFarmStorage();
-  const { geneInventory, addFragment, removeFragment, removeFragmentsByGalaxy } = useGeneStorage();
+  const { geneInventory, setGeneInventory, addFragment, removeFragment, removeFragmentsByGalaxy } = useGeneStorage();
   const { balance, addCoins, spendCoins } = useMelonCoin();
   const farmPlotsRef = useRef(farm.plots);
   const previousFarmPlotsRef = useRef<Plot[] | null>(null);
@@ -195,6 +242,16 @@ function App() {
   const farmUpdatedRef = useRef(false);
   const activeMutationToast = mutationToastQueue[0] ?? null;
   const activeRecoveryToast = recoveryToastQueue[0] ?? null;
+  const harvestedHybridVarietyCount = useMemo(() => {
+    const hybridVarietySet = new Set<VarietyId>();
+    for (const record of farm.collection) {
+      if (record.count <= 0) continue;
+      const varietyDef = VARIETY_DEFS[record.varietyId];
+      if (!varietyDef || varietyDef.breedType !== 'hybrid') continue;
+      hybridVarietySet.add(record.varietyId);
+    }
+    return hybridVarietySet.size;
+  }, [farm.collection]);
 
   const enqueueMutationToasts = useCallback((toasts: MutationOutcome[]) => {
     if (toasts.length === 0) return;
@@ -627,6 +684,82 @@ function App() {
     };
   }, [geneInventory.fragments, consumeItem, removeFragment, addHybridSeed]);
 
+  const handleFiveElementFusion = useCallback((): FusionResult | null => {
+    if (!canFuseFiveElements(geneInventory.fragments, harvestedHybridVarietyCount)) return null;
+
+    const selectedFragments = getBestFiveElementFragments(geneInventory.fragments);
+    if (!selectedFragments) return null;
+
+    const successRate = fiveElementFusionSuccessRate(selectedFragments);
+    selectedFragments.forEach((fragment) => removeFragment(fragment.id));
+
+    if (Math.random() >= successRate) {
+      const returnedGene = selectedFragments[Math.floor(Math.random() * selectedFragments.length)];
+      setGeneInventory((prev) => ({
+        ...prev,
+        fragments: [...prev.fragments, returnedGene],
+      }));
+      return {
+        success: false,
+        successRate,
+        returnedGene,
+      };
+    }
+
+    const hasPityTrigger = fusionHistory.sameVarietyStreak >= 3 && Boolean(fusionHistory.lastVarietyId);
+    const obtainedSet = new Set(
+      fusionHistory.obtainedPrismaticVarietyIds.filter((id) => PRISMATIC_VARIETIES.includes(id)),
+    );
+    let rollPool: VarietyId[] = PRISMATIC_VARIETIES;
+
+    if (hasPityTrigger) {
+      const unseenPool = PRISMATIC_VARIETIES.filter((id) => !obtainedSet.has(id));
+      if (unseenPool.length > 0) {
+        rollPool = unseenPool;
+      } else if (fusionHistory.lastVarietyId) {
+        const nonRepeatPool = PRISMATIC_VARIETIES.filter((id) => id !== fusionHistory.lastVarietyId);
+        if (nonRepeatPool.length > 0) {
+          rollPool = nonRepeatPool;
+        }
+      }
+    }
+
+    const seedVarietyId = rollPrismaticVariety(rollPool);
+    addPrismaticSeed({
+      id: createInjectedSeedId(),
+      varietyId: seedVarietyId,
+    });
+
+    setFusionHistory((prev) => {
+      const sameVarietyStreak = prev.lastVarietyId === seedVarietyId
+        ? prev.sameVarietyStreak + 1
+        : 1;
+      const obtainedPrismaticVarietyIds = Array.from(new Set([
+        ...prev.obtainedPrismaticVarietyIds,
+        seedVarietyId,
+      ]));
+      return {
+        lastVarietyId: seedVarietyId,
+        sameVarietyStreak,
+        obtainedPrismaticVarietyIds,
+      };
+    });
+
+    return {
+      success: true,
+      successRate,
+      seedVarietyId,
+    };
+  }, [
+    geneInventory.fragments,
+    harvestedHybridVarietyCount,
+    removeFragment,
+    setGeneInventory,
+    fusionHistory,
+    addPrismaticSeed,
+    setFusionHistory,
+  ]);
+
   // ─── Plant injected seed handler ───
   const handleFarmPlantInjected = useCallback((plotId: number, seedId: string) => {
     const seed = shed.injectedSeeds.find(s => s.id === seedId);
@@ -650,6 +783,17 @@ function App() {
       consumeHybridSeed(seedId);
     }
   }, [shed.hybridSeeds, plantSeedWithVariety, consumeHybridSeed, todayKey]);
+
+  // ─── Plant prismatic seed handler ───
+  const handleFarmPlantPrismatic = useCallback((plotId: number, seedId: string) => {
+    const seed = shed.prismaticSeeds.find((prismaticSeed) => prismaticSeed.id === seedId);
+    if (!seed) return;
+
+    const success = plantSeedWithVariety(plotId, seed.varietyId, 'legendary', todayKey);
+    if (success) {
+      consumePrismaticSeed(seedId);
+    }
+  }, [shed.prismaticSeeds, plantSeedWithVariety, consumePrismaticSeed, todayKey]);
 
   // ─── Debug mode ───
   const activateDebugMode = useCallback(() => {
@@ -1384,12 +1528,14 @@ function App() {
             items={shed.items}
             injectedSeeds={shed.injectedSeeds}
             hybridSeeds={shed.hybridSeeds}
+            prismaticSeeds={shed.prismaticSeeds}
             todayFocusMinutes={todayFocusMinutes}
             todayKey={todayKey}
             addSeeds={addSeeds}
             onPlant={handleFarmPlant}
             onPlantInjected={handleFarmPlantInjected}
             onPlantHybrid={handleFarmPlantHybrid}
+            onPlantPrismatic={handleFarmPlantPrismatic}
             onHarvest={handleFarmHarvest}
             onClear={clearPlot}
             onUseMutationGun={handleUseMutationGun}
@@ -1400,6 +1546,9 @@ function App() {
             onUseTrapNet={handleUseTrapNet}
             onInject={handleGeneInject}
             onFusion={handleGeneFusion}
+            onFiveElementFusion={handleFiveElementFusion}
+            harvestedHybridVarietyCount={harvestedHybridVarietyCount}
+            fusionHistory={fusionHistory}
             onGoWarehouse={() => setActiveTab('warehouse')}
           />
         )}

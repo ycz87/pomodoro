@@ -446,6 +446,9 @@ export interface Messages {
   injectedSeedLabel: (galaxyName: string) => string;
   injectedSeedHint: string;
   hybridSeedHint: string;
+  prismaticSeedHint: string;
+  prismaticSeedLabel: (varietyName: string) => string;
+  prismaticSeedCountLabel: (count: number) => string;
 
   // ─── Gene Fusion (v0.28.0) ───
   geneFusionTitle: string;
@@ -461,6 +464,17 @@ export interface Messages {
   hybridSeedLabel: (pairName: string) => string;
   hybridGalaxyPairLabel: (pair: string) => string;
   hybridGalaxyPairName: (pair: string) => string;
+  geneFiveElementTitle: string;
+  geneFiveElementDesc: string;
+  geneFiveElementHybridRequirement: (count: number) => string;
+  geneFiveElementResonanceLocked: string;
+  geneFiveElementResonanceReady: string;
+  geneFiveElementRate: (rate: number) => string;
+  geneFiveElementButton: string;
+  geneFiveElementSuccess: (varietyName: string) => string;
+  geneFiveElementFail: string;
+  geneFiveElementFailReturn: (varietyName: string) => string;
+  geneFiveElementPityReady: string;
 
   varietyDetailClose: string;
 }

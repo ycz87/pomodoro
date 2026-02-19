@@ -46,7 +46,7 @@ export function CollectionPage({ collection }: CollectionPageProps) {
       collectedInGalaxy,
       totalInGalaxy,
       percent,
-      isUnlocked: unlockedGalaxies.includes(galaxy.id),
+      isUnlocked: unlockedGalaxies.includes(galaxy.id) || collectedInGalaxy > 0,
     };
   });
 
@@ -122,7 +122,10 @@ export function CollectionPage({ collection }: CollectionPageProps) {
         .filter(galaxy => (GALAXY_VARIETIES[galaxy.id] ?? []).length > 0)
         .map(galaxy => {
           const varieties = GALAXY_VARIETIES[galaxy.id] ?? [];
-          const isUnlocked = unlockedGalaxies.includes(galaxy.id);
+          const collectedInGalaxy = varieties.reduce((sum, varietyId) => (
+            collectedIds.has(varietyId) ? sum + 1 : sum
+          ), 0);
+          const isUnlocked = unlockedGalaxies.includes(galaxy.id) || collectedInGalaxy > 0;
 
           return (
             <div key={galaxy.id} className="mb-5">

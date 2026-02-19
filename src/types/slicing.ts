@@ -1,7 +1,7 @@
 /**
  * 切瓜系统类型定义
  */
-import type { GalaxyId, HybridGalaxyPair } from './farm';
+import type { GalaxyId, HybridGalaxyPair, VarietyId } from './farm';
 
 // 9种道具ID
 export type ItemId =
@@ -80,6 +80,11 @@ export interface HybridSeed {
   galaxyPair: HybridGalaxyPair;
 }
 
+export interface PrismaticSeed {
+  id: string;
+  varietyId: VarietyId;
+}
+
 /** 瓜棚扩展存储（种子+道具+保底） */
 export interface ShedStorage {
   seeds: SeedCounts;
@@ -88,6 +93,7 @@ export interface ShedStorage {
   pity: PityCounter;
   injectedSeeds: InjectedSeed[];
   hybridSeeds: HybridSeed[];
+  prismaticSeeds: PrismaticSeed[];
 }
 
 export const DEFAULT_SHED_STORAGE: ShedStorage = {
@@ -97,4 +103,5 @@ export const DEFAULT_SHED_STORAGE: ShedStorage = {
   pity: { ...DEFAULT_PITY },
   injectedSeeds: [],
   hybridSeeds: [],
+  prismaticSeeds: [],
 };

@@ -21,7 +21,7 @@ const LANGUAGES: { locale: Locale; flag: string; name: string }[] = [
   { locale: 'es', flag: '🇪🇸', name: 'Español' },
   { locale: 'fr', flag: '🇫🇷', name: 'Français' },
   { locale: 'de', flag: '🇩🇪', name: 'Deutsch' },
-  { locale: 'pt', flag: '🇧🇷', name: 'Português' },
+  { locale: 'ru', flag: '🇷🇺', name: 'Русский' },
 ];
 
 export function LanguagePickerModal({ selected, onSelect, onClose }: Props) {

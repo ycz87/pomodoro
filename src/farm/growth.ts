@@ -13,6 +13,8 @@ const MINUTES_PER_HOUR = 60;
 const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR;
 const WITHER_THRESHOLD_HOURS = 72;
 const WITHER_THRESHOLD_MINUTES = WITHER_THRESHOLD_HOURS * MINUTES_PER_HOUR;
+const PRISMATIC_REWIND_PER_DAY = 0.05;
+const PRISMATIC_REWIND_MAX = 0.50;
 const MUTATION_TRIGGER_PROGRESS = 0.20;
 const THIEF_STEAL_DELAY_MINUTES = 30;
 const THIEF_STEAL_DELAY_MS = THIEF_STEAL_DELAY_MINUTES * 60 * 1000;
@@ -108,6 +110,11 @@ export function getStageEmoji(progress: number, varietyId?: VarietyId): string {
 /** 品种是否已揭晓（进度 >= 60%） */
 export function isVarietyRevealed(progress: number): boolean {
   return progress >= 0.60;
+}
+
+function isPrismaticVariety(varietyId?: VarietyId): boolean {
+  if (!varietyId) return false;
+  return VARIETY_DEFS[varietyId]?.breedType === 'prismatic';
 }
 
 function downgradeSeedQuality(seedQuality: SeedQuality | undefined): SeedQuality {
@@ -281,6 +288,8 @@ export function updatePlotGrowth(
     progress: newProgress,
     accumulatedMinutes: nextAccumulatedMinutes,
     state: newState,
+    pausedAt: undefined,
+    pausedProgress: undefined,
     lastUpdateDate: todayKey,
     lastActivityTimestamp: safeNow,
   };
@@ -404,6 +413,28 @@ export function witherPlots(
       const plotLastActivity = p.lastActivityTimestamp > 0 ? p.lastActivityTimestamp : fallbackLastActivityTimestamp;
       const status = getWitherStatus(plotLastActivity, safeNow);
       if (status.shouldWither) {
+        if (isPrismaticVariety(p.varietyId)) {
+          const pausedDays = Math.max(0, Math.floor((status.inactiveMinutes - WITHER_THRESHOLD_MINUTES) / MINUTES_PER_DAY));
+          const baseProgress = p.pausedProgress ?? p.progress;
+          const rewindRatio = Math.min(PRISMATIC_REWIND_MAX, pausedDays * PRISMATIC_REWIND_PER_DAY);
+          const nextProgress = Math.max(0, Math.min(1, baseProgress * (1 - rewindRatio)));
+          const matureMinutes = p.varietyId ? (VARIETY_DEFS[p.varietyId]?.matureMinutes ?? 1) : 1;
+          const pausedAt = p.pausedAt ?? Math.max(
+            0,
+            safeNow - Math.max(0, status.inactiveMinutes - WITHER_THRESHOLD_MINUTES) * 60 * 1000,
+          );
+
+          return {
+            ...p,
+            state: nextProgress >= 1 ? 'mature' as const : 'growing' as const,
+            progress: nextProgress,
+            accumulatedMinutes: Math.floor(matureMinutes * nextProgress),
+            pausedAt,
+            pausedProgress: baseProgress,
+            lastUpdateDate: todayKey,
+          };
+        }
+
         return {
           ...p,
           state: 'withered' as const,

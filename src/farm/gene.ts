@@ -1,7 +1,7 @@
 import type { GeneFragment } from '../types/gene';
 import type { GalaxyId, HybridGalaxyPair, Rarity, VarietyId } from '../types/farm';
 import type { SeedQuality } from '../types/slicing';
-import { GALAXY_VARIETIES, HYBRID_VARIETIES, VARIETY_DEFS } from '../types/farm';
+import { GALAXY_VARIETIES, HYBRID_VARIETIES, PRISMATIC_VARIETIES, RARITY_STARS, VARIETY_DEFS } from '../types/farm';
 
 /**
  * 注入种子品种抽取：80% 目标星系，20% 其他已解锁星系
@@ -57,6 +57,17 @@ export function createInjectedSeedId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+export type FiveElementGalaxyId = 'thick-earth' | 'fire' | 'water' | 'wood' | 'metal';
+
+export const FIVE_ELEMENT_GALAXIES: FiveElementGalaxyId[] = ['thick-earth', 'fire', 'water', 'wood', 'metal'];
+
+const FIVE_ELEMENT_RARITY_BONUS: Record<Rarity, number> = {
+  common: 0,
+  rare: 0.10,
+  epic: 0.20,
+  legendary: 0.30,
+};
+
 type HybridGalaxyName = 'earth' | 'fire' | 'water' | 'wood' | 'metal';
 
 const HYBRID_GALAXY_ORDER: Record<HybridGalaxyName, number> = {
@@ -100,6 +111,50 @@ export function fusionSuccessRate(rarity1: Rarity, rarity2: Rarity): number {
   return 0.30;
 }
 
+function isFiveElementGalaxy(galaxyId: GalaxyId): galaxyId is FiveElementGalaxyId {
+  return FIVE_ELEMENT_GALAXIES.includes(galaxyId as FiveElementGalaxyId);
+}
+
+function pickBestFiveElementFragment(fragments: GeneFragment[]): GeneFragment {
+  return fragments.reduce((best, current) => {
+    const starDiff = RARITY_STARS[current.rarity] - RARITY_STARS[best.rarity];
+    if (starDiff !== 0) return starDiff > 0 ? current : best;
+    return current.obtainedAt > best.obtainedAt ? current : best;
+  });
+}
+
+export function getBestFiveElementFragments(fragments: GeneFragment[]): GeneFragment[] | null {
+  const grouped = new Map<FiveElementGalaxyId, GeneFragment[]>();
+
+  for (const fragment of fragments) {
+    if (!isFiveElementGalaxy(fragment.galaxyId)) continue;
+    const list = grouped.get(fragment.galaxyId) ?? [];
+    list.push(fragment);
+    grouped.set(fragment.galaxyId, list);
+  }
+
+  if (FIVE_ELEMENT_GALAXIES.some((galaxyId) => (grouped.get(galaxyId)?.length ?? 0) <= 0)) {
+    return null;
+  }
+
+  return FIVE_ELEMENT_GALAXIES.map((galaxyId) => pickBestFiveElementFragment(grouped.get(galaxyId) as GeneFragment[]));
+}
+
+export function canFuseFiveElements(
+  fragments: GeneFragment[],
+  harvestedHybridVarietyCount: number,
+): boolean {
+  if (harvestedHybridVarietyCount < 3) return false;
+  const bestFragments = getBestFiveElementFragments(fragments);
+  return bestFragments !== null;
+}
+
+export function fiveElementFusionSuccessRate(fragments: GeneFragment[]): number {
+  if (fragments.length !== 5) return 0;
+  const averageBonus = fragments.reduce((sum, fragment) => sum + FIVE_ELEMENT_RARITY_BONUS[fragment.rarity], 0) / 5;
+  return Math.min(1, 0.5 + averageBonus);
+}
+
 export function attemptFusion(
   fragment1: GeneFragment,
   fragment2: GeneFragment,
@@ -134,4 +189,19 @@ export function rollHybridVariety(galaxyPair: HybridGalaxyPair): VarietyId {
   }
 
   return pool[pool.length - 1].id;
+}
+
+export function rollPrismaticVariety(pool: VarietyId[] = PRISMATIC_VARIETIES): VarietyId {
+  const resolvedPool = pool.filter((id) => PRISMATIC_VARIETIES.includes(id));
+  const candidates = resolvedPool.length > 0 ? resolvedPool : PRISMATIC_VARIETIES;
+  const weightedPool = candidates.map((id) => ({ id, weight: VARIETY_DEFS[id].dropRate }));
+  const totalWeight = weightedPool.reduce((sum, item) => sum + item.weight, 0);
+
+  let roll = Math.random() * totalWeight;
+  for (const item of weightedPool) {
+    roll -= item.weight;
+    if (roll <= 0) return item.id;
+  }
+
+  return weightedPool[weightedPool.length - 1].id;
 }

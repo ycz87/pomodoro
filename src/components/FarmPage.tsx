@@ -7,9 +7,10 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../i18n';
-import type { Plot, VarietyId, FarmStorage, GalaxyId, StolenRecord } from '../types/farm';
+import type { Plot, VarietyId, FarmStorage, GalaxyId, StolenRecord, FusionHistory } from '../types/farm';
 import type { GeneInventory } from '../types/gene';
-import type { SeedQuality, SeedCounts, InjectedSeed, HybridSeed, ItemId } from '../types/slicing';
+import type { FusionResult } from '../types/gene';
+import type { SeedQuality, SeedCounts, InjectedSeed, HybridSeed, PrismaticSeed, ItemId } from '../types/slicing';
 import { VARIETY_DEFS, RARITY_COLOR, RARITY_STARS, PLOT_MILESTONES } from '../types/farm';
 import { getGrowthStage, getStageEmoji, isVarietyRevealed } from '../farm/growth';
 import { CollectionPage } from './CollectionPage';
@@ -23,14 +24,19 @@ interface FarmPageProps {
   items: Record<ItemId, number>;
   injectedSeeds: InjectedSeed[];
   hybridSeeds: HybridSeed[];
+  prismaticSeeds: PrismaticSeed[];
   todayFocusMinutes: number;
   todayKey: string;
   addSeeds: (count: number, quality?: SeedQuality) => void;
   onPlant: (plotId: number, quality: SeedQuality) => VarietyId;
   onPlantInjected: (plotId: number, seedId: string) => void;
   onPlantHybrid: (plotId: number, seedId: string) => void;
+  onPlantPrismatic: (plotId: number, seedId: string) => void;
   onInject: (galaxyId: GalaxyId, quality: SeedQuality) => void;
   onFusion: (fragment1Id: string, fragment2Id: string, useModifier: boolean) => { success: boolean; galaxyPair: string } | null;
+  onFiveElementFusion: () => FusionResult | null;
+  harvestedHybridVarietyCount: number;
+  fusionHistory: FusionHistory;
   onHarvest: (plotId: number) => {
     varietyId?: VarietyId;
     isMutant?: boolean;
@@ -75,14 +81,19 @@ export function FarmPage({
   items,
   injectedSeeds,
   hybridSeeds,
+  prismaticSeeds,
   todayFocusMinutes,
   todayKey,
   addSeeds,
   onPlant,
   onPlantInjected,
   onPlantHybrid,
+  onPlantPrismatic,
   onInject,
   onFusion,
+  onFiveElementFusion,
+  harvestedHybridVarietyCount,
+  fusionHistory,
   onHarvest,
   onClear,
   onUseMutationGun,
@@ -134,7 +145,7 @@ export function FarmPage({
   }, []);
 
   const totalBaseSeeds = seeds.normal + seeds.epic + seeds.legendary;
-  const totalPlantableSeeds = totalBaseSeeds + injectedSeeds.length + hybridSeeds.length;
+  const totalPlantableSeeds = totalBaseSeeds + injectedSeeds.length + hybridSeeds.length + prismaticSeeds.length;
   const mutationGunCount = (items as Record<string, number>)['mutation-gun'] ?? 0;
   const moonDewCount = (items as Record<string, number>)['moon-dew'] ?? 0;
   const nectarCount = (items as Record<string, number>)['nectar'] ?? 0;
@@ -189,6 +200,12 @@ export function FarmPage({
     setPlantingPlotId(null);
   }, [plantingPlotId, onPlantHybrid]);
 
+  const handlePlantPrismatic = useCallback((seedId: string) => {
+    if (plantingPlotId === null) return;
+    onPlantPrismatic(plantingPlotId, seedId);
+    setPlantingPlotId(null);
+  }, [plantingPlotId, onPlantPrismatic]);
+
   const handleHarvest = useCallback((plotId: number) => {
     const result = onHarvest(plotId);
     if (result.varietyId) {
@@ -229,8 +246,12 @@ export function FarmPage({
           seeds={seeds}
           items={items}
           hybridSeeds={hybridSeeds}
+          prismaticSeedCount={prismaticSeeds.length}
+          harvestedHybridVarietyCount={harvestedHybridVarietyCount}
+          fusionHistory={fusionHistory}
           onInject={onInject}
           onFusion={onFusion}
+          onFiveElementFusion={onFiveElementFusion}
         />
       </div>
     );
@@ -272,7 +293,7 @@ export function FarmPage({
           </button>
         </div>
         <span className="text-xs whitespace-nowrap" style={{ color: theme.textFaint }}>
-          {`🌰 ${totalBaseSeeds} · 🧬 ${injectedSeeds.length}`}
+          {`🌰 ${totalBaseSeeds} · 🧬 ${injectedSeeds.length} · 🌈 ${prismaticSeeds.length}`}
         </span>
       </div>
 
@@ -390,18 +411,20 @@ export function FarmPage({
 
       {/* 种植弹窗 */}
       {plantingPlotId !== null && (
-        <PlantModal
-          seeds={seeds}
-          injectedSeeds={injectedSeeds}
-          hybridSeeds={hybridSeeds}
-          theme={theme}
-          t={t}
-          onSelect={handlePlant}
-          onSelectInjected={handlePlantInjected}
-          onSelectHybrid={handlePlantHybrid}
-          onClose={() => setPlantingPlotId(null)}
-        />
-      )}
+          <PlantModal
+            seeds={seeds}
+            injectedSeeds={injectedSeeds}
+            hybridSeeds={hybridSeeds}
+            prismaticSeeds={prismaticSeeds}
+            theme={theme}
+            t={t}
+            onSelect={handlePlant}
+            onSelectInjected={handlePlantInjected}
+            onSelectHybrid={handlePlantHybrid}
+            onSelectPrismatic={handlePlantPrismatic}
+            onClose={() => setPlantingPlotId(null)}
+          />
+        )}
 
       {/* 农场规则弹窗 */}
       {showFarmHelp && (
@@ -1089,15 +1112,17 @@ function LockedPlotCard({ requiredVarieties, theme, t }: {
 }
 
 // ─── 种植弹窗 ───
-function PlantModal({ seeds, injectedSeeds, hybridSeeds, theme, t, onSelect, onSelectInjected, onSelectHybrid, onClose }: {
+function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, theme, t, onSelect, onSelectInjected, onSelectHybrid, onSelectPrismatic, onClose }: {
   seeds: SeedCounts;
   injectedSeeds: InjectedSeed[];
   hybridSeeds: import('../types/slicing').HybridSeed[];
+  prismaticSeeds: PrismaticSeed[];
   theme: ReturnType<typeof useTheme>;
   t: ReturnType<typeof useI18n>;
   onSelect: (quality: SeedQuality) => void;
   onSelectInjected: (seedId: string) => void;
   onSelectHybrid: (seedId: string) => void;
+  onSelectPrismatic: (seedId: string) => void;
   onClose: () => void;
 }) {
   const options = [
@@ -1121,6 +1146,19 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, theme, t, onSelect, onS
       return groups;
     }
     groups.push({ galaxyPair: seed.galaxyPair, seedId: seed.id, count: 1 });
+    return groups;
+  }, []);
+  const prismaticSeedGroups = prismaticSeeds.reduce<Array<{
+    varietyId: VarietyId;
+    seedId: string;
+    count: number;
+  }>>((groups, seed) => {
+    const existing = groups.find((group) => group.varietyId === seed.varietyId);
+    if (existing) {
+      existing.count += 1;
+      return groups;
+    }
+    groups.push({ varietyId: seed.varietyId, seedId: seed.id, count: 1 });
     return groups;
   }, []);
 
@@ -1203,6 +1241,34 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, theme, t, onSelect, onS
                 >
                   <span className="text-sm font-medium truncate pr-3" style={{ color: theme.text }}>
                     {t.hybridGalaxyPairLabel(seed.galaxyPair)}
+                  </span>
+                  <span className="text-sm shrink-0" style={{ color: theme.textMuted }}>
+                    ×{seed.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {prismaticSeedGroups.length > 0 && (
+          <div className="mt-3 pt-3 border-t" style={{ borderColor: theme.border }}>
+            <p className="text-xs mb-2 text-center" style={{ color: theme.textFaint }}>
+              {t.prismaticSeedHint}
+            </p>
+            <div className="flex flex-col gap-2 max-h-44 overflow-y-auto">
+              {prismaticSeedGroups.map((seed) => (
+                <button
+                  key={seed.varietyId}
+                  onClick={() => onSelectPrismatic(seed.seedId)}
+                  className="flex items-center justify-between p-3 rounded-xl border transition-colors text-left"
+                  style={{
+                    backgroundColor: '#a78bfa12',
+                    borderColor: '#a78bfa45',
+                  }}
+                >
+                  <span className="text-sm font-medium truncate pr-3" style={{ color: theme.text }}>
+                    {t.prismaticSeedLabel(t.varietyName(seed.varietyId))}
                   </span>
                   <span className="text-sm shrink-0" style={{ color: theme.textMuted }}>
                     ×{seed.count}

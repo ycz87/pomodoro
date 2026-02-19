@@ -6,10 +6,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../i18n';
-import { fusionSuccessRate } from '../farm/gene';
-import type { GeneInventory } from '../types/gene';
+import {
+  FIVE_ELEMENT_GALAXIES,
+  canFuseFiveElements,
+  fusionSuccessRate,
+  getBestFiveElementFragments,
+  fiveElementFusionSuccessRate,
+} from '../farm/gene';
+import type { FusionResult, GeneInventory } from '../types/gene';
 import { GALAXIES, VARIETY_DEFS, RARITY_COLOR, RARITY_STARS } from '../types/farm';
-import type { GalaxyId, Rarity } from '../types/farm';
+import type { FusionHistory, GalaxyId, Rarity } from '../types/farm';
 import type { SeedCounts, SeedQuality, ItemId, HybridSeed } from '../types/slicing';
 
 interface GeneLabPageProps {
@@ -17,8 +23,12 @@ interface GeneLabPageProps {
   seeds: SeedCounts;
   items: Record<ItemId, number>;
   hybridSeeds: HybridSeed[];
+  prismaticSeedCount: number;
+  harvestedHybridVarietyCount: number;
+  fusionHistory: FusionHistory;
   onInject: (galaxyId: GalaxyId, quality: SeedQuality) => void;
   onFusion: (fragment1Id: string, fragment2Id: string, useModifier: boolean) => { success: boolean; galaxyPair: string } | null;
+  onFiveElementFusion: () => FusionResult | null;
 }
 
 type GeneFragmentItem = GeneInventory['fragments'][number];
@@ -58,8 +68,12 @@ export function GeneLabPage({
   seeds,
   items,
   hybridSeeds,
+  prismaticSeedCount,
+  harvestedHybridVarietyCount,
+  fusionHistory,
   onInject,
   onFusion,
+  onFiveElementFusion,
 }: GeneLabPageProps) {
   const theme = useTheme();
   const t = useI18n();
@@ -72,9 +86,11 @@ export function GeneLabPage({
   const [showInjectToast, setShowInjectToast] = useState(false);
   const [fusionToastType, setFusionToastType] = useState<'success' | 'fail' | null>(null);
   const [fusionAnimType, setFusionAnimType] = useState<'success' | 'fail' | null>(null);
+  const [fiveElementToast, setFiveElementToast] = useState<{ type: 'success' | 'fail'; message: string } | null>(null);
   const injectToastTimerRef = useRef<number | null>(null);
   const fusionToastTimerRef = useRef<number | null>(null);
   const fusionAnimTimerRef = useRef<number | null>(null);
+  const fiveElementToastTimerRef = useRef<number | null>(null);
 
   const totalFragments = geneInventory.fragments.length;
   const totalSeeds = seeds.normal + seeds.epic + seeds.legendary;
@@ -154,6 +170,7 @@ export function GeneLabPage({
       if (injectToastTimerRef.current !== null) window.clearTimeout(injectToastTimerRef.current);
       if (fusionToastTimerRef.current !== null) window.clearTimeout(fusionToastTimerRef.current);
       if (fusionAnimTimerRef.current !== null) window.clearTimeout(fusionAnimTimerRef.current);
+      if (fiveElementToastTimerRef.current !== null) window.clearTimeout(fiveElementToastTimerRef.current);
     };
   }, []);
 
@@ -187,6 +204,23 @@ export function GeneLabPage({
     && selectedQuality !== null
     && selectedGalaxyFragments > 0
     && selectedQualityCount > 0;
+  const fiveElementGeneCounts = useMemo(() => {
+    const counts = new Map<GalaxyId, number>();
+    FIVE_ELEMENT_GALAXIES.forEach((galaxyId) => {
+      counts.set(galaxyId, fragmentCounts.get(galaxyId) ?? 0);
+    });
+    return counts;
+  }, [fragmentCounts]);
+  const hasHybridRequirement = harvestedHybridVarietyCount >= 3;
+  const fiveElementReady = canFuseFiveElements(geneInventory.fragments, harvestedHybridVarietyCount);
+  const selectedFiveElementFragments = useMemo(
+    () => getBestFiveElementFragments(geneInventory.fragments),
+    [geneInventory.fragments],
+  );
+  const fiveElementRate = selectedFiveElementFragments
+    ? fiveElementFusionSuccessRate(selectedFiveElementFragments)
+    : null;
+  const canFiveElementFuse = fiveElementReady && selectedFiveElementFragments !== null;
 
   useEffect(() => {
     if (hasModifier) return;
@@ -233,6 +267,38 @@ export function GeneLabPage({
     setSelectedFusionGalaxy2(null);
     setUseModifier(false);
     triggerFusionFeedback(result.success ? 'success' : 'fail');
+  };
+
+  const handleFiveElementFusion = () => {
+    if (!canFiveElementFuse) return;
+    const result = onFiveElementFusion();
+    if (!result) return;
+
+    if (fiveElementToastTimerRef.current !== null) {
+      window.clearTimeout(fiveElementToastTimerRef.current);
+    }
+
+    if (result.success && result.seedVarietyId) {
+      setFiveElementToast({
+        type: 'success',
+        message: t.geneFiveElementSuccess(t.varietyName(result.seedVarietyId)),
+      });
+    } else if (!result.success && result.returnedGene) {
+      setFiveElementToast({
+        type: 'fail',
+        message: t.geneFiveElementFailReturn(t.varietyName(result.returnedGene.varietyId)),
+      });
+    } else {
+      setFiveElementToast({
+        type: result.success ? 'success' : 'fail',
+        message: result.success ? t.geneFusionSuccess : t.geneFiveElementFail,
+      });
+    }
+
+    fiveElementToastTimerRef.current = window.setTimeout(() => {
+      setFiveElementToast(null);
+      fiveElementToastTimerRef.current = null;
+    }, 2500);
   };
 
   return (
@@ -602,6 +668,79 @@ export function GeneLabPage({
         </p>
       </section>
 
+      <section
+        className="mt-4 rounded-2xl border px-4 py-4"
+        style={{ backgroundColor: theme.surface, borderColor: theme.border }}
+      >
+        <h3 className="text-sm sm:text-base font-semibold mb-1" style={{ color: theme.text }}>
+          {t.geneFiveElementTitle}
+        </h3>
+        <p className="text-xs leading-relaxed mb-3" style={{ color: theme.textMuted }}>
+          {t.geneFiveElementDesc}
+        </p>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
+          {FIVE_ELEMENT_GALAXIES.map((galaxyId) => {
+            const count = fiveElementGeneCounts.get(galaxyId) ?? 0;
+            const isReady = count > 0;
+            return (
+              <div
+                key={`five-element-${galaxyId}`}
+                className="rounded-xl border px-2.5 py-2"
+                style={{
+                  borderColor: isReady ? `${theme.accent}55` : theme.border,
+                  backgroundColor: isReady ? `${theme.accent}14` : theme.inputBg,
+                }}
+              >
+                <p className="text-xs truncate" style={{ color: isReady ? theme.text : theme.textMuted }}>
+                  {t.galaxyName(galaxyId)}
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: isReady ? theme.accent : theme.textFaint }}>
+                  ×{count}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="text-xs mb-1" style={{ color: hasHybridRequirement ? theme.text : theme.textMuted }}>
+          {t.geneFiveElementHybridRequirement(harvestedHybridVarietyCount)}
+        </p>
+        <p className="text-xs mb-3" style={{ color: fiveElementReady ? '#22c55e' : theme.textFaint }}>
+          {fiveElementReady ? t.geneFiveElementResonanceReady : t.geneFiveElementResonanceLocked}
+        </p>
+
+        {fiveElementRate !== null && (
+          <p className="text-xs font-semibold mb-3" style={{ color: theme.text }}>
+            {t.geneFiveElementRate(fiveElementRate)}
+          </p>
+        )}
+
+        <button
+          type="button"
+          onClick={handleFiveElementFusion}
+          disabled={!canFiveElementFuse}
+          className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors"
+          style={{
+            backgroundColor: canFiveElementFuse ? `${theme.accent}22` : theme.inputBg,
+            border: `1px solid ${canFiveElementFuse ? `${theme.accent}66` : theme.border}`,
+            color: canFiveElementFuse ? theme.accent : theme.textFaint,
+            cursor: canFiveElementFuse ? 'pointer' : 'not-allowed',
+          }}
+        >
+          {t.geneFiveElementButton}
+        </button>
+
+        <div className="mt-2 text-center text-xs" style={{ color: theme.textFaint }}>
+          {t.prismaticSeedCountLabel(prismaticSeedCount)}
+        </div>
+        {fusionHistory.sameVarietyStreak >= 3 && (
+          <div className="mt-1 text-center text-xs" style={{ color: '#fbbf24' }}>
+            {t.geneFiveElementPityReady}
+          </div>
+        )}
+      </section>
+
       <style>{`
         @keyframes geneFusionPulse {
           0% { transform: scale(1); box-shadow: 0 0 0 rgba(34,197,94,0); }
@@ -650,6 +789,18 @@ export function GeneLabPage({
           }}
         >
           {fusionToastType === 'success' ? t.geneFusionSuccess : t.geneFusionFail}
+        </div>
+      )}
+      {fiveElementToast && (
+        <div
+          className="fixed left-1/2 bottom-32 z-[90] -translate-x-1/2 rounded-xl border px-4 py-2 text-sm"
+          style={{
+            backgroundColor: theme.surface,
+            borderColor: fiveElementToast.type === 'success' ? '#22c55e66' : '#ef444466',
+            color: fiveElementToast.type === 'success' ? '#22c55e' : '#ef4444',
+          }}
+        >
+          {fiveElementToast.message}
         </div>
       )}
     </div>

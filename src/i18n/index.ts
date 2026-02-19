@@ -10,13 +10,13 @@ import { ko } from './locales/ko';
 import { es } from './locales/es';
 import { fr } from './locales/fr';
 import { de } from './locales/de';
-import { pt } from './locales/pt';
+import { ru } from './locales/ru';
 import type { Messages } from './types';
 
-export type Locale = 'zh' | 'en' | 'ja' | 'ko' | 'es' | 'fr' | 'de' | 'pt';
+export type Locale = 'zh' | 'en' | 'ja' | 'ko' | 'es' | 'fr' | 'de' | 'ru';
 export type { Messages };
 
-const locales: Record<Locale, Messages> = { zh, en, ja, ko, es, fr, de, pt };
+const locales: Record<Locale, Messages> = { zh, en, ja, ko, es, fr, de, ru };
 
 const I18nContext = createContext<Messages>(en);
 
@@ -42,7 +42,7 @@ export function detectLocale(): Locale {
   if (lang.startsWith('es')) return 'es';
   if (lang.startsWith('fr')) return 'fr';
   if (lang.startsWith('de')) return 'de';
-  if (lang.startsWith('pt')) return 'pt';
+  if (lang.startsWith('ru')) return 'ru';
   // 默认英文（国际化优先）
   return 'en';
 }
