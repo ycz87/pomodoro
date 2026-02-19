@@ -339,7 +339,7 @@ export function applyGrowthWithMutation(
     }
 
     if (nextPlot.thief) {
-      if (safeNow < nextPlot.thief.stealAt) return nextPlot;
+      if (safeNow < nextPlot.thief.stealsAt) return nextPlot;
 
       if (nextPlot.hasTracker) {
         return {
@@ -378,7 +378,7 @@ export function applyGrowthWithMutation(
       ...nextPlot,
       thief: {
         appearedAt: safeNow,
-        stealAt: safeNow + THIEF_STEAL_DELAY_MS,
+        stealsAt: safeNow + THIEF_STEAL_DELAY_MS,
       },
       lastUpdateDate: safeTodayKey,
       lastActivityTimestamp: safeNow,

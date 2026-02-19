@@ -165,6 +165,7 @@ function App() {
   const { geneInventory, addFragment, removeFragment, removeFragmentsByGalaxy } = useGeneStorage();
   const { balance, addCoins, spendCoins } = useMelonCoin();
   const farmPlotsRef = useRef(farm.plots);
+  const previousFarmPlotsRef = useRef<Plot[] | null>(null);
   const updatePlotsRef = useRef(updatePlots);
   const sellingRef = useRef(false);
   const mutationGunMutexRef = useRef(false);
@@ -213,6 +214,36 @@ function App() {
     setRecoveryToastQueue((prev) => prev.slice(1));
   }, []);
 
+  useEffect(() => {
+    const previousPlots = previousFarmPlotsRef.current;
+    if (!previousPlots) {
+      previousFarmPlotsRef.current = farm.plots;
+      return;
+    }
+
+    for (const plot of farm.plots) {
+      const previousPlot = previousPlots.find((item) => item.id === plot.id);
+      if (!previousPlot) continue;
+
+      const thiefJustAppeared = !previousPlot.thief && Boolean(plot.thief);
+      if (thiefJustAppeared) {
+        enqueueRecoveryToast(t.thiefAppeared);
+        continue;
+      }
+
+      const trackerRecovered = Boolean(previousPlot.thief)
+        && !plot.thief
+        && previousPlot.hasTracker
+        && plot.hasTracker === false
+        && plot.state !== 'stolen';
+      if (trackerRecovered) {
+        enqueueRecoveryToast(t.thiefRecoveryActive);
+      }
+    }
+
+    previousFarmPlotsRef.current = farm.plots;
+  }, [farm.plots, enqueueRecoveryToast, t]);
+
   const runFarmGrowth = useCallback((
     plots: Plot[],
     growthMinutes: number,
@@ -230,8 +261,24 @@ function App() {
     const nowTimestamp = Date.now();
     if (farmUpdatedRef.current) return;
     if (!farm.lastActiveDate || farm.lastActiveDate === todayKey) {
-      // First visit or same day — just mark active
-      updateActiveDate(todayKey, 0, nowTimestamp);
+      // First visit or same day — still settle overdue thief countdown once.
+      const { plots: settledPlots, stolenRecords } = runFarmGrowth(
+        farm.plots,
+        0,
+        nowTimestamp,
+        false,
+      );
+      const changed = settledPlots.length !== farm.plots.length
+        || settledPlots.some((plot, index) => plot !== farm.plots[index]);
+      if (changed) {
+        updatePlots(settledPlots);
+      }
+      stolenRecords.forEach(addStolenRecord);
+      updateActiveDate(
+        todayKey,
+        farm.lastActiveDate === todayKey ? farm.consecutiveInactiveDays : 0,
+        nowTimestamp,
+      );
       farmUpdatedRef.current = true;
       return;
     }
@@ -452,7 +499,7 @@ function App() {
 
     const rarity = VARIETY_DEFS[plot.varietyId]?.rarity;
     if (rarity === 'legendary') {
-      upgradePlotRarity(plotId);
+      enqueueRecoveryToast(t.itemMoonDewFail);
       return;
     }
 
@@ -462,8 +509,10 @@ function App() {
     const upgraded = upgradePlotRarity(plotId);
     if (!upgraded) {
       addShedItem('moon-dew', 1);
+      return;
     }
-  }, [farm.plots, consumeShopItem, upgradePlotRarity, addShedItem]);
+    enqueueRecoveryToast(t.itemMoonDewSuccess);
+  }, [farm.plots, consumeShopItem, upgradePlotRarity, addShedItem, enqueueRecoveryToast, t]);
 
   const handleUseNectar = useCallback((plotId: number) => {
     const consumed = consumeShopItem('nectar');
@@ -471,8 +520,10 @@ function App() {
     const revived = revivePlot(plotId);
     if (!revived) {
       addShedItem('nectar', 1);
+      return;
     }
-  }, [consumeShopItem, revivePlot, addShedItem]);
+    enqueueRecoveryToast(t.itemNectarSuccess);
+  }, [consumeShopItem, revivePlot, addShedItem, enqueueRecoveryToast, t]);
 
   const handleUseStarTracker = useCallback((plotId: number) => {
     const consumed = consumeShopItem('star-tracker');
@@ -490,8 +541,10 @@ function App() {
     const activated = activateGuardianBarrier(todayKey);
     if (!activated) {
       addShedItem('guardian-barrier', 1);
+      return;
     }
-  }, [farm.guardianBarrierDate, todayKey, consumeShopItem, activateGuardianBarrier, addShedItem]);
+    enqueueRecoveryToast(t.itemGuardianBarrierActive);
+  }, [farm.guardianBarrierDate, todayKey, consumeShopItem, activateGuardianBarrier, addShedItem, enqueueRecoveryToast, t]);
 
   const handleUseTrapNet = useCallback((plotId: number) => {
     const consumed = consumeShopItem('trap-net');
@@ -514,8 +567,11 @@ function App() {
 
     if (!success) {
       addShedItem('trap-net', 1);
+      return;
     }
-  }, [consumeShopItem, setFarm, addShedItem]);
+    addCoins(100);
+    enqueueRecoveryToast(t.thiefCaught);
+  }, [consumeShopItem, setFarm, addShedItem, addCoins, enqueueRecoveryToast, t]);
 
   // ─── Gene injection handler ───
   const handleGeneInject = useCallback((galaxyId: import('./types/farm').GalaxyId, quality: import('./types/slicing').SeedQuality) => {

@@ -535,8 +535,8 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
   const canUseNectar = plot.state === 'withered' && nectarCount > 0;
   const canUseStarTracker = (plot.state === 'growing' || plot.state === 'mature') && starTrackerCount > 0 && !plot.hasTracker;
   const canUseTrapNet = Boolean(plot.thief) && trapNetCount > 0;
-  const thiefTotalMs = plot.thief ? Math.max(1, plot.thief.stealAt - plot.thief.appearedAt) : 1;
-  const thiefRemainingMs = plot.thief ? Math.max(0, plot.thief.stealAt - nowTimestamp) : 0;
+  const thiefTotalMs = plot.thief ? Math.max(1, plot.thief.stealsAt - plot.thief.appearedAt) : 1;
+  const thiefRemainingMs = plot.thief ? Math.max(0, plot.thief.stealsAt - nowTimestamp) : 0;
   const thiefElapsedPercent = plot.thief
     ? Math.min(100, ((thiefTotalMs - thiefRemainingMs) / thiefTotalMs) * 100)
     : 0;
@@ -665,7 +665,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                     }}
                   />
                 </div>
-                <span className="mt-1 block text-[10px] font-medium leading-tight" style={{ color: '#fca5a5' }}>
+                <span className="farm-plot-thief-status mt-1 block text-[10px] font-medium leading-tight" style={{ color: '#fca5a5' }}>
                   {t.thiefStealing(Math.max(1, Math.ceil(thiefRemainingMs / 60000)))}
                 </span>
               </div>

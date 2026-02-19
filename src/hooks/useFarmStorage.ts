@@ -111,20 +111,19 @@ function migrateFarm(raw: unknown): FarmStorage {
       const appearedAt = thiefRecord && typeof thiefRecord.appearedAt === 'number' && Number.isFinite(thiefRecord.appearedAt)
         ? thiefRecord.appearedAt
         : 0;
-      const legacyStealsAt = thiefRecord && typeof thiefRecord.stealsAt === 'number' && Number.isFinite(thiefRecord.stealsAt)
+      const stealsAt = thiefRecord && typeof thiefRecord.stealsAt === 'number' && Number.isFinite(thiefRecord.stealsAt)
         ? thiefRecord.stealsAt
-        : 0;
-      const stealAt = thiefRecord && typeof thiefRecord.stealAt === 'number' && Number.isFinite(thiefRecord.stealAt)
-        ? thiefRecord.stealAt
-        : legacyStealsAt;
+        : thiefRecord && typeof thiefRecord.stealAt === 'number' && Number.isFinite(thiefRecord.stealAt)
+          ? thiefRecord.stealAt
+          : 0;
 
       return {
         ...createEmptyPlot(i),
         ...p,
         id: i,
         hasTracker: p.hasTracker === true,
-        thief: appearedAt > 0 && stealAt > 0
-          ? { appearedAt, stealAt }
+        thief: appearedAt > 0 && stealsAt > 0
+          ? { appearedAt, stealsAt }
           : undefined,
       };
     });

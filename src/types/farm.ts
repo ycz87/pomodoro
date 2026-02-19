@@ -508,7 +508,7 @@ export type MutationStatus = 'none' | 'positive' | 'negative';
 
 export interface ThiefStatus {
   appearedAt: number; // 大盗出现时间（ms）
-  stealAt: number; // 预计偷瓜时间（ms）
+  stealsAt: number; // 预计偷瓜时间（ms）
 }
 
 export interface StolenRecord {
