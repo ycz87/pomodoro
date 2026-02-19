@@ -422,6 +422,11 @@ export interface Messages {
   varietyDetailTitle: string;
   varietyDetailFirstObtained: string;
   varietyDetailHarvestCount: (count: number) => string;
+  collectionAcquireHintTitle: string;
+  darkMatterGuideVoid: string;
+  darkMatterGuideBlackHole: string;
+  darkMatterGuideCosmicHeart: string;
+  darkMatterGuideProgress: (collected: number, total: number) => string;
 
   // ─── Gene Lab (v0.26.0) ───
   geneLabTab: string;
@@ -449,6 +454,9 @@ export interface Messages {
   prismaticSeedHint: string;
   prismaticSeedLabel: (varietyName: string) => string;
   prismaticSeedCountLabel: (count: number) => string;
+  darkMatterSeedHint: string;
+  darkMatterSeedLabel: (varietyName: string) => string;
+  darkMatterSeedCountLabel: (count: number) => string;
 
   // ─── Gene Fusion (v0.28.0) ───
   geneFusionTitle: string;
@@ -475,6 +483,17 @@ export interface Messages {
   geneFiveElementFail: string;
   geneFiveElementFailReturn: (varietyName: string) => string;
   geneFiveElementPityReady: string;
+  geneDarkMatterTitle: string;
+  geneDarkMatterDesc: string;
+  geneDarkMatterVoidProgress: (count: number, total: number) => string;
+  geneDarkMatterBlackHoleProgress: (count: number, total: number) => string;
+  geneDarkMatterVoidButton: string;
+  geneDarkMatterBlackHoleButton: string;
+  geneDarkMatterSuccess: (varietyName: string) => string;
+  geneDarkMatterFail: string;
 
   varietyDetailClose: string;
+  cosmicHeartUnlockTitle: string;
+  cosmicHeartUnlockDesc: string;
+  cosmicHeartUnlockAction: string;
 }

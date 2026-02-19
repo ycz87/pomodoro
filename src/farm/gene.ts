@@ -1,7 +1,14 @@
 import type { GeneFragment } from '../types/gene';
 import type { GalaxyId, HybridGalaxyPair, Rarity, VarietyId } from '../types/farm';
 import type { SeedQuality } from '../types/slicing';
-import { GALAXY_VARIETIES, HYBRID_VARIETIES, PRISMATIC_VARIETIES, RARITY_STARS, VARIETY_DEFS } from '../types/farm';
+import {
+  GALAXY_VARIETIES,
+  HYBRID_GALAXY_PAIRS,
+  HYBRID_VARIETIES,
+  PRISMATIC_VARIETIES,
+  RARITY_STARS,
+  VARIETY_DEFS,
+} from '../types/farm';
 
 /**
  * 注入种子品种抽取：80% 目标星系，20% 其他已解锁星系
@@ -123,6 +130,14 @@ function pickBestFiveElementFragment(fragments: GeneFragment[]): GeneFragment {
   });
 }
 
+function pickPreferredFragment(fragments: GeneFragment[]): GeneFragment {
+  return fragments.reduce((best, current) => {
+    const starDiff = RARITY_STARS[current.rarity] - RARITY_STARS[best.rarity];
+    if (starDiff !== 0) return starDiff > 0 ? current : best;
+    return current.obtainedAt > best.obtainedAt ? current : best;
+  });
+}
+
 export function getBestFiveElementFragments(fragments: GeneFragment[]): GeneFragment[] | null {
   const grouped = new Map<FiveElementGalaxyId, GeneFragment[]>();
 
@@ -153,6 +168,41 @@ export function fiveElementFusionSuccessRate(fragments: GeneFragment[]): number 
   if (fragments.length !== 5) return 0;
   const averageBonus = fragments.reduce((sum, fragment) => sum + FIVE_ELEMENT_RARITY_BONUS[fragment.rarity], 0) / 5;
   return Math.min(1, 0.5 + averageBonus);
+}
+
+export function getVoidMelonFusionFragments(fragments: GeneFragment[]): GeneFragment[] | null {
+  const grouped = new Map<VarietyId, GeneFragment[]>();
+
+  for (const fragment of fragments) {
+    if (!PRISMATIC_VARIETIES.includes(fragment.varietyId)) continue;
+    const list = grouped.get(fragment.varietyId) ?? [];
+    list.push(fragment);
+    grouped.set(fragment.varietyId, list);
+  }
+
+  if (PRISMATIC_VARIETIES.some((varietyId) => (grouped.get(varietyId)?.length ?? 0) <= 0)) {
+    return null;
+  }
+
+  return PRISMATIC_VARIETIES.map((varietyId) => pickPreferredFragment(grouped.get(varietyId) as GeneFragment[]));
+}
+
+export function getBlackHoleMelonFusionFragments(fragments: GeneFragment[]): GeneFragment[] | null {
+  const grouped = new Map<HybridGalaxyPair, GeneFragment[]>();
+
+  for (const fragment of fragments) {
+    const hybridPair = VARIETY_DEFS[fragment.varietyId]?.hybridPair;
+    if (!hybridPair) continue;
+    const list = grouped.get(hybridPair) ?? [];
+    list.push(fragment);
+    grouped.set(hybridPair, list);
+  }
+
+  if (HYBRID_GALAXY_PAIRS.some((pair) => (grouped.get(pair)?.length ?? 0) <= 0)) {
+    return null;
+  }
+
+  return HYBRID_GALAXY_PAIRS.map((pair) => pickPreferredFragment(grouped.get(pair) as GeneFragment[]));
 }
 
 export function attemptFusion(

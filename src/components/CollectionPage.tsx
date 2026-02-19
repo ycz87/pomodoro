@@ -8,7 +8,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../i18n';
 import type { CollectedVariety, VarietyId } from '../types/farm';
 import {
-  ALL_VARIETY_IDS, GALAXIES, GALAXY_VARIETIES, VARIETY_DEFS,
+  ALL_VARIETY_IDS, DARK_MATTER_VARIETIES, GALAXIES, GALAXY_VARIETIES, VARIETY_DEFS,
   RARITY_COLOR, RARITY_STARS,
 } from '../types/farm';
 import { getUnlockedGalaxies } from '../farm/galaxy';
@@ -46,7 +46,7 @@ export function CollectionPage({ collection }: CollectionPageProps) {
       collectedInGalaxy,
       totalInGalaxy,
       percent,
-      isUnlocked: unlockedGalaxies.includes(galaxy.id) || collectedInGalaxy > 0,
+      isUnlocked: unlockedGalaxies.includes(galaxy.id) || collectedInGalaxy > 0 || galaxy.id === 'dark-matter',
     };
   });
 
@@ -125,7 +125,7 @@ export function CollectionPage({ collection }: CollectionPageProps) {
           const collectedInGalaxy = varieties.reduce((sum, varietyId) => (
             collectedIds.has(varietyId) ? sum + 1 : sum
           ), 0);
-          const isUnlocked = unlockedGalaxies.includes(galaxy.id) || collectedInGalaxy > 0;
+          const isUnlocked = unlockedGalaxies.includes(galaxy.id) || collectedInGalaxy > 0 || galaxy.id === 'dark-matter';
 
           return (
             <div key={galaxy.id} className="mb-5">
@@ -152,6 +152,8 @@ export function CollectionPage({ collection }: CollectionPageProps) {
                         key={id}
                         varietyId={id}
                         collected={collected}
+                        collectionCount={collectedCount}
+                        totalCount={totalCount}
                         theme={theme}
                         t={t}
                         onOpenDetail={setSelectedVarietyId}
@@ -174,10 +176,12 @@ export function CollectionPage({ collection }: CollectionPageProps) {
           );
         })}
 
-      {selectedVarietyId && selectedVariety && (
+      {selectedVarietyId && (
         <VarietyDetailModal
           varietyId={selectedVarietyId}
           collected={selectedVariety}
+          collectionCount={collectedCount}
+          totalCount={totalCount}
           theme={theme}
           t={t}
           onClose={() => setSelectedVarietyId(null)}
@@ -187,9 +191,11 @@ export function CollectionPage({ collection }: CollectionPageProps) {
   );
 }
 
-function VarietyCard({ varietyId, collected, theme, t, onOpenDetail }: {
+function VarietyCard({ varietyId, collected, collectionCount, totalCount, theme, t, onOpenDetail }: {
   varietyId: VarietyId;
   collected?: CollectedVariety;
+  collectionCount: number;
+  totalCount: number;
   theme: ReturnType<typeof useTheme>;
   t: ReturnType<typeof useI18n>;
   onOpenDetail: (varietyId: VarietyId) => void;
@@ -197,19 +203,22 @@ function VarietyCard({ varietyId, collected, theme, t, onOpenDetail }: {
   const variety = VARIETY_DEFS[varietyId];
   const color = RARITY_COLOR[variety.rarity];
   const isCollected = !!collected;
+  const isDarkMatter = DARK_MATTER_VARIETIES.includes(varietyId as typeof DARK_MATTER_VARIETIES[number]);
+  const canOpenDetail = isCollected || isDarkMatter;
 
   return (
     <button
       type="button"
-      disabled={!isCollected}
+      disabled={!canOpenDetail}
       onClick={() => onOpenDetail(varietyId)}
       className="w-full rounded-xl border p-3 flex flex-col items-center gap-1.5 transition-all text-center"
       style={{
-        backgroundColor: isCollected ? `${color}08` : theme.surface,
-        borderColor: isCollected ? `${color}25` : theme.border,
-        opacity: isCollected ? 1 : 0.5,
-        cursor: isCollected ? 'pointer' : 'default',
+        backgroundColor: isCollected ? `${color}08` : isDarkMatter ? `${theme.accent}08` : theme.surface,
+        borderColor: isCollected ? `${color}25` : isDarkMatter ? `${theme.accent}30` : theme.border,
+        opacity: isCollected ? 1 : isDarkMatter ? 0.8 : 0.5,
+        cursor: canOpenDetail ? 'pointer' : 'default',
       }}
+      title={!isCollected && isDarkMatter ? t.collectionAcquireHintTitle : undefined}
     >
       {/* Emoji or silhouette */}
       <span className="text-3xl" style={{
@@ -237,6 +246,12 @@ function VarietyCard({ varietyId, collected, theme, t, onOpenDetail }: {
         </p>
       )}
 
+      {!isCollected && isDarkMatter && (
+        <p className="text-[10px] text-center leading-tight mt-0.5" style={{ color: theme.textFaint }}>
+          {varietyId === 'cosmic-heart' ? t.darkMatterGuideProgress(collectionCount, totalCount) : t.collectionAcquireHintTitle}
+        </p>
+      )}
+
       {/* Date */}
       {collected && (
         <span className="text-[10px]" style={{ color: theme.textFaint }}>
@@ -247,15 +262,25 @@ function VarietyCard({ varietyId, collected, theme, t, onOpenDetail }: {
   );
 }
 
-function VarietyDetailModal({ varietyId, collected, theme, t, onClose }: {
+function VarietyDetailModal({ varietyId, collected, collectionCount, totalCount, theme, t, onClose }: {
   varietyId: VarietyId;
-  collected: CollectedVariety;
+  collected?: CollectedVariety;
+  collectionCount: number;
+  totalCount: number;
   theme: ReturnType<typeof useTheme>;
   t: ReturnType<typeof useI18n>;
   onClose: () => void;
 }) {
   const variety = VARIETY_DEFS[varietyId];
   const color = RARITY_COLOR[variety.rarity];
+  const isCollected = Boolean(collected);
+  const isDarkMatter = DARK_MATTER_VARIETIES.includes(varietyId as typeof DARK_MATTER_VARIETIES[number]);
+
+  const darkMatterGuide = varietyId === 'void-melon'
+    ? t.darkMatterGuideVoid
+    : varietyId === 'blackhole-melon'
+      ? t.darkMatterGuideBlackHole
+      : t.darkMatterGuideCosmicHeart;
 
   return (
     <div
@@ -274,12 +299,12 @@ function VarietyDetailModal({ varietyId, collected, theme, t, onClose }: {
         <div className="flex flex-col items-center mb-4">
           <span
             className="text-7xl leading-none"
-            style={{ filter: `drop-shadow(0 0 12px ${color}) drop-shadow(0 0 24px ${color}AA)` }}
+            style={{ filter: isCollected ? `drop-shadow(0 0 12px ${color}) drop-shadow(0 0 24px ${color}AA)` : 'grayscale(1) brightness(0.4)' }}
           >
-            {variety.emoji}
+            {isCollected ? variety.emoji : '❓'}
           </span>
           <p className="text-base font-semibold mt-2" style={{ color: theme.text }}>
-            {t.varietyName(varietyId)}
+            {isCollected || isDarkMatter ? t.varietyName(varietyId) : '???'}
           </p>
           <div className="flex gap-1 mt-1">
             {Array.from({ length: RARITY_STARS[variety.rarity] }).map((_, i) => (
@@ -287,20 +312,38 @@ function VarietyDetailModal({ varietyId, collected, theme, t, onClose }: {
             ))}
           </div>
         </div>
-        <p className="text-sm leading-relaxed mb-4" style={{ color: theme.textMuted }}>
-          {t.varietyStory(varietyId)}
-        </p>
-        <div className="rounded-xl border p-3 mb-4" style={{ borderColor: theme.border, backgroundColor: `${theme.inputBg}70` }}>
-          <p className="text-xs mb-1" style={{ color: theme.textFaint }}>
-            {t.varietyDetailFirstObtained}
-          </p>
-          <p className="text-sm font-medium mb-2" style={{ color: theme.text }}>
-            {collected.firstObtainedDate}
-          </p>
-          <p className="text-xs" style={{ color: theme.textMuted }}>
-            {t.varietyDetailHarvestCount(collected.count)}
-          </p>
-        </div>
+        {isCollected ? (
+          <>
+            <p className="text-sm leading-relaxed mb-4" style={{ color: theme.textMuted }}>
+              {t.varietyStory(varietyId)}
+            </p>
+            <div className="rounded-xl border p-3 mb-4" style={{ borderColor: theme.border, backgroundColor: `${theme.inputBg}70` }}>
+              <p className="text-xs mb-1" style={{ color: theme.textFaint }}>
+                {t.varietyDetailFirstObtained}
+              </p>
+              <p className="text-sm font-medium mb-2" style={{ color: theme.text }}>
+                {collected?.firstObtainedDate ?? '-'}
+              </p>
+              <p className="text-xs" style={{ color: theme.textMuted }}>
+                {t.varietyDetailHarvestCount(collected?.count ?? 0)}
+              </p>
+            </div>
+          </>
+        ) : (
+          <div className="rounded-xl border p-3 mb-4" style={{ borderColor: theme.border, backgroundColor: `${theme.inputBg}70` }}>
+            <p className="text-xs mb-1" style={{ color: theme.textFaint }}>
+              {t.collectionAcquireHintTitle}
+            </p>
+            <p className="text-sm font-medium" style={{ color: theme.text }}>
+              {darkMatterGuide}
+            </p>
+            {varietyId === 'cosmic-heart' && (
+              <p className="text-xs mt-2" style={{ color: theme.textMuted }}>
+                {t.darkMatterGuideProgress(collectionCount, totalCount)}
+              </p>
+            )}
+          </div>
+        )}
         <button
           type="button"
           onClick={onClose}

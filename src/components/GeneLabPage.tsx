@@ -13,8 +13,15 @@ import {
   getBestFiveElementFragments,
   fiveElementFusionSuccessRate,
 } from '../farm/gene';
-import type { FusionResult, GeneInventory } from '../types/gene';
-import { GALAXIES, VARIETY_DEFS, RARITY_COLOR, RARITY_STARS } from '../types/farm';
+import type { DarkMatterFusion, DarkMatterFusionType, FusionResult, GeneInventory } from '../types/gene';
+import {
+  GALAXIES,
+  HYBRID_GALAXY_PAIRS,
+  PRISMATIC_VARIETIES,
+  VARIETY_DEFS,
+  RARITY_COLOR,
+  RARITY_STARS,
+} from '../types/farm';
 import type { FusionHistory, GalaxyId, Rarity } from '../types/farm';
 import type { SeedCounts, SeedQuality, ItemId, HybridSeed } from '../types/slicing';
 
@@ -24,11 +31,13 @@ interface GeneLabPageProps {
   items: Record<ItemId, number>;
   hybridSeeds: HybridSeed[];
   prismaticSeedCount: number;
+  darkMatterSeedCount: number;
   harvestedHybridVarietyCount: number;
   fusionHistory: FusionHistory;
   onInject: (galaxyId: GalaxyId, quality: SeedQuality) => void;
   onFusion: (fragment1Id: string, fragment2Id: string, useModifier: boolean) => { success: boolean; galaxyPair: string } | null;
   onFiveElementFusion: () => FusionResult | null;
+  onDarkMatterFusion: (type: DarkMatterFusionType) => DarkMatterFusion | null;
 }
 
 type GeneFragmentItem = GeneInventory['fragments'][number];
@@ -69,11 +78,13 @@ export function GeneLabPage({
   items,
   hybridSeeds,
   prismaticSeedCount,
+  darkMatterSeedCount,
   harvestedHybridVarietyCount,
   fusionHistory,
   onInject,
   onFusion,
   onFiveElementFusion,
+  onDarkMatterFusion,
 }: GeneLabPageProps) {
   const theme = useTheme();
   const t = useI18n();
@@ -87,10 +98,12 @@ export function GeneLabPage({
   const [fusionToastType, setFusionToastType] = useState<'success' | 'fail' | null>(null);
   const [fusionAnimType, setFusionAnimType] = useState<'success' | 'fail' | null>(null);
   const [fiveElementToast, setFiveElementToast] = useState<{ type: 'success' | 'fail'; message: string } | null>(null);
+  const [darkMatterToast, setDarkMatterToast] = useState<{ type: 'success' | 'fail'; message: string } | null>(null);
   const injectToastTimerRef = useRef<number | null>(null);
   const fusionToastTimerRef = useRef<number | null>(null);
   const fusionAnimTimerRef = useRef<number | null>(null);
   const fiveElementToastTimerRef = useRef<number | null>(null);
+  const darkMatterToastTimerRef = useRef<number | null>(null);
 
   const totalFragments = geneInventory.fragments.length;
   const totalSeeds = seeds.normal + seeds.epic + seeds.legendary;
@@ -171,6 +184,7 @@ export function GeneLabPage({
       if (fusionToastTimerRef.current !== null) window.clearTimeout(fusionToastTimerRef.current);
       if (fusionAnimTimerRef.current !== null) window.clearTimeout(fusionAnimTimerRef.current);
       if (fiveElementToastTimerRef.current !== null) window.clearTimeout(fiveElementToastTimerRef.current);
+      if (darkMatterToastTimerRef.current !== null) window.clearTimeout(darkMatterToastTimerRef.current);
     };
   }, []);
 
@@ -221,6 +235,29 @@ export function GeneLabPage({
     ? fiveElementFusionSuccessRate(selectedFiveElementFragments)
     : null;
   const canFiveElementFuse = fiveElementReady && selectedFiveElementFragments !== null;
+  const prismaticVarietySet = useMemo(() => {
+    const varieties = new Set<string>();
+    for (const fragment of geneInventory.fragments) {
+      if (PRISMATIC_VARIETIES.includes(fragment.varietyId)) {
+        varieties.add(fragment.varietyId);
+      }
+    }
+    return varieties;
+  }, [geneInventory.fragments]);
+  const voidReadyCount = prismaticVarietySet.size;
+  const voidFusionReady = PRISMATIC_VARIETIES.every((varietyId) => prismaticVarietySet.has(varietyId));
+  const hybridPairSet = useMemo(() => {
+    const pairs = new Set<string>();
+    for (const fragment of geneInventory.fragments) {
+      const pair = VARIETY_DEFS[fragment.varietyId]?.hybridPair;
+      if (pair) {
+        pairs.add(pair);
+      }
+    }
+    return pairs;
+  }, [geneInventory.fragments]);
+  const blackHoleReadyCount = hybridPairSet.size;
+  const blackHoleFusionReady = HYBRID_GALAXY_PAIRS.every((pair) => hybridPairSet.has(pair));
 
   useEffect(() => {
     if (hasModifier) return;
@@ -298,6 +335,32 @@ export function GeneLabPage({
     fiveElementToastTimerRef.current = window.setTimeout(() => {
       setFiveElementToast(null);
       fiveElementToastTimerRef.current = null;
+    }, 2500);
+  };
+
+  const handleDarkMatterFusion = (fusionType: DarkMatterFusionType) => {
+    const result = onDarkMatterFusion(fusionType);
+    if (!result) return;
+
+    if (darkMatterToastTimerRef.current !== null) {
+      window.clearTimeout(darkMatterToastTimerRef.current);
+    }
+
+    if (result.success && result.seedVarietyId) {
+      setDarkMatterToast({
+        type: 'success',
+        message: t.geneDarkMatterSuccess(t.varietyName(result.seedVarietyId)),
+      });
+    } else {
+      setDarkMatterToast({
+        type: 'fail',
+        message: t.geneDarkMatterFail,
+      });
+    }
+
+    darkMatterToastTimerRef.current = window.setTimeout(() => {
+      setDarkMatterToast(null);
+      darkMatterToastTimerRef.current = null;
     }, 2500);
   };
 
@@ -741,6 +804,70 @@ export function GeneLabPage({
         )}
       </section>
 
+      <section
+        className="mt-4 rounded-2xl border px-4 py-4"
+        style={{ backgroundColor: theme.surface, borderColor: theme.border }}
+      >
+        <h3 className="text-sm sm:text-base font-semibold mb-1" style={{ color: theme.text }}>
+          {t.geneDarkMatterTitle}
+        </h3>
+        <p className="text-xs leading-relaxed mb-3" style={{ color: theme.textMuted }}>
+          {t.geneDarkMatterDesc}
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="rounded-xl border p-3" style={{ borderColor: theme.border, backgroundColor: `${theme.inputBg}80` }}>
+            <p className="text-xs font-semibold mb-1" style={{ color: theme.text }}>
+              🌑 {t.varietyName('void-melon')}
+            </p>
+            <p className="text-xs mb-2" style={{ color: voidFusionReady ? '#22c55e' : theme.textFaint }}>
+              {t.geneDarkMatterVoidProgress(voidReadyCount, PRISMATIC_VARIETIES.length)}
+            </p>
+            <button
+              type="button"
+              onClick={() => handleDarkMatterFusion('void-melon')}
+              disabled={!voidFusionReady}
+              className="w-full rounded-lg px-3 py-2 text-xs font-semibold transition-colors"
+              style={{
+                backgroundColor: voidFusionReady ? `${theme.accent}22` : theme.inputBg,
+                border: `1px solid ${voidFusionReady ? `${theme.accent}66` : theme.border}`,
+                color: voidFusionReady ? theme.accent : theme.textFaint,
+                cursor: voidFusionReady ? 'pointer' : 'not-allowed',
+              }}
+            >
+              {t.geneDarkMatterVoidButton}
+            </button>
+          </div>
+
+          <div className="rounded-xl border p-3" style={{ borderColor: theme.border, backgroundColor: `${theme.inputBg}80` }}>
+            <p className="text-xs font-semibold mb-1" style={{ color: theme.text }}>
+              🕳️ {t.varietyName('blackhole-melon')}
+            </p>
+            <p className="text-xs mb-2" style={{ color: blackHoleFusionReady ? '#22c55e' : theme.textFaint }}>
+              {t.geneDarkMatterBlackHoleProgress(blackHoleReadyCount, HYBRID_GALAXY_PAIRS.length)}
+            </p>
+            <button
+              type="button"
+              onClick={() => handleDarkMatterFusion('blackhole-melon')}
+              disabled={!blackHoleFusionReady}
+              className="w-full rounded-lg px-3 py-2 text-xs font-semibold transition-colors"
+              style={{
+                backgroundColor: blackHoleFusionReady ? `${theme.accent}22` : theme.inputBg,
+                border: `1px solid ${blackHoleFusionReady ? `${theme.accent}66` : theme.border}`,
+                color: blackHoleFusionReady ? theme.accent : theme.textFaint,
+                cursor: blackHoleFusionReady ? 'pointer' : 'not-allowed',
+              }}
+            >
+              {t.geneDarkMatterBlackHoleButton}
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-2 text-center text-xs" style={{ color: theme.textFaint }}>
+          {t.darkMatterSeedCountLabel(darkMatterSeedCount)}
+        </div>
+      </section>
+
       <style>{`
         @keyframes geneFusionPulse {
           0% { transform: scale(1); box-shadow: 0 0 0 rgba(34,197,94,0); }
@@ -801,6 +928,18 @@ export function GeneLabPage({
           }}
         >
           {fiveElementToast.message}
+        </div>
+      )}
+      {darkMatterToast && (
+        <div
+          className="fixed left-1/2 bottom-44 z-[90] -translate-x-1/2 rounded-xl border px-4 py-2 text-sm"
+          style={{
+            backgroundColor: theme.surface,
+            borderColor: darkMatterToast.type === 'success' ? '#22c55e66' : '#ef444466',
+            color: darkMatterToast.type === 'success' ? '#22c55e' : '#ef4444',
+          }}
+        >
+          {darkMatterToast.message}
         </div>
       )}
     </div>

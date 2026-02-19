@@ -39,12 +39,14 @@ export const RARITY_COLOR: Record<Rarity, string> = {
 };
 
 // ─── 品种 ───
-export type BreedType = 'pure' | 'hybrid' | 'prismatic';
+export type BreedType = 'pure' | 'hybrid' | 'prismatic' | 'dark-matter';
 export type HybridGalaxyPair =
   | 'earth-fire' | 'earth-water' | 'earth-wood' | 'earth-metal'
   | 'fire-water' | 'fire-wood' | 'fire-metal'
   | 'water-wood' | 'water-metal'
   | 'wood-metal';
+
+export type DarkMatterVarietyId = 'void-melon' | 'blackhole-melon' | 'cosmic-heart';
 
 export type VarietyId =
   // 厚土星系 8 个
@@ -64,6 +66,8 @@ export type VarietyId =
   | 'mercury-melon' | 'meteorite-melon' | 'alloy-melon' | 'eternal-melon'
   // 幻彩星系 5 个
   | 'prism-melon' | 'bubble-melon' | 'nebula-melon' | 'aurora-cascade' | 'dream-melon'
+  // 暗物质星系 3 个
+  | 'void-melon' | 'blackhole-melon' | 'cosmic-heart'
   // 杂交品种 30 个（10 组 x 3）
   | 'lava-field' | 'volcanic-ash' | 'earth-core'
   | 'hot-spring' | 'mud-pool' | 'oasis'
@@ -91,6 +95,7 @@ export interface VarietyDef {
 const PURE_MATURE_MINUTES = 10000;
 export const HYBRID_MATURE_MINUTES = 20000;
 export const PRISMATIC_MATURE_MINUTES = 50000;
+export const DARK_MATTER_MATURE_MINUTES = 50000;
 
 /** Phase 2 品种定义（当前全部为 pure） */
 export const VARIETY_DEFS: Record<VarietyId, VarietyDef> = {
@@ -286,6 +291,20 @@ export const VARIETY_DEFS: Record<VarietyId, VarietyDef> = {
     breedType: 'prismatic', matureMinutes: PRISMATIC_MATURE_MINUTES, sellPrice: 2000,
   },
 
+  // dark-matter
+  'void-melon': {
+    id: 'void-melon', galaxy: 'dark-matter', rarity: 'epic', dropRate: 1, emoji: '🌑',
+    breedType: 'dark-matter', matureMinutes: DARK_MATTER_MATURE_MINUTES, sellPrice: 1000,
+  },
+  'blackhole-melon': {
+    id: 'blackhole-melon', galaxy: 'dark-matter', rarity: 'legendary', dropRate: 1, emoji: '🕳️',
+    breedType: 'dark-matter', matureMinutes: DARK_MATTER_MATURE_MINUTES, sellPrice: 5000,
+  },
+  'cosmic-heart': {
+    id: 'cosmic-heart', galaxy: 'dark-matter', rarity: 'legendary', dropRate: 1, emoji: '💖',
+    breedType: 'dark-matter', matureMinutes: DARK_MATTER_MATURE_MINUTES, sellPrice: 0,
+  },
+
   // earth-fire
   'lava-field': {
     id: 'lava-field', galaxy: 'thick-earth', hybridPair: 'earth-fire', rarity: 'common', dropRate: 0.60, emoji: '🌋',
@@ -456,6 +475,10 @@ export const PRISMATIC_VARIETIES: VarietyId[] = [
   'prism-melon', 'bubble-melon', 'nebula-melon', 'aurora-cascade', 'dream-melon',
 ];
 
+export const DARK_MATTER_VARIETIES: DarkMatterVarietyId[] = [
+  'void-melon', 'blackhole-melon', 'cosmic-heart',
+];
+
 export const HYBRID_GALAXY_PAIRS: HybridGalaxyPair[] = [
   'earth-fire',
   'earth-water',
@@ -492,7 +515,7 @@ export const GALAXY_VARIETIES: Record<GalaxyId, VarietyId[]> = {
   wood: WOOD_VARIETIES,
   metal: METAL_VARIETIES,
   rainbow: PRISMATIC_VARIETIES,
-  'dark-matter': [],
+  'dark-matter': DARK_MATTER_VARIETIES,
 };
 
 export const ALL_VARIETY_IDS: VarietyId[] = [
@@ -502,6 +525,7 @@ export const ALL_VARIETY_IDS: VarietyId[] = [
   ...WOOD_VARIETIES,
   ...METAL_VARIETIES,
   ...PRISMATIC_VARIETIES,
+  ...DARK_MATTER_VARIETIES,
   ...HYBRID_VARIETIES['earth-fire'],
   ...HYBRID_VARIETIES['earth-water'],
   ...HYBRID_VARIETIES['earth-wood'],

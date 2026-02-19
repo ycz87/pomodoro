@@ -1,4 +1,4 @@
-import type { GalaxyId, VarietyId, Rarity } from './farm';
+import type { DarkMatterVarietyId, GalaxyId, VarietyId, Rarity } from './farm';
 
 export interface GeneFragment {
   id: string; // 唯一 ID（用 crypto.randomUUID() 或 Date.now() + random）
@@ -17,6 +17,15 @@ export interface FusionResult {
 
 export interface GeneInventory {
   fragments: GeneFragment[];
+}
+
+export type DarkMatterFusionType = 'void-melon' | 'blackhole-melon';
+
+export interface DarkMatterFusion {
+  fusionType: DarkMatterFusionType;
+  success: boolean;
+  consumedGeneCount: number;
+  seedVarietyId?: DarkMatterVarietyId;
 }
 
 export const DEFAULT_GENE_INVENTORY: GeneInventory = {

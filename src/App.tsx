@@ -82,6 +82,8 @@ import {
   canFuseFiveElements,
   fiveElementFusionSuccessRate,
   getBestFiveElementFragments,
+  getBlackHoleMelonFusionFragments,
+  getVoidMelonFusionFragments,
   rollPrismaticVariety,
 } from './farm/gene';
 import { I18nProvider, getMessages } from './i18n';
@@ -91,6 +93,7 @@ import type { GrowthStage } from './types';
 import type { AppMode } from './types/project';
 import type { ProjectRecord } from './types/project';
 import {
+  ALL_VARIETY_IDS,
   DEFAULT_FARM_STORAGE,
   DEFAULT_FUSION_HISTORY,
   PRISMATIC_VARIETIES,
@@ -99,10 +102,11 @@ import {
 import type { CollectedVariety, FusionHistory, Plot, VarietyId } from './types/farm';
 import { SHOP_ITEMS, PLOT_PRICES } from './types/market';
 import type { ShopItemId } from './types/market';
-import type { FusionResult } from './types/gene';
+import type { DarkMatterFusion, DarkMatterFusionType, FusionResult } from './types/gene';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const FUSION_HISTORY_KEY = 'watermelon-fusion-history';
+const COSMIC_HEART_TARGET_COLLECTION_COUNT = 78;
 
 function migrateFusionHistory(raw: unknown): FusionHistory {
   if (!raw || typeof raw !== 'object') return DEFAULT_FUSION_HISTORY;
@@ -149,6 +153,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<'focus' | 'warehouse' | 'farm' | 'market'>('focus');
   const [debugMode, setDebugMode] = useState(() => localStorage.getItem('watermelon-debug') === 'true');
   const [timeMultiplier, setTimeMultiplier] = useState(1);
+  const [showCosmicHeartCelebration, setShowCosmicHeartCelebration] = useState(false);
   const [mutationToastQueue, setMutationToastQueue] = useState<MutationOutcome[]>([]);
   const [recoveryToastQueue, setRecoveryToastQueue] = useState<string[]>([]);
   const suppressCelebrationRef = useRef(false);
@@ -182,6 +187,8 @@ function App() {
     consumeHybridSeed,
     addPrismaticSeed,
     consumePrismaticSeed,
+    addDarkMatterSeed,
+    consumeDarkMatterSeed,
   } = useShedStorage();
   const [fusionHistory, setFusionHistory] = useLocalStorage<FusionHistory>(
     FUSION_HISTORY_KEY,
@@ -216,6 +223,7 @@ function App() {
   const updatePlotsRef = useRef(updatePlots);
   const sellingRef = useRef(false);
   const mutationGunMutexRef = useRef(false);
+  const cosmicHeartUnlockingRef = useRef(false);
 
   // Slicing scene state
   const [slicingMelon, setSlicingMelon] = useState<'ripe' | 'legendary' | null>(null);
@@ -252,6 +260,23 @@ function App() {
     }
     return hybridVarietySet.size;
   }, [farm.collection]);
+  const collectedNormalVarietySet = useMemo(() => {
+    const ids = new Set<VarietyId>();
+    for (const record of farm.collection) {
+      if (record.isMutant === true) continue;
+      ids.add(record.varietyId);
+    }
+    return ids;
+  }, [farm.collection]);
+  const hasCosmicHeart = collectedNormalVarietySet.has('cosmic-heart');
+  const hasAllVarietiesExceptCosmicHeart = useMemo(() => (
+    ALL_VARIETY_IDS
+      .filter((varietyId) => varietyId !== 'cosmic-heart')
+      .every((varietyId) => collectedNormalVarietySet.has(varietyId))
+  ), [collectedNormalVarietySet]);
+  const reachedCosmicHeartLegacyCondition = (
+    collectedNormalVarietySet.size === COSMIC_HEART_TARGET_COLLECTION_COUNT
+  );
 
   const enqueueMutationToasts = useCallback((toasts: MutationOutcome[]) => {
     if (toasts.length === 0) return;
@@ -270,6 +295,50 @@ function App() {
   const dismissRecoveryToast = useCallback(() => {
     setRecoveryToastQueue((prev) => prev.slice(1));
   }, []);
+
+  useEffect(() => {
+    if (cosmicHeartUnlockingRef.current) return;
+    if (hasCosmicHeart) return;
+    if (!hasAllVarietiesExceptCosmicHeart && !reachedCosmicHeartLegacyCondition) return;
+
+    cosmicHeartUnlockingRef.current = true;
+    const today = getTodayKey();
+    setFarm((prev) => {
+      if (prev.collection.some((item) => item.varietyId === 'cosmic-heart' && item.isMutant !== true)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        collection: [
+          ...prev.collection,
+          {
+            varietyId: 'cosmic-heart',
+            firstObtainedDate: today,
+            count: 1,
+          },
+        ],
+      };
+    });
+    addDarkMatterSeed({
+      id: createInjectedSeedId(),
+      varietyId: 'cosmic-heart',
+    });
+    setShowCosmicHeartCelebration(true);
+  }, [
+    hasCosmicHeart,
+    hasAllVarietiesExceptCosmicHeart,
+    reachedCosmicHeartLegacyCondition,
+    setFarm,
+    addDarkMatterSeed,
+  ]);
+
+  useEffect(() => {
+    if (!showCosmicHeartCelebration) return;
+    const timerId = window.setTimeout(() => {
+      setShowCosmicHeartCelebration(false);
+    }, 4200);
+    return () => window.clearTimeout(timerId);
+  }, [showCosmicHeartCelebration]);
 
   useEffect(() => {
     const previousPlots = previousFarmPlotsRef.current;
@@ -760,6 +829,64 @@ function App() {
     setFusionHistory,
   ]);
 
+  const handleDarkMatterFusion = useCallback((fusionType: DarkMatterFusionType): DarkMatterFusion | null => {
+    if (fusionType === 'void-melon') {
+      const selectedFragments = getVoidMelonFusionFragments(geneInventory.fragments);
+      if (!selectedFragments) {
+        return {
+          fusionType,
+          success: false,
+          consumedGeneCount: 0,
+        };
+      }
+
+      const selectedIds = new Set(selectedFragments.map((fragment) => fragment.id));
+      setGeneInventory((prev) => ({
+        ...prev,
+        fragments: prev.fragments.filter((fragment) => !selectedIds.has(fragment.id)),
+      }));
+      addDarkMatterSeed({
+        id: createInjectedSeedId(),
+        varietyId: 'void-melon',
+      });
+      return {
+        fusionType,
+        success: true,
+        consumedGeneCount: selectedFragments.length,
+        seedVarietyId: 'void-melon',
+      };
+    }
+
+    if (fusionType === 'blackhole-melon') {
+      const selectedFragments = getBlackHoleMelonFusionFragments(geneInventory.fragments);
+      if (!selectedFragments) {
+        return {
+          fusionType,
+          success: false,
+          consumedGeneCount: 0,
+        };
+      }
+
+      const selectedIds = new Set(selectedFragments.map((fragment) => fragment.id));
+      setGeneInventory((prev) => ({
+        ...prev,
+        fragments: prev.fragments.filter((fragment) => !selectedIds.has(fragment.id)),
+      }));
+      addDarkMatterSeed({
+        id: createInjectedSeedId(),
+        varietyId: 'blackhole-melon',
+      });
+      return {
+        fusionType,
+        success: true,
+        consumedGeneCount: selectedFragments.length,
+        seedVarietyId: 'blackhole-melon',
+      };
+    }
+
+    return null;
+  }, [geneInventory.fragments, setGeneInventory, addDarkMatterSeed]);
+
   // ─── Plant injected seed handler ───
   const handleFarmPlantInjected = useCallback((plotId: number, seedId: string) => {
     const seed = shed.injectedSeeds.find(s => s.id === seedId);
@@ -794,6 +921,17 @@ function App() {
       consumePrismaticSeed(seedId);
     }
   }, [shed.prismaticSeeds, plantSeedWithVariety, consumePrismaticSeed, todayKey]);
+
+  // ─── Plant dark matter seed handler ───
+  const handleFarmPlantDarkMatter = useCallback((plotId: number, seedId: string) => {
+    const seed = shed.darkMatterSeeds.find((darkMatterSeed) => darkMatterSeed.id === seedId);
+    if (!seed) return;
+
+    const success = plantSeedWithVariety(plotId, seed.varietyId, 'legendary', todayKey);
+    if (success) {
+      consumeDarkMatterSeed(seedId);
+    }
+  }, [shed.darkMatterSeeds, plantSeedWithVariety, consumeDarkMatterSeed, todayKey]);
 
   // ─── Debug mode ───
   const activateDebugMode = useCallback(() => {
@@ -1529,6 +1667,7 @@ function App() {
             injectedSeeds={shed.injectedSeeds}
             hybridSeeds={shed.hybridSeeds}
             prismaticSeeds={shed.prismaticSeeds}
+            darkMatterSeeds={shed.darkMatterSeeds}
             todayFocusMinutes={todayFocusMinutes}
             todayKey={todayKey}
             addSeeds={addSeeds}
@@ -1536,6 +1675,7 @@ function App() {
             onPlantInjected={handleFarmPlantInjected}
             onPlantHybrid={handleFarmPlantHybrid}
             onPlantPrismatic={handleFarmPlantPrismatic}
+            onPlantDarkMatter={handleFarmPlantDarkMatter}
             onHarvest={handleFarmHarvest}
             onClear={clearPlot}
             onUseMutationGun={handleUseMutationGun}
@@ -1547,6 +1687,7 @@ function App() {
             onInject={handleGeneInject}
             onFusion={handleGeneFusion}
             onFiveElementFusion={handleFiveElementFusion}
+            onDarkMatterFusion={handleDarkMatterFusion}
             harvestedHybridVarietyCount={harvestedHybridVarietyCount}
             fusionHistory={fusionHistory}
             onGoWarehouse={() => setActiveTab('warehouse')}
@@ -1597,6 +1738,41 @@ function App() {
               duration={2600}
               onDone={dismissRecoveryToast}
             />
+          </div>
+        )}
+
+        {showCosmicHeartCelebration && (
+          <div
+            className="fixed inset-0 z-[180] flex items-center justify-center p-4"
+            onClick={() => setShowCosmicHeartCelebration(false)}
+          >
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+            <div
+              className="relative max-w-md w-full rounded-2xl border px-6 py-7 text-center"
+              style={{
+                backgroundColor: theme.surface,
+                borderColor: `${theme.accent}66`,
+                boxShadow: `0 0 26px ${theme.accent}55`,
+                animation: 'cosmicHeartPop 480ms cubic-bezier(0.22, 1.4, 0.35, 1) both',
+              }}
+            >
+              <p className="text-5xl leading-none mb-3">🌌💖✨</p>
+              <h3 className="text-lg font-semibold mb-2" style={{ color: theme.text }}>
+                {t.cosmicHeartUnlockTitle}
+              </h3>
+              <p className="text-sm mb-2" style={{ color: theme.textMuted }}>
+                {t.cosmicHeartUnlockDesc}
+              </p>
+              <p className="text-xs" style={{ color: theme.textFaint }}>
+                {t.cosmicHeartUnlockAction}
+              </p>
+            </div>
+            <style>{`
+              @keyframes cosmicHeartPop {
+                0% { opacity: 0; transform: scale(0.84) translateY(10px); }
+                100% { opacity: 1; transform: scale(1) translateY(0); }
+              }
+            `}</style>
           </div>
         )}
 

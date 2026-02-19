@@ -9,8 +9,16 @@ import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../i18n';
 import type { Plot, VarietyId, FarmStorage, GalaxyId, StolenRecord, FusionHistory } from '../types/farm';
 import type { GeneInventory } from '../types/gene';
-import type { FusionResult } from '../types/gene';
-import type { SeedQuality, SeedCounts, InjectedSeed, HybridSeed, PrismaticSeed, ItemId } from '../types/slicing';
+import type { DarkMatterFusion, DarkMatterFusionType, FusionResult } from '../types/gene';
+import type {
+  SeedQuality,
+  SeedCounts,
+  InjectedSeed,
+  HybridSeed,
+  PrismaticSeed,
+  DarkMatterSeed,
+  ItemId,
+} from '../types/slicing';
 import { VARIETY_DEFS, RARITY_COLOR, RARITY_STARS, PLOT_MILESTONES } from '../types/farm';
 import { getGrowthStage, getStageEmoji, isVarietyRevealed } from '../farm/growth';
 import { CollectionPage } from './CollectionPage';
@@ -25,6 +33,7 @@ interface FarmPageProps {
   injectedSeeds: InjectedSeed[];
   hybridSeeds: HybridSeed[];
   prismaticSeeds: PrismaticSeed[];
+  darkMatterSeeds: DarkMatterSeed[];
   todayFocusMinutes: number;
   todayKey: string;
   addSeeds: (count: number, quality?: SeedQuality) => void;
@@ -32,9 +41,11 @@ interface FarmPageProps {
   onPlantInjected: (plotId: number, seedId: string) => void;
   onPlantHybrid: (plotId: number, seedId: string) => void;
   onPlantPrismatic: (plotId: number, seedId: string) => void;
+  onPlantDarkMatter: (plotId: number, seedId: string) => void;
   onInject: (galaxyId: GalaxyId, quality: SeedQuality) => void;
   onFusion: (fragment1Id: string, fragment2Id: string, useModifier: boolean) => { success: boolean; galaxyPair: string } | null;
   onFiveElementFusion: () => FusionResult | null;
+  onDarkMatterFusion: (type: DarkMatterFusionType) => DarkMatterFusion | null;
   harvestedHybridVarietyCount: number;
   fusionHistory: FusionHistory;
   onHarvest: (plotId: number) => {
@@ -82,6 +93,7 @@ export function FarmPage({
   injectedSeeds,
   hybridSeeds,
   prismaticSeeds,
+  darkMatterSeeds,
   todayFocusMinutes,
   todayKey,
   addSeeds,
@@ -89,9 +101,11 @@ export function FarmPage({
   onPlantInjected,
   onPlantHybrid,
   onPlantPrismatic,
+  onPlantDarkMatter,
   onInject,
   onFusion,
   onFiveElementFusion,
+  onDarkMatterFusion,
   harvestedHybridVarietyCount,
   fusionHistory,
   onHarvest,
@@ -145,7 +159,7 @@ export function FarmPage({
   }, []);
 
   const totalBaseSeeds = seeds.normal + seeds.epic + seeds.legendary;
-  const totalPlantableSeeds = totalBaseSeeds + injectedSeeds.length + hybridSeeds.length + prismaticSeeds.length;
+  const totalPlantableSeeds = totalBaseSeeds + injectedSeeds.length + hybridSeeds.length + prismaticSeeds.length + darkMatterSeeds.length;
   const mutationGunCount = (items as Record<string, number>)['mutation-gun'] ?? 0;
   const moonDewCount = (items as Record<string, number>)['moon-dew'] ?? 0;
   const nectarCount = (items as Record<string, number>)['nectar'] ?? 0;
@@ -206,6 +220,12 @@ export function FarmPage({
     setPlantingPlotId(null);
   }, [plantingPlotId, onPlantPrismatic]);
 
+  const handlePlantDarkMatter = useCallback((seedId: string) => {
+    if (plantingPlotId === null) return;
+    onPlantDarkMatter(plantingPlotId, seedId);
+    setPlantingPlotId(null);
+  }, [plantingPlotId, onPlantDarkMatter]);
+
   const handleHarvest = useCallback((plotId: number) => {
     const result = onHarvest(plotId);
     if (result.varietyId) {
@@ -247,11 +267,13 @@ export function FarmPage({
           items={items}
           hybridSeeds={hybridSeeds}
           prismaticSeedCount={prismaticSeeds.length}
+          darkMatterSeedCount={darkMatterSeeds.length}
           harvestedHybridVarietyCount={harvestedHybridVarietyCount}
           fusionHistory={fusionHistory}
           onInject={onInject}
           onFusion={onFusion}
           onFiveElementFusion={onFiveElementFusion}
+          onDarkMatterFusion={onDarkMatterFusion}
         />
       </div>
     );
@@ -293,7 +315,7 @@ export function FarmPage({
           </button>
         </div>
         <span className="text-xs whitespace-nowrap" style={{ color: theme.textFaint }}>
-          {`🌰 ${totalBaseSeeds} · 🧬 ${injectedSeeds.length} · 🌈 ${prismaticSeeds.length}`}
+          {`🌰 ${totalBaseSeeds} · 🧬 ${injectedSeeds.length} · 🌈 ${prismaticSeeds.length} · 🌑 ${darkMatterSeeds.length}`}
         </span>
       </div>
 
@@ -416,12 +438,14 @@ export function FarmPage({
             injectedSeeds={injectedSeeds}
             hybridSeeds={hybridSeeds}
             prismaticSeeds={prismaticSeeds}
+            darkMatterSeeds={darkMatterSeeds}
             theme={theme}
             t={t}
             onSelect={handlePlant}
             onSelectInjected={handlePlantInjected}
             onSelectHybrid={handlePlantHybrid}
             onSelectPrismatic={handlePlantPrismatic}
+            onSelectDarkMatter={handlePlantDarkMatter}
             onClose={() => setPlantingPlotId(null)}
           />
         )}
@@ -1112,17 +1136,19 @@ function LockedPlotCard({ requiredVarieties, theme, t }: {
 }
 
 // ─── 种植弹窗 ───
-function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, theme, t, onSelect, onSelectInjected, onSelectHybrid, onSelectPrismatic, onClose }: {
+function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMatterSeeds, theme, t, onSelect, onSelectInjected, onSelectHybrid, onSelectPrismatic, onSelectDarkMatter, onClose }: {
   seeds: SeedCounts;
   injectedSeeds: InjectedSeed[];
   hybridSeeds: import('../types/slicing').HybridSeed[];
   prismaticSeeds: PrismaticSeed[];
+  darkMatterSeeds: DarkMatterSeed[];
   theme: ReturnType<typeof useTheme>;
   t: ReturnType<typeof useI18n>;
   onSelect: (quality: SeedQuality) => void;
   onSelectInjected: (seedId: string) => void;
   onSelectHybrid: (seedId: string) => void;
   onSelectPrismatic: (seedId: string) => void;
+  onSelectDarkMatter: (seedId: string) => void;
   onClose: () => void;
 }) {
   const options = [
@@ -1149,6 +1175,19 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, theme, 
     return groups;
   }, []);
   const prismaticSeedGroups = prismaticSeeds.reduce<Array<{
+    varietyId: VarietyId;
+    seedId: string;
+    count: number;
+  }>>((groups, seed) => {
+    const existing = groups.find((group) => group.varietyId === seed.varietyId);
+    if (existing) {
+      existing.count += 1;
+      return groups;
+    }
+    groups.push({ varietyId: seed.varietyId, seedId: seed.id, count: 1 });
+    return groups;
+  }, []);
+  const darkMatterSeedGroups = darkMatterSeeds.reduce<Array<{
     varietyId: VarietyId;
     seedId: string;
     count: number;
@@ -1269,6 +1308,34 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, theme, 
                 >
                   <span className="text-sm font-medium truncate pr-3" style={{ color: theme.text }}>
                     {t.prismaticSeedLabel(t.varietyName(seed.varietyId))}
+                  </span>
+                  <span className="text-sm shrink-0" style={{ color: theme.textMuted }}>
+                    ×{seed.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {darkMatterSeedGroups.length > 0 && (
+          <div className="mt-3 pt-3 border-t" style={{ borderColor: theme.border }}>
+            <p className="text-xs mb-2 text-center" style={{ color: theme.textFaint }}>
+              {t.darkMatterSeedHint}
+            </p>
+            <div className="flex flex-col gap-2 max-h-44 overflow-y-auto">
+              {darkMatterSeedGroups.map((seed) => (
+                <button
+                  key={seed.varietyId}
+                  onClick={() => onSelectDarkMatter(seed.seedId)}
+                  className="flex items-center justify-between p-3 rounded-xl border transition-colors text-left"
+                  style={{
+                    backgroundColor: '#0f172a55',
+                    borderColor: '#94a3b855',
+                  }}
+                >
+                  <span className="text-sm font-medium truncate pr-3" style={{ color: theme.text }}>
+                    {t.darkMatterSeedLabel(t.varietyName(seed.varietyId))}
                   </span>
                   <span className="text-sm shrink-0" style={{ color: theme.textMuted }}>
                     ×{seed.count}

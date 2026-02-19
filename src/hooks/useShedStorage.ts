@@ -5,9 +5,18 @@
  */
 import { useCallback, useRef } from 'react';
 import { useLocalStorage } from './useLocalStorage';
-import type { ItemId, ShedStorage, SeedQuality, PityCounter, InjectedSeed, HybridSeed, PrismaticSeed } from '../types/slicing';
+import type {
+  ItemId,
+  ShedStorage,
+  SeedQuality,
+  PityCounter,
+  InjectedSeed,
+  HybridSeed,
+  PrismaticSeed,
+  DarkMatterSeed,
+} from '../types/slicing';
 import { DEFAULT_SHED_STORAGE, DEFAULT_PITY, DEFAULT_SEED_COUNTS } from '../types/slicing';
-import { HYBRID_GALAXY_PAIRS, PRISMATIC_VARIETIES } from '../types/farm';
+import { DARK_MATTER_VARIETIES, HYBRID_GALAXY_PAIRS, PRISMATIC_VARIETIES } from '../types/farm';
 
 const SHED_KEY = 'watermelon-shed';
 const INJECTED_SEED_QUALITIES: SeedQuality[] = ['normal', 'epic', 'legendary'];
@@ -26,6 +35,7 @@ function migrateShed(raw: unknown): ShedStorage {
     injectedSeeds: [],
     hybridSeeds: [],
     prismaticSeeds: [],
+    darkMatterSeeds: [],
   };
 
   // Migrate seeds: old format was a single number, new format is { normal, epic, legendary }
@@ -106,6 +116,22 @@ function migrateShed(raw: unknown): ShedStorage {
     }
   }
 
+  if (Array.isArray(s.darkMatterSeeds)) {
+    for (const seed of s.darkMatterSeeds) {
+      if (!seed || typeof seed !== 'object') continue;
+      const candidate = seed as Record<string, unknown>;
+      if (
+        typeof candidate.id === 'string'
+        && DARK_MATTER_VARIETIES.includes(candidate.varietyId as DarkMatterSeed['varietyId'])
+      ) {
+        result.darkMatterSeeds.push({
+          id: candidate.id,
+          varietyId: candidate.varietyId as DarkMatterSeed['varietyId'],
+        });
+      }
+    }
+  }
+
   return result;
 }
 
@@ -113,6 +139,8 @@ export function useShedStorage() {
   const [shed, setShed] = useLocalStorage<ShedStorage>(SHED_KEY, DEFAULT_SHED_STORAGE, migrateShed);
   const consumePrismaticSeedMutexRef = useRef(false);
   const consumePrismaticSeedResultRef = useRef(false);
+  const consumeDarkMatterSeedMutexRef = useRef(false);
+  const consumeDarkMatterSeedResultRef = useRef(false);
 
   const addSeeds = useCallback((count: number, quality: SeedQuality = 'normal') => {
     setShed(prev => ({
@@ -150,6 +178,7 @@ export function useShedStorage() {
       injectedSeeds: [],
       hybridSeeds: [],
       prismaticSeeds: [],
+      darkMatterSeeds: [],
     });
   }, [setShed]);
 
@@ -235,6 +264,38 @@ export function useShedStorage() {
     }
   }, [setShed]);
 
+  const addDarkMatterSeed = useCallback((seed: DarkMatterSeed): void => {
+    setShed(prev => ({
+      ...prev,
+      darkMatterSeeds: [...prev.darkMatterSeeds, seed],
+    }));
+  }, [setShed]);
+
+  /** 消耗一颗暗物质种子（返回是否成功） */
+  const consumeDarkMatterSeed = useCallback((id: string): boolean => {
+    if (consumeDarkMatterSeedMutexRef.current) return false;
+    consumeDarkMatterSeedMutexRef.current = true;
+    consumeDarkMatterSeedResultRef.current = false;
+    try {
+      setShed(prev => {
+        const index = prev.darkMatterSeeds.findIndex(seed => seed.id === id);
+        if (index < 0) return prev;
+        consumeDarkMatterSeedResultRef.current = true;
+        return {
+          ...prev,
+          darkMatterSeeds: [
+            ...prev.darkMatterSeeds.slice(0, index),
+            ...prev.darkMatterSeeds.slice(index + 1),
+          ],
+        };
+      });
+      return consumeDarkMatterSeedResultRef.current;
+    } finally {
+      consumeDarkMatterSeedResultRef.current = false;
+      consumeDarkMatterSeedMutexRef.current = false;
+    }
+  }, [setShed]);
+
   /** 消耗一颗种子（种植时调用），返回是否成功 */
   const consumeSeed = useCallback((quality: SeedQuality): boolean => {
     let success = false;
@@ -287,6 +348,8 @@ export function useShedStorage() {
     consumeHybridSeed,
     addPrismaticSeed,
     consumePrismaticSeed,
+    addDarkMatterSeed,
+    consumeDarkMatterSeed,
     resetShed,
   };
 }
