@@ -383,40 +383,32 @@ export function useFarmStorage() {
   /** 激活防护结界（当天有效） */
   const activateGuardianBarrier = useCallback((todayKey: string): boolean => {
     if (!todayKey) return false;
-    let changed = false;
+    const hasThief = farm.plots.some((plot) => Boolean(plot.thief));
+    if (farm.guardianBarrierDate === todayKey && !hasThief) {
+      return false;
+    }
 
-    setFarm(prev => {
-      if (prev.guardianBarrierDate === todayKey && prev.plots.every((plot) => !plot.thief)) {
-        return prev;
-      }
-      changed = true;
-      return {
-        ...prev,
-        guardianBarrierDate: todayKey,
-        plots: prev.plots.map((plot) => (plot.thief ? { ...plot, thief: undefined } : plot)),
-      };
-    });
-
-    return changed;
-  }, [setFarm]);
+    setFarm((prev) => ({
+      ...prev,
+      guardianBarrierDate: todayKey,
+      plots: prev.plots.map((plot) => (plot.thief ? { ...plot, thief: undefined } : plot)),
+    }));
+    return true;
+  }, [farm.guardianBarrierDate, farm.plots, setFarm]);
 
   /** 为地块安装星际追踪器 */
   const addPlotTracker = useCallback((plotId: number): boolean => {
-    let success = false;
-    setFarm(prev => {
-      const plot = prev.plots.find((p) => p.id === plotId);
-      if (!plot) return prev;
-      if (!(plot.state === 'growing' || plot.state === 'mature')) return prev;
-      if (plot.hasTracker) return prev;
+    const plot = farm.plots.find((p) => p.id === plotId);
+    if (!plot) return false;
+    if (!(plot.state === 'growing' || plot.state === 'mature')) return false;
+    if (plot.hasTracker) return false;
 
-      success = true;
-      return {
-        ...prev,
-        plots: prev.plots.map((p) => (p.id === plotId ? { ...p, hasTracker: true } : p)),
-      };
-    });
-    return success;
-  }, [setFarm]);
+    setFarm((prev) => ({
+      ...prev,
+      plots: prev.plots.map((p) => (p.id === plotId ? { ...p, hasTracker: true } : p)),
+    }));
+    return true;
+  }, [farm.plots, setFarm]);
 
   /** 记录被偷记录（用于追回） */
   const addStolenRecord = useCallback((record: StolenRecord) => {
@@ -459,56 +451,46 @@ export function useFarmStorage() {
 
   /** 复活枯萎西瓜（琼浆玉露） */
   const revivePlot = useCallback((plotId: number): boolean => {
-    let success = false;
+    const plot = farm.plots.find((p) => p.id === plotId);
+    if (!plot || plot.state !== 'withered') return false;
+
     const nowTimestamp = Date.now();
     const todayKey = getTodayKeyFromTimestamp(nowTimestamp);
 
-    setFarm(prev => {
-      const plot = prev.plots.find((p) => p.id === plotId);
-      if (!plot || plot.state !== 'withered') return prev;
-
-      success = true;
-      return {
-        ...prev,
-        plots: prev.plots.map((p) => (
-          p.id === plotId
-            ? {
-                ...p,
-                state: 'growing',
-                lastActivityTimestamp: nowTimestamp,
-                lastUpdateDate: todayKey,
-              }
-            : p
-        )),
-      };
-    });
-    return success;
-  }, [setFarm]);
+    setFarm((prev) => ({
+      ...prev,
+      plots: prev.plots.map((p) => (
+        p.id === plotId && p.state === 'withered'
+          ? {
+              ...p,
+              state: 'growing',
+              lastActivityTimestamp: nowTimestamp,
+              lastUpdateDate: todayKey,
+            }
+          : p
+      )),
+    }));
+    return true;
+  }, [farm.plots, setFarm]);
 
   /** 升级品种稀有度（月神甘露） */
   const upgradePlotRarity = useCallback((plotId: number): boolean => {
-    let success = false;
+    const plot = farm.plots.find((p) => p.id === plotId);
+    if (!plot || plot.state !== 'mature' || !plot.varietyId) return false;
 
-    setFarm(prev => {
-      const plot = prev.plots.find((p) => p.id === plotId);
-      if (!plot || plot.state !== 'mature' || !plot.varietyId) return prev;
+    const upgradedVarietyId = pickUpgradedVariety(plot.varietyId);
+    if (!upgradedVarietyId) return false;
 
-      const upgradedVarietyId = pickUpgradedVariety(plot.varietyId);
-      if (!upgradedVarietyId) return prev;
-
-      success = true;
-      return {
-        ...prev,
-        plots: prev.plots.map((p) => (
-          p.id === plotId
-            ? { ...p, varietyId: upgradedVarietyId }
-            : p
-        )),
-      };
-    });
-
-    return success;
-  }, [setFarm]);
+    setFarm((prev) => ({
+      ...prev,
+      plots: prev.plots.map((p) => (
+        p.id === plotId && p.state === 'mature'
+          ? { ...p, varietyId: upgradedVarietyId }
+          : p
+      )),
+    }));
+    return true;
+  }, [farm.plots, setFarm]);
 
   return {
     farm,

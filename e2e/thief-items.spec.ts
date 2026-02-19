@@ -165,6 +165,14 @@ async function goToFarm(page: Page) {
   await expect(page.locator('.farm-grid-perspective')).toBeVisible();
 }
 
+async function openPlotTooltip(page: Page, plotIndex: number = 0) {
+  const targetPlot = page.locator('.farm-grid-perspective > div').nth(plotIndex);
+  await expect(targetPlot).toBeVisible();
+  await targetPlot.click();
+  // Wait one render tick so tooltip actions are attached and stable for clicking.
+  await page.waitForTimeout(80);
+}
+
 async function openDebugToolbar(page: Page) {
   const debugTitle = page.getByText('🧪 Debug Toolbar');
   const resetAll = page.getByRole('button', { name: '🔄 重置所有数据' });
@@ -303,7 +311,7 @@ test.describe('Thief & Items', () => {
     await bootWithSeed(page, seed);
     await goToFarm(page);
 
-    await page.locator('.farm-grid-perspective > div').first().click();
+    await openPlotTooltip(page, 0);
     const trapButton = page.locator('button').filter({ hasText: `🪤 ${zh.itemName('trap-net')}` }).first();
     await expect(trapButton).toBeVisible();
     await trapButton.click();
@@ -360,7 +368,7 @@ test.describe('Thief & Items', () => {
     await expect(barrierButton).toBeVisible();
     await barrierButton.click();
 
-    await expect(page.getByText(zh.itemGuardianBarrierActive)).toBeVisible();
+    await expect(page.locator('button').filter({ hasText: zh.itemGuardianBarrierActive }).first()).toBeVisible();
 
     await setDebugMultiplier10000x(page);
     await page.waitForTimeout(6000);
@@ -453,7 +461,8 @@ test.describe('Thief & Items', () => {
     await bootWithSeed(page, seed);
     await goToFarm(page);
 
-    const nectarButton = page.locator('button').filter({ hasText: '💧 1' }).first();
+    await openPlotTooltip(page, 0);
+    const nectarButton = page.locator('button').filter({ hasText: `💧 ${zh.itemName('nectar')}` }).first();
     await expect(nectarButton).toBeVisible();
     await nectarButton.click();
 
@@ -502,7 +511,8 @@ test.describe('Thief & Items', () => {
     await bootWithSeed(page, seed);
     await goToFarm(page);
 
-    const moonDewButton = page.locator('button').filter({ hasText: '🌙 1' }).first();
+    await openPlotTooltip(page, 0);
+    const moonDewButton = page.locator('button').filter({ hasText: `🌙 ${zh.itemName('moon-dew')}` }).first();
     await expect(moonDewButton).toBeVisible();
     await moonDewButton.click();
 

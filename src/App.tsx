@@ -515,6 +515,9 @@ function App() {
   }, [farm.plots, consumeShopItem, upgradePlotRarity, addShedItem, enqueueRecoveryToast, t]);
 
   const handleUseNectar = useCallback((plotId: number) => {
+    const plot = farm.plots.find((item) => item.id === plotId);
+    if (!plot || plot.state !== 'withered') return;
+
     const consumed = consumeShopItem('nectar');
     if (!consumed) return;
     const revived = revivePlot(plotId);
@@ -523,7 +526,7 @@ function App() {
       return;
     }
     enqueueRecoveryToast(t.itemNectarSuccess);
-  }, [consumeShopItem, revivePlot, addShedItem, enqueueRecoveryToast, t]);
+  }, [farm.plots, consumeShopItem, revivePlot, addShedItem, enqueueRecoveryToast, t]);
 
   const handleUseStarTracker = useCallback((plotId: number) => {
     const consumed = consumeShopItem('star-tracker');
@@ -535,43 +538,34 @@ function App() {
   }, [consumeShopItem, addPlotTracker, addShedItem]);
 
   const handleUseGuardianBarrier = useCallback(() => {
-    if (farm.guardianBarrierDate === todayKey) return;
+    const alreadyCovered = farm.guardianBarrierDate === todayKey && farm.plots.every((plot) => !plot.thief);
+    if (alreadyCovered) return;
+
     const consumed = consumeShopItem('guardian-barrier');
     if (!consumed) return;
-    const activated = activateGuardianBarrier(todayKey);
-    if (!activated) {
-      addShedItem('guardian-barrier', 1);
-      return;
-    }
+
+    activateGuardianBarrier(todayKey);
     enqueueRecoveryToast(t.itemGuardianBarrierActive);
-  }, [farm.guardianBarrierDate, todayKey, consumeShopItem, activateGuardianBarrier, addShedItem, enqueueRecoveryToast, t]);
+  }, [farm.guardianBarrierDate, farm.plots, todayKey, consumeShopItem, activateGuardianBarrier, enqueueRecoveryToast, t]);
 
   const handleUseTrapNet = useCallback((plotId: number) => {
+    const targetPlot = farm.plots.find((plot) => plot.id === plotId);
+    if (!targetPlot?.thief) return;
+
     const consumed = consumeShopItem('trap-net');
     if (!consumed) return;
 
-    let success = false;
-    setFarm((prev) => {
-      const targetPlot = prev.plots.find((plot) => plot.id === plotId);
-      if (!targetPlot?.thief) return prev;
-      success = true;
-      return {
-        ...prev,
-        plots: prev.plots.map((plot) => (
-          plot.id === plotId
-            ? { ...plot, thief: undefined }
-            : plot
-        )),
-      };
-    });
-
-    if (!success) {
-      addShedItem('trap-net', 1);
-      return;
-    }
+    setFarm((prev) => ({
+      ...prev,
+      plots: prev.plots.map((plot) => (
+        plot.id === plotId
+          ? { ...plot, thief: undefined }
+          : plot
+      )),
+    }));
     addCoins(100);
     enqueueRecoveryToast(t.thiefCaught);
-  }, [consumeShopItem, setFarm, addShedItem, addCoins, enqueueRecoveryToast, t]);
+  }, [farm.plots, consumeShopItem, setFarm, addCoins, enqueueRecoveryToast, t]);
 
   // ─── Gene injection handler ───
   const handleGeneInject = useCallback((galaxyId: import('./types/farm').GalaxyId, quality: import('./types/slicing').SeedQuality) => {

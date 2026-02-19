@@ -535,6 +535,8 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
   const canUseNectar = plot.state === 'withered' && nectarCount > 0;
   const canUseStarTracker = (plot.state === 'growing' || plot.state === 'mature') && starTrackerCount > 0 && !plot.hasTracker;
   const canUseTrapNet = Boolean(plot.thief) && trapNetCount > 0;
+  const shouldPreferMatureTooltip = canUseMoonDew || canUseStarTracker;
+  const shouldPreferWitheredTooltip = canUseNectar;
   const thiefTotalMs = plot.thief ? Math.max(1, plot.thief.stealsAt - plot.thief.appearedAt) : 1;
   const thiefRemainingMs = plot.thief ? Math.max(0, plot.thief.stealsAt - nowTimestamp) : 0;
   const thiefElapsedPercent = plot.thief
@@ -753,7 +755,14 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
         {/* Mature plot */}
         {plot.state === 'mature' && variety && (
           <button
-            onClick={onHarvestClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (shouldPreferMatureTooltip) {
+                onTooltipToggle();
+                return;
+              }
+              onHarvestClick();
+            }}
             className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center px-3 py-3 text-center"
           >
             <span className="text-[clamp(2rem,6vw,2.7rem)]" style={{
@@ -808,10 +817,74 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
           </div>
         )}
 
+        {plot.state === 'mature' && isTooltipOpen && (
+          <div
+            className="absolute left-1/2 top-full z-50 mt-2 w-max max-w-[220px] -translate-x-1/2 rounded-[12px] px-4 py-3 text-[11px] leading-relaxed text-white"
+            style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span
+              className="absolute left-1/2 top-[-6px] -translate-x-1/2"
+              style={{
+                width: 0,
+                height: 0,
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderBottom: '6px solid rgba(0,0,0,0.85)',
+              }}
+            />
+            <div className="font-semibold">{varietyLabel}</div>
+            <div>{t.farmStage('fruit')}</div>
+            <div className="flex flex-col gap-1.5 mt-2">
+              {canUseMoonDew && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUseMoonDew();
+                  }}
+                  className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                  style={{ color: '#000', backgroundColor: '#fbbf24' }}
+                >
+                  🌙 {t.itemName('moon-dew')} · {moonDewCount}
+                </button>
+              )}
+              {canUseStarTracker && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUseStarTracker();
+                  }}
+                  className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                  style={{ color: '#000', backgroundColor: '#60a5fa' }}
+                >
+                  📡 {t.itemName('star-tracker')} · {starTrackerCount}
+                </button>
+              )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onHarvestClick();
+                }}
+                className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                style={{ color: '#000', backgroundColor: '#fbbf24' }}
+              >
+                ✋ {t.farmHarvest}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Withered plot */}
         {plot.state === 'withered' && (
           <button
-            onClick={onClearClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (shouldPreferWitheredTooltip) {
+                onTooltipToggle();
+                return;
+              }
+              onClearClick();
+            }}
             className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center px-3 py-3 text-center"
           >
             <span className="text-[clamp(1.9rem,6vw,2.5rem)] grayscale">💀</span>
@@ -839,6 +912,50 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
             >
               {`💧 ${nectarCount}`}
             </button>
+          </div>
+        )}
+
+        {plot.state === 'withered' && isTooltipOpen && (
+          <div
+            className="absolute left-1/2 top-full z-50 mt-2 w-max max-w-[220px] -translate-x-1/2 rounded-[12px] px-4 py-3 text-[11px] leading-relaxed text-white"
+            style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span
+              className="absolute left-1/2 top-[-6px] -translate-x-1/2"
+              style={{
+                width: 0,
+                height: 0,
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderBottom: '6px solid rgba(0,0,0,0.85)',
+              }}
+            />
+            <div>{negativeStatusText ?? t.farmWithered}</div>
+            <div className="flex flex-col gap-1.5 mt-2">
+              {canUseNectar && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUseNectar();
+                  }}
+                  className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                  style={{ color: '#000', backgroundColor: '#38bdf8' }}
+                >
+                  💧 {t.itemName('nectar')} · {nectarCount}
+                </button>
+              )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClearClick();
+                }}
+                className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                style={{ color: theme.textMuted, backgroundColor: `${theme.border}66` }}
+              >
+                {t.farmClear}
+              </button>
+            </div>
           </div>
         )}
 
