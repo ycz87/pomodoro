@@ -32,7 +32,10 @@ function migrateFarm(raw: unknown): FarmStorage {
   };
 
   if (Array.isArray(s.collection)) {
-    result.collection = s.collection as CollectedVariety[];
+    result.collection = (s.collection as CollectedVariety[]).map((record) => ({
+      ...record,
+      isMutant: record.isMutant === true ? true : undefined,
+    }));
   }
 
   if (Array.isArray(s.plots)) {
@@ -78,6 +81,9 @@ export function useFarmStorage() {
             seedQuality,
             varietyId,
             progress: 0,
+            mutationStatus: 'none',
+            mutationChance: 0.02,
+            isMutant: false,
             accumulatedMinutes: 0,
             plantedDate: todayKey,
             lastUpdateDate: todayKey,
@@ -111,6 +117,9 @@ export function useFarmStorage() {
             seedQuality,
             varietyId,
             progress: 0,
+            mutationStatus: 'none',
+            mutationChance: 0.02,
+            isMutant: false,
             accumulatedMinutes: 0,
             plantedDate: todayKey,
             lastUpdateDate: todayKey,
@@ -126,6 +135,7 @@ export function useFarmStorage() {
   /** 收获地块 */
   const harvestPlot = useCallback((plotId: number, todayKey: string) => {
     let harvestedVariety: VarietyId | undefined;
+    let harvestedIsMutant = false;
     let isNew = false;
     let collectedCount = 0;
     let rewardSeedQuality: SeedQuality | undefined;
@@ -135,16 +145,29 @@ export function useFarmStorage() {
       if (!plot || plot.state !== 'mature' || !plot.varietyId) return prev;
 
       harvestedVariety = plot.varietyId;
-      const existing = prev.collection.find(c => c.varietyId === plot.varietyId);
+      harvestedIsMutant = plot.isMutant === true;
+      const isSameCollectionEntry = (record: CollectedVariety): boolean => (
+        record.varietyId === plot.varietyId
+        && (record.isMutant === true) === harvestedIsMutant
+      );
+      const existing = prev.collection.find(isSameCollectionEntry);
       isNew = !existing;
       collectedCount = existing ? existing.count + 1 : 1;
       rewardSeedQuality = isNew ? (plot.seedQuality ?? 'normal') : undefined;
 
       const newCollection = existing
         ? prev.collection.map(c =>
-            c.varietyId === plot.varietyId ? { ...c, count: c.count + 1 } : c
+            isSameCollectionEntry(c) ? { ...c, count: c.count + 1 } : c
           )
-        : [...prev.collection, { varietyId: plot.varietyId, firstObtainedDate: todayKey, count: 1 }];
+        : [
+            ...prev.collection,
+            {
+              varietyId: plot.varietyId,
+              isMutant: harvestedIsMutant ? true : undefined,
+              firstObtainedDate: todayKey,
+              count: 1,
+            },
+          ];
       const targetPlotCount = getPlotCount(newCollection);
       const nextPlots = prev.plots.map(p => (p.id === plotId ? createEmptyPlot(plotId) : p));
 
@@ -155,22 +178,32 @@ export function useFarmStorage() {
       };
     });
 
-    return { varietyId: harvestedVariety, isNew, collectedCount, rewardSeedQuality };
+    return {
+      varietyId: harvestedVariety,
+      isMutant: harvestedIsMutant,
+      isNew,
+      collectedCount,
+      rewardSeedQuality,
+    };
   }, [setFarm]);
 
   /** 卖出品种（仅减少图鉴 count，条目保留） */
-  const sellVariety = useCallback((varietyId: VarietyId): boolean => {
+  const sellVariety = useCallback((varietyId: VarietyId, isMutant: boolean = false): boolean => {
     let success = false;
 
     setFarm(prev => {
-      const record = prev.collection.find(item => item.varietyId === varietyId);
+      const isSameCollectionEntry = (record: CollectedVariety): boolean => (
+        record.varietyId === varietyId
+        && (record.isMutant === true) === isMutant
+      );
+      const record = prev.collection.find(isSameCollectionEntry);
       if (!record || record.count <= 0) return prev;
       success = true;
 
       return {
         ...prev,
         collection: prev.collection.map(item => (
-          item.varietyId === varietyId
+          isSameCollectionEntry(item)
             ? { ...item, count: Math.max(0, item.count - 1) }
             : item
         )),
@@ -191,6 +224,28 @@ export function useFarmStorage() {
   /** 批量更新地块（生长引擎调用后写回） */
   const updatePlots = useCallback((newPlots: Plot[]) => {
     setFarm(prev => ({ ...prev, plots: newPlots }));
+  }, [setFarm]);
+
+  /** 更新单个地块的变异概率（返回是否成功） */
+  const updatePlotMutationChance = useCallback((plotId: number, newChance: number): boolean => {
+    let success = false;
+    const clampedChance = Math.max(0, Math.min(1, newChance));
+
+    setFarm(prev => {
+      const targetPlot = prev.plots.find(p => p.id === plotId);
+      if (!targetPlot) return prev;
+      success = true;
+      return {
+        ...prev,
+        plots: prev.plots.map(p => (
+          p.id === plotId
+            ? { ...p, mutationChance: clampedChance }
+            : p
+        )),
+      };
+    });
+
+    return success;
   }, [setFarm]);
 
   /** 购买地块并扩容（返回是否成功） */
@@ -233,6 +288,7 @@ export function useFarmStorage() {
     sellVariety,
     clearPlot,
     updatePlots,
+    updatePlotMutationChance,
     buyPlot,
     updateActiveDate,
   };

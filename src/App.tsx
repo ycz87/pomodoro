@@ -42,6 +42,7 @@ import { updatePity as updatePityCalc } from './slicing/engine';
 import { FarmPage } from './components/FarmPage';
 import { MarketPage } from './components/MarketPage';
 import { DebugToolbar } from './components/DebugToolbar';
+import { Toast } from './components/Toast';
 import { useTimer } from './hooks/useTimer';
 import type { TimerPhase } from './hooks/useTimer';
 import { useProjectTimer } from './hooks/useProjectTimer';
@@ -68,6 +69,7 @@ import {
   calculateOfflineGrowth,
   calculateFocusBoost,
   getWitherStatus,
+  type MutationOutcome,
   updatePlotGrowth,
   witherPlots,
 } from './farm/growth';
@@ -98,6 +100,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<'focus' | 'warehouse' | 'farm' | 'market'>('focus');
   const [debugMode, setDebugMode] = useState(() => localStorage.getItem('watermelon-debug') === 'true');
   const [timeMultiplier, setTimeMultiplier] = useState(1);
+  const [mutationToastQueue, setMutationToastQueue] = useState<MutationOutcome[]>([]);
   const suppressCelebrationRef = useRef(false);
   const timeMultiplierRef = useRef(timeMultiplier);
 
@@ -122,6 +125,7 @@ function App() {
     updatePityCounter,
     consumeSeed,
     consumeItem,
+    consumeShopItem,
     addInjectedSeed,
     consumeInjectedSeed,
     addHybridSeed,
@@ -129,12 +133,24 @@ function App() {
   } = useShedStorage();
 
   // Farm storage
-  const { farm, setFarm, plantSeed, plantSeedWithVariety, harvestPlot, sellVariety, clearPlot, updatePlots, buyPlot, updateActiveDate } = useFarmStorage();
+  const {
+    farm,
+    setFarm,
+    plantSeed,
+    plantSeedWithVariety,
+    harvestPlot,
+    sellVariety,
+    clearPlot,
+    updatePlots,
+    buyPlot,
+    updateActiveDate,
+  } = useFarmStorage();
   const { geneInventory, addFragment, removeFragment, removeFragmentsByGalaxy } = useGeneStorage();
   const { balance, addCoins, spendCoins } = useMelonCoin();
   const farmPlotsRef = useRef(farm.plots);
   const updatePlotsRef = useRef(updatePlots);
   const sellingRef = useRef(false);
+  const mutationGunMutexRef = useRef(false);
 
   // Slicing scene state
   const [slicingMelon, setSlicingMelon] = useState<'ripe' | 'legendary' | null>(null);
@@ -159,6 +175,35 @@ function App() {
   const todayKey = getTodayKey();
   const todayFocusMinutes = useMemo(() => getDayMinutes(records, todayKey), [records, todayKey]);
   const farmUpdatedRef = useRef(false);
+  const activeMutationToast = mutationToastQueue[0] ?? null;
+
+  const enqueueMutationToasts = useCallback((toasts: MutationOutcome[]) => {
+    if (toasts.length === 0) return;
+    setMutationToastQueue((prev) => [...prev, ...toasts]);
+  }, []);
+
+  const dismissMutationToast = useCallback(() => {
+    setMutationToastQueue((prev) => prev.slice(1));
+  }, []);
+
+  const applyGrowthWithMutation = useCallback((
+    plots: Plot[],
+    growthMinutes: number,
+    nowTimestamp: number,
+  ): { plots: Plot[]; mutationToasts: MutationOutcome[] } => {
+    const mutationToasts: MutationOutcome[] = [];
+    const nextPlots = plots.map((plot) => {
+      if (plot.state !== 'growing') return plot;
+
+      const growthResult = updatePlotGrowth(plot, growthMinutes, nowTimestamp);
+      if (growthResult.mutationOutcome) {
+        mutationToasts.push(growthResult.mutationOutcome);
+      }
+      return growthResult.plot;
+    });
+
+    return { plots: nextPlots, mutationToasts };
+  }, []);
 
   useEffect(() => {
     const nowTimestamp = Date.now();
@@ -185,11 +230,9 @@ function App() {
       const offlineGrowthMinutes = calculateOfflineGrowth(witherStatus.inactiveMinutes);
       const focusBoostMinutes = calculateFocusBoost(todayFocusMinutes);
       const totalGrowthMinutes = (offlineGrowthMinutes + focusBoostMinutes) * timeMultiplierRef.current;
-      const newPlots = farm.plots.map(p => {
-        if (p.state !== 'growing') return p;
-        return updatePlotGrowth(p, totalGrowthMinutes, nowTimestamp).plot;
-      });
+      const { plots: newPlots, mutationToasts } = applyGrowthWithMutation(farm.plots, totalGrowthMinutes, nowTimestamp);
       updatePlots(newPlots);
+      enqueueMutationToasts(mutationToasts);
       updateActiveDate(todayKey, witherStatus.inactiveDays, nowTimestamp);
     }
     farmUpdatedRef.current = true;
@@ -202,11 +245,13 @@ function App() {
     const intervalId = window.setInterval(() => {
       const minutesPerTick = (TICK_INTERVAL_MS / 60000) * timeMultiplier;
       const nowTimestamp = Date.now();
-      const newPlots = farmPlotsRef.current.map((plot) => {
-        if (plot.state !== 'growing') return plot;
-        return updatePlotGrowth(plot, minutesPerTick, nowTimestamp).plot;
-      });
+      const { plots: newPlots, mutationToasts } = applyGrowthWithMutation(
+        farmPlotsRef.current,
+        minutesPerTick,
+        nowTimestamp,
+      );
       updatePlotsRef.current(newPlots);
+      enqueueMutationToasts(mutationToasts);
     }, TICK_INTERVAL_MS);
 
     return () => window.clearInterval(intervalId);
@@ -296,14 +341,15 @@ function App() {
     return result;
   }, [addCoins, addFragment, harvestPlot, todayKey]);
 
-  const handleSellVariety = useCallback((varietyId: VarietyId) => {
-    const price = VARIETY_DEFS[varietyId]?.sellPrice ?? 0;
+  const handleSellVariety = useCallback((varietyId: VarietyId, isMutant: boolean = false) => {
+    const basePrice = VARIETY_DEFS[varietyId]?.sellPrice ?? 0;
+    const price = basePrice * (isMutant ? 3 : 1);
     if (price <= 0) return;
 
     if (sellingRef.current) return;
     sellingRef.current = true;
     try {
-      const sold = sellVariety(varietyId);
+      const sold = sellVariety(varietyId, isMutant);
       if (sold) {
         addCoins(price);
       }
@@ -331,6 +377,42 @@ function App() {
       addCoins(price);
     }
   }, [farm.plots.length, spendCoins, buyPlot, addCoins]);
+
+  const handleUseMutationGun = useCallback((plotId: number) => {
+    if (mutationGunMutexRef.current) return;
+
+    // Check shed items from current render snapshot
+    const gunCount = (shed.items as Record<string, number>)['mutation-gun'] ?? 0;
+    if (gunCount <= 0) return;
+
+    mutationGunMutexRef.current = true;
+    try {
+      // Update farm chance via updater (reads latest state)
+      setFarm(prev => {
+        const targetPlot = prev.plots.find((p) => p.id === plotId);
+        if (!targetPlot || targetPlot.state !== 'growing') return prev;
+        if ((targetPlot.mutationStatus ?? 'none') !== 'none') return prev;
+
+        const currentChance = targetPlot.mutationChance ?? 0.02;
+        const nextChance = Math.min(1, currentChance + 0.20);
+        if (nextChance <= currentChance) return prev;
+
+        return {
+          ...prev,
+          plots: prev.plots.map(p =>
+            p.id === plotId ? { ...p, mutationChance: nextChance } : p
+          ),
+        };
+      });
+
+      // Consume gun item via updater (reads latest shed state)
+      consumeShopItem('mutation-gun');
+    } finally {
+      setTimeout(() => {
+        mutationGunMutexRef.current = false;
+      }, 0);
+    }
+  }, [shed.items, setFarm, consumeShopItem]);
 
   // ─── Gene injection handler ───
   const handleGeneInject = useCallback((galaxyId: import('./types/farm').GalaxyId, quality: import('./types/slicing').SeedQuality) => {
@@ -449,6 +531,9 @@ function App() {
 
   // i18n
   const t = useMemo(() => getMessages(settings.language), [settings.language]);
+  const activeMutationToastMessage = activeMutationToast
+    ? `${t.mutationRevealed} · ${activeMutationToast.status === 'positive' ? t.mutationPositive : t.mutationNegative}`
+    : null;
 
   // 连续打卡
   const streak = useMemo(() => getStreak(records), [records]);
@@ -1100,6 +1185,7 @@ function App() {
             onPlantHybrid={handleFarmPlantHybrid}
             onHarvest={handleFarmHarvest}
             onClear={clearPlot}
+            onUseMutationGun={handleUseMutationGun}
             onInject={handleGeneInject}
             onFusion={handleGeneFusion}
             onGoWarehouse={() => setActiveTab('warehouse')}
@@ -1132,6 +1218,16 @@ function App() {
 
         {/* PWA 安装提示 */}
         <InstallPrompt />
+
+        {activeMutationToastMessage && (
+          <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[140]">
+            <Toast
+              message={activeMutationToastMessage}
+              duration={2600}
+              onDone={dismissMutationToast}
+            />
+          </div>
+        )}
 
         {/* Debug: version badge — helps confirm PWA cache is updated */}
         <div style={{

@@ -7,6 +7,7 @@ import {
   createEmptyPlot,
 } from '../src/types/farm';
 import type { CollectedVariety, Plot, VarietyId } from '../src/types/farm';
+import { SHOP_ITEMS } from '../src/types/market';
 import { zh } from '../src/i18n/locales/zh';
 import { en } from '../src/i18n/locales/en';
 import { ja } from '../src/i18n/locales/ja';
@@ -247,13 +248,14 @@ test.describe('Market Sell', () => {
 
     await goToMarket(page);
 
-    await expect(page.getByText(zh.marketBuyComingSoon)).toBeVisible();
+    const firstShopItem = SHOP_ITEMS[0];
+    await expect(page.locator('button').filter({ hasText: zh.itemName(firstShopItem.id) }).first()).toBeVisible();
 
     await openSellTab(page);
     await expect(page.getByText(zh.marketSellEmpty)).toBeVisible();
 
     await page.getByRole('button', { name: zh.marketTabBuy }).click();
-    await expect(page.getByText(zh.marketBuyComingSoon)).toBeVisible();
+    await expect(page.locator('button').filter({ hasText: zh.itemName(firstShopItem.id) }).first()).toBeVisible();
   });
 
   test('AC7: 所有品种售价与设计文档一致', async () => {

@@ -495,7 +495,7 @@ export interface StageDef {
 
 export const GROWTH_STAGES: StageDef[] = [
   { id: 'seed',   threshold: 0,    emoji: '🌰' },
-  { id: 'sprout', threshold: 0.15, emoji: '🌱' },
+  { id: 'sprout', threshold: 0.20, emoji: '🌱' },
   { id: 'leaf',   threshold: 0.35, emoji: '🌿' },
   { id: 'flower', threshold: 0.55, emoji: '🌼' },
   { id: 'green',  threshold: 0.80, emoji: '🍈' },
@@ -504,6 +504,7 @@ export const GROWTH_STAGES: StageDef[] = [
 
 // ─── 地块 ───
 export type PlotState = 'empty' | 'growing' | 'mature' | 'withered';
+export type MutationStatus = 'none' | 'positive' | 'negative';
 
 export interface Plot {
   id: number;
@@ -511,6 +512,9 @@ export interface Plot {
   seedQuality?: SeedQuality;
   varietyId?: VarietyId;
   progress: number;       // 0-1
+  mutationStatus?: MutationStatus; // 默认 'none'
+  mutationChance?: number; // 默认 0.02
+  isMutant?: boolean; // 默认 false
   accumulatedMinutes: number; // 累积成长分钟（Phase 2）
   plantedDate?: string;   // ISO date
   lastUpdateDate?: string; // ISO date (最后一次生长更新)
@@ -522,6 +526,9 @@ export function createEmptyPlot(id: number): Plot {
     id,
     state: 'empty',
     progress: 0,
+    mutationStatus: 'none',
+    mutationChance: 0.02,
+    isMutant: false,
     accumulatedMinutes: 0,
     lastActivityTimestamp: 0,
   };
@@ -530,6 +537,7 @@ export function createEmptyPlot(id: number): Plot {
 // ─── 图鉴 ───
 export interface CollectedVariety {
   varietyId: VarietyId;
+  isMutant?: boolean;
   firstObtainedDate: string;
   count: number;
 }

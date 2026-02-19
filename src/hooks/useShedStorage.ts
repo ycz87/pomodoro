@@ -205,6 +205,21 @@ export function useShedStorage() {
     return success;
   }, [setShed]);
 
+  /** 消耗一个商城道具（返回是否成功） */
+  const consumeShopItem = useCallback((id: string): boolean => {
+    let success = false;
+    setShed(prev => {
+      const items = prev.items as Record<string, number>;
+      if ((items[id] ?? 0) <= 0) return prev;
+      success = true;
+      return {
+        ...prev,
+        items: { ...items, [id]: items[id] - 1 } as ShedStorage['items'],
+      };
+    });
+    return success;
+  }, [setShed]);
+
   return {
     shed,
     addSeeds,
@@ -213,6 +228,7 @@ export function useShedStorage() {
     updatePityCounter,
     consumeSeed,
     consumeItem,
+    consumeShopItem,
     addInjectedSeed,
     consumeInjectedSeed,
     addHybridSeed,
