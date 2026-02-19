@@ -81,6 +81,8 @@ import type { AppMode } from './types/project';
 import type { ProjectRecord } from './types/project';
 import { DEFAULT_FARM_STORAGE, VARIETY_DEFS } from './types/farm';
 import type { CollectedVariety, Plot, VarietyId } from './types/farm';
+import { SHOP_ITEMS, PLOT_PRICES } from './types/market';
+import type { ShopItemId } from './types/market';
 
 function App() {
   const [currentTask, setCurrentTask] = useState('');
@@ -127,9 +129,9 @@ function App() {
   } = useShedStorage();
 
   // Farm storage
-  const { farm, setFarm, plantSeed, plantSeedWithVariety, harvestPlot, sellVariety, clearPlot, updatePlots, updateActiveDate } = useFarmStorage();
+  const { farm, setFarm, plantSeed, plantSeedWithVariety, harvestPlot, sellVariety, clearPlot, updatePlots, buyPlot, updateActiveDate } = useFarmStorage();
   const { geneInventory, addFragment, removeFragment, removeFragmentsByGalaxy } = useGeneStorage();
-  const { balance, addCoins } = useMelonCoin();
+  const { balance, addCoins, spendCoins } = useMelonCoin();
   const farmPlotsRef = useRef(farm.plots);
   const updatePlotsRef = useRef(updatePlots);
   const sellingRef = useRef(false);
@@ -309,6 +311,26 @@ function App() {
       sellingRef.current = false;
     }
   }, [sellVariety, addCoins]);
+
+  const handleBuyItem = useCallback((itemId: ShopItemId) => {
+    const itemDef = SHOP_ITEMS.find((item) => item.id === itemId);
+    if (!itemDef) return;
+    const spent = spendCoins(itemDef.price);
+    if (!spent) return;
+    addShedItem(itemId, 1);
+  }, [addShedItem, spendCoins]);
+
+  const handleBuyPlot = useCallback((plotIndex: number) => {
+    const price = PLOT_PRICES[plotIndex];
+    if (!price) return;
+    if (farm.plots.length > plotIndex) return;
+    const spent = spendCoins(price);
+    if (!spent) return;
+    const bought = buyPlot(plotIndex);
+    if (!bought) {
+      addCoins(price);
+    }
+  }, [farm.plots.length, spendCoins, buyPlot, addCoins]);
 
   // ─── Gene injection handler ───
   const handleGeneInject = useCallback((galaxyId: import('./types/farm').GalaxyId, quality: import('./types/slicing').SeedQuality) => {
@@ -1089,6 +1111,9 @@ function App() {
             balance={balance}
             collection={farm.collection}
             onSellVariety={handleSellVariety}
+            onBuyItem={handleBuyItem}
+            onBuyPlot={handleBuyPlot}
+            unlockedPlotCount={farm.plots.length}
             messages={t}
           />
         )}

@@ -1,21 +1,24 @@
 /**
  * MarketPage — 商城页面（买入 / 卖出）
  *
- * Phase 4 Step 1 仅实现卖出能力：
- * - 列出背包中可卖出的西瓜（count > 0 且 sellPrice > 0）
- * - 确认后卖出 1 个
+ * 买入 Tab 支持常驻道具购买与地块扩展，卖出 Tab 支持西瓜售卖。
  */
 import { useMemo, useState } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import type { Messages } from '../i18n/types';
 import { VARIETY_DEFS } from '../types/farm';
 import type { CollectedVariety, VarietyId } from '../types/farm';
+import type { ShopItemDef, ShopItemId } from '../types/market';
+import { SHOP_ITEMS, PLOT_PRICES } from '../types/market';
 import { ConfirmModal } from './ConfirmModal';
 
 interface MarketPageProps {
   balance: number;
   collection: CollectedVariety[];
   onSellVariety: (varietyId: VarietyId) => void;
+  onBuyItem: (itemId: ShopItemId) => void;
+  onBuyPlot: (plotIndex: number) => void;
+  unlockedPlotCount: number;
   messages: Messages;
 }
 
@@ -29,11 +32,17 @@ interface SellableVariety {
   sellPrice: number;
 }
 
+type PendingPurchase =
+  | { type: 'item'; item: ShopItemDef }
+  | { type: 'plot'; plotIndex: number; price: number };
+
 export function MarketPage(props: MarketPageProps) {
   const theme = useTheme();
-  const { balance, collection, onSellVariety, messages } = props;
+  const { balance, collection, onSellVariety, onBuyItem, onBuyPlot, unlockedPlotCount, messages } = props;
   const [activeTab, setActiveTab] = useState<MarketTab>('buy');
   const [pendingSellId, setPendingSellId] = useState<VarietyId | null>(null);
+  const [pendingPurchase, setPendingPurchase] = useState<PendingPurchase | null>(null);
+  const [recentBoughtItemId, setRecentBoughtItemId] = useState<ShopItemId | null>(null);
 
   const sellableVarieties = useMemo<SellableVariety[]>(() => {
     return collection.flatMap((entry) => {
@@ -61,6 +70,41 @@ export function MarketPage(props: MarketPageProps) {
     }
     onSellVariety(pendingVariety.varietyId);
     setPendingSellId(null);
+  };
+
+  const buyablePlots = useMemo(() => {
+    return Object.entries(PLOT_PRICES)
+      .map(([index, price]) => ({
+        plotIndex: Number(index),
+        price,
+      }))
+      .sort((a, b) => a.plotIndex - b.plotIndex);
+  }, []);
+
+  const handleConfirmPurchase = () => {
+    if (!pendingPurchase) return;
+
+    if (pendingPurchase.type === 'item') {
+      if (balance < pendingPurchase.item.price) {
+        setPendingPurchase(null);
+        return;
+      }
+      onBuyItem(pendingPurchase.item.id);
+      setRecentBoughtItemId(pendingPurchase.item.id);
+      window.setTimeout(() => setRecentBoughtItemId((prev) => (
+        prev === pendingPurchase.item.id ? null : prev
+      )), 1000);
+      setPendingPurchase(null);
+      return;
+    }
+
+    const { plotIndex, price } = pendingPurchase;
+    if (balance < price || unlockedPlotCount > plotIndex) {
+      setPendingPurchase(null);
+      return;
+    }
+    onBuyPlot(plotIndex);
+    setPendingPurchase(null);
   };
 
   return (
@@ -105,11 +149,88 @@ export function MarketPage(props: MarketPageProps) {
         </div>
 
         {activeTab === 'buy' && (
-          <div
-            className="text-sm text-center py-10 rounded-xl border"
-            style={{ color: theme.textMuted, borderColor: theme.border, backgroundColor: theme.inputBg }}
-          >
-            {messages.marketBuyComingSoon}
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              {SHOP_ITEMS.map((item) => {
+                const affordable = balance >= item.price;
+                const itemName = messages.itemName(item.id);
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setPendingPurchase({ type: 'item', item })}
+                    disabled={!affordable}
+                    className="w-full p-3 rounded-xl border transition-all text-left disabled:cursor-not-allowed cursor-pointer"
+                    style={{
+                      backgroundColor: theme.inputBg,
+                      borderColor: theme.border,
+                      opacity: affordable ? 1 : 0.55,
+                    }}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xl">{item.emoji}</span>
+                        <div className="text-sm font-medium truncate" style={{ color: theme.text }}>
+                          {itemName}
+                        </div>
+                      </div>
+                      <div className="shrink-0 flex items-center gap-2">
+                        {recentBoughtItemId === item.id && (
+                          <span className="text-sm animate-bounce" style={{ color: '#10b981' }}>✅</span>
+                        )}
+                        <span
+                          className="text-sm font-semibold"
+                          style={{ color: affordable ? '#fbbf24' : '#ef4444' }}
+                        >
+                          {item.price} 💰
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="pt-4 border-t" style={{ borderColor: theme.border }}>
+              <h3 className="text-sm font-semibold mb-2" style={{ color: theme.text }}>
+                {messages.marketPlotSection}
+              </h3>
+              <div className="flex flex-col gap-2">
+                {buyablePlots.map((plot) => {
+                  const unlocked = unlockedPlotCount > plot.plotIndex;
+                  const affordable = balance >= plot.price;
+                  const disabled = unlocked || !affordable;
+                  return (
+                    <button
+                      key={plot.plotIndex}
+                      onClick={() => setPendingPurchase({ type: 'plot', plotIndex: plot.plotIndex, price: plot.price })}
+                      disabled={disabled}
+                      className="w-full p-3 rounded-xl border transition-all text-left disabled:cursor-not-allowed cursor-pointer"
+                      style={{
+                        backgroundColor: theme.inputBg,
+                        borderColor: theme.border,
+                        opacity: disabled ? 0.6 : 1,
+                      }}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="text-sm font-medium" style={{ color: theme.text }}>
+                          {messages.marketPlotName(plot.plotIndex)}
+                        </div>
+                        {unlocked ? (
+                          <div className="text-sm font-medium" style={{ color: '#10b981' }}>{messages.marketPlotUnlocked}</div>
+                        ) : (
+                          <div
+                            className="text-sm font-semibold"
+                            style={{ color: affordable ? '#fbbf24' : '#ef4444' }}
+                          >
+                            {plot.price} 💰
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 
@@ -163,6 +284,29 @@ export function MarketPage(props: MarketPageProps) {
           cancelText={messages.marketSellCancelButton}
           onConfirm={handleConfirmSell}
           onCancel={() => setPendingSellId(null)}
+        />
+      )}
+
+      {pendingPurchase && (
+        <ConfirmModal
+          title={pendingPurchase.type === 'item' ? messages.marketBuyConfirmTitle : messages.marketPlotConfirmTitle}
+          message={
+            pendingPurchase.type === 'item'
+              ? messages.marketBuyConfirmMessage(
+                messages.itemName(pendingPurchase.item.id),
+                pendingPurchase.item.price,
+                balance,
+              )
+              : messages.marketPlotConfirmMessage(
+                messages.marketPlotName(pendingPurchase.plotIndex),
+                pendingPurchase.price,
+                balance,
+              )
+          }
+          confirmText={messages.marketBuyConfirmButton}
+          cancelText={messages.marketBuyCancelButton}
+          onConfirm={handleConfirmPurchase}
+          onCancel={() => setPendingPurchase(null)}
         />
       )}
     </div>

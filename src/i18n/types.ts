@@ -337,6 +337,16 @@ export interface Messages {
   marketTabBuy: string;
   marketTabSell: string;
   marketBuyComingSoon: string;
+  marketBuyConfirmTitle: string;
+  marketBuyConfirmMessage: (name: string, price: number, balance: number) => string;
+  marketBuyConfirmButton: string;
+  marketBuyCancelButton: string;
+  marketBuySuccess: string;
+  marketPlotSection: string;
+  marketPlotName: (index: number) => string;
+  marketPlotUnlocked: string;
+  marketPlotConfirmTitle: string;
+  marketPlotConfirmMessage: (name: string, price: number, balance: number) => string;
   marketSellEmpty: string;
   marketSellOwned: (count: number) => string;
   marketSellConfirmTitle: string;

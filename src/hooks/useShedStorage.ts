@@ -6,7 +6,7 @@
 import { useCallback } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 import type { ItemId, ShedStorage, SeedQuality, PityCounter, InjectedSeed, HybridSeed } from '../types/slicing';
-import { DEFAULT_SHED_STORAGE, ALL_ITEM_IDS, DEFAULT_PITY, DEFAULT_SEED_COUNTS } from '../types/slicing';
+import { DEFAULT_SHED_STORAGE, DEFAULT_PITY, DEFAULT_SEED_COUNTS } from '../types/slicing';
 import { HYBRID_GALAXY_PAIRS } from '../types/farm';
 
 const SHED_KEY = 'watermelon-shed';
@@ -40,9 +40,12 @@ function migrateShed(raw: unknown): ShedStorage {
   if (typeof s.totalSliced === 'number') result.totalSliced = s.totalSliced;
 
   if (s.items && typeof s.items === 'object') {
-    const items = s.items as Record<string, number>;
-    for (const id of ALL_ITEM_IDS) {
-      if (typeof items[id] === 'number') result.items[id] = items[id];
+    const items = s.items as Record<string, unknown>;
+    const nextItems = result.items as Record<string, number>;
+    for (const [id, value] of Object.entries(items)) {
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        nextItems[id] = value;
+      }
     }
   }
 
@@ -99,11 +102,16 @@ export function useShedStorage() {
     }));
   }, [setShed]);
 
-  const addItem = useCallback((id: ItemId) => {
-    setShed(prev => ({
-      ...prev,
-      items: { ...prev.items, [id]: prev.items[id] + 1 },
-    }));
+  const addItem = useCallback((itemId: string, count: number = 1) => {
+    if (count <= 0) return;
+    setShed(prev => {
+      const nextItems = prev.items as Record<string, number>;
+      const current = nextItems[itemId] ?? 0;
+      return {
+        ...prev,
+        items: { ...nextItems, [itemId]: current + count } as ShedStorage['items'],
+      };
+    });
   }, [setShed]);
 
   const incrementSliced = useCallback(() => {

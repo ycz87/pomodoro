@@ -4,6 +4,14 @@
 
 ---
 
+## [0.30.0] - 2026-02-19
+### Added
+- 🛒 Market buy tab with 14 shop items
+- 🏗️ Plot expansion (plots 5-9, 200-5000 coins)
+- Item inventory storage for shop purchases
+- Purchase confirmation with balance display
+- i18n: 8 languages for buy tab + 14 item names
+
 ## [0.29.0] - 2026-02-19
 ### Added
 - 💰 Melon coin system with localStorage persistence

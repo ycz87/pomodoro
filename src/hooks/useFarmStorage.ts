@@ -193,6 +193,22 @@ export function useFarmStorage() {
     setFarm(prev => ({ ...prev, plots: newPlots }));
   }, [setFarm]);
 
+  /** 购买地块并扩容（返回是否成功） */
+  const buyPlot = useCallback((plotIndex: number): boolean => {
+    if (plotIndex < 0) return false;
+    let success = false;
+    setFarm(prev => {
+      if (prev.plots.length > plotIndex) return prev;
+      const nextPlots = [...prev.plots];
+      while (nextPlots.length <= plotIndex) {
+        nextPlots.push(createEmptyPlot(nextPlots.length));
+      }
+      success = true;
+      return { ...prev, plots: nextPlots };
+    });
+    return success;
+  }, [setFarm]);
+
   /** 更新活跃日信息 */
   const updateActiveDate = useCallback((todayKey: string, consecutiveInactiveDays: number, activityTimestamp: number = Date.now()) => {
     setFarm(prev => ({
@@ -217,6 +233,7 @@ export function useFarmStorage() {
     sellVariety,
     clearPlot,
     updatePlots,
+    buyPlot,
     updateActiveDate,
   };
 }
