@@ -368,6 +368,7 @@ export interface Messages {
   mutationNegative: string;
   mutationWithered: string;
   mutationDowngraded: string;
+  mutationPositiveToast?: (varietyName: string) => string;
   mutationGunUse: string;
   mutationChanceLabel: string;
   farmClear: string;
@@ -393,6 +394,22 @@ export interface Messages {
   formatDuration: (minutes: number) => string;
   farmGoFarm: string;
   farmUnlockHint: (requiredVarieties: number) => string;
+
+  // ─── Thief & Items (v0.32.0) ───
+  thiefAppeared: string;
+  thiefStealing: (minutes: number) => string;
+  thiefStolen: string;
+  thiefCaught: string;
+  thiefNote: string;
+  thiefRecoveryActive: string;
+  thiefRecoveryTask: string;
+  thiefRecovered: string;
+  itemGuardianBarrierActive: string;
+  itemStarTrackerActive: string;
+  itemNectarSuccess: string;
+  itemMoonDewSuccess: string;
+  itemMoonDewFail: string;
+  itemTrapNetSuccess: string;
 
   // ─── Collection ───
   starJourneyTitle: string;

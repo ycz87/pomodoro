@@ -503,8 +503,23 @@ export const GROWTH_STAGES: StageDef[] = [
 ];
 
 // ─── 地块 ───
-export type PlotState = 'empty' | 'growing' | 'mature' | 'withered';
+export type PlotState = 'empty' | 'growing' | 'mature' | 'withered' | 'stolen';
 export type MutationStatus = 'none' | 'positive' | 'negative';
+
+export interface ThiefStatus {
+  appearedAt: number; // 大盗出现时间（ms）
+  stealAt: number; // 预计偷瓜时间（ms）
+}
+
+export interface StolenRecord {
+  id: string;
+  plotId: number;
+  varietyId: VarietyId;
+  stolenAt: number; // 被偷时间（ms）
+  resolved: boolean; // 是否已经处理（追回/过期）
+  recoveredCount: number; // 追回数量
+  recoveredAt?: number; // 追回时间（ms）
+}
 
 export interface Plot {
   id: number;
@@ -519,6 +534,8 @@ export interface Plot {
   plantedDate?: string;   // ISO date
   lastUpdateDate?: string; // ISO date (最后一次生长更新)
   lastActivityTimestamp: number; // 最近活跃时间戳（ms）
+  hasTracker: boolean;    // 星际追踪器
+  thief?: ThiefStatus;
 }
 
 export function createEmptyPlot(id: number): Plot {
@@ -531,6 +548,7 @@ export function createEmptyPlot(id: number): Plot {
     isMutant: false,
     accumulatedMinutes: 0,
     lastActivityTimestamp: 0,
+    hasTracker: false,
   };
 }
 
@@ -549,6 +567,8 @@ export interface FarmStorage {
   lastActiveDate: string; // YYYY-MM-DD
   consecutiveInactiveDays: number; // 连续未活跃天数（用于枯萎检测）
   lastActivityTimestamp: number; // 最近活跃时间戳（ms）
+  guardianBarrierDate: string; // 守护结界生效日期 (YYYY-MM-DD)
+  stolenRecords: StolenRecord[]; // 用于追回机制
 }
 
 export const DEFAULT_FARM_STORAGE: FarmStorage = {
@@ -557,6 +577,8 @@ export const DEFAULT_FARM_STORAGE: FarmStorage = {
   lastActiveDate: '',
   consecutiveInactiveDays: 0,
   lastActivityTimestamp: 0,
+  guardianBarrierDate: '',
+  stolenRecords: [],
 };
 
 export const PLOT_MILESTONES = [

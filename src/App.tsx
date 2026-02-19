@@ -66,11 +66,11 @@ import {
 import { getTodayKey } from './utils/time';
 import { getStreak, getDayMinutes } from './utils/stats';
 import {
+  applyGrowthWithMutation as applyGrowthWithMutationEngine,
   calculateOfflineGrowth,
   calculateFocusBoost,
   getWitherStatus,
   type MutationOutcome,
-  updatePlotGrowth,
   witherPlots,
 } from './farm/growth';
 import { getUnlockedGalaxies } from './farm/galaxy';
@@ -86,21 +86,31 @@ import type { CollectedVariety, Plot, VarietyId } from './types/farm';
 import { SHOP_ITEMS, PLOT_PRICES } from './types/market';
 import type { ShopItemId } from './types/market';
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
 function App() {
   const [currentTask, setCurrentTask] = useState('');
   const [records, setRecords] = useLocalStorage<PomodoroRecord[]>('pomodoro-records', []);
   const [projectRecords, setProjectRecords] = useLocalStorage<ProjectRecord[]>('pomodoro-project-records', []);
   const [settings, setSettings] = useLocalStorage<PomodoroSettings>('pomodoro-settings', DEFAULT_SETTINGS, migrateSettings);
+
+  // i18n - Move up to avoid use-before-declaration
+  const t = useMemo(() => getMessages(settings.language), [settings.language]);
+
+  const theme = THEMES[settings.theme]?.colors ?? THEMES.dark.colors;
+
   const [showHistory, setShowHistory] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   const [achievementCelebrationIds, setAchievementCelebrationIds] = useState<string[]>([]);
   const [mode, setMode] = useState<AppMode>('pomodoro');
   const [showGuide, setShowGuide] = useState(false);
   const [lastRolledStage, setLastRolledStage] = useState<GrowthStage | null>(null);
+
   const [activeTab, setActiveTab] = useState<'focus' | 'warehouse' | 'farm' | 'market'>('focus');
   const [debugMode, setDebugMode] = useState(() => localStorage.getItem('watermelon-debug') === 'true');
   const [timeMultiplier, setTimeMultiplier] = useState(1);
   const [mutationToastQueue, setMutationToastQueue] = useState<MutationOutcome[]>([]);
+  const [recoveryToastQueue, setRecoveryToastQueue] = useState<string[]>([]);
   const suppressCelebrationRef = useRef(false);
   const timeMultiplierRef = useRef(timeMultiplier);
 
@@ -142,8 +152,15 @@ function App() {
     sellVariety,
     clearPlot,
     updatePlots,
+    updatePlotMutationChance,
     buyPlot,
     updateActiveDate,
+    activateGuardianBarrier,
+    addPlotTracker,
+    addStolenRecord,
+    markStolenRecordRecovered,
+    revivePlot,
+    upgradePlotRarity,
   } = useFarmStorage();
   const { geneInventory, addFragment, removeFragment, removeFragmentsByGalaxy } = useGeneStorage();
   const { balance, addCoins, spendCoins } = useMelonCoin();
@@ -176,6 +193,7 @@ function App() {
   const todayFocusMinutes = useMemo(() => getDayMinutes(records, todayKey), [records, todayKey]);
   const farmUpdatedRef = useRef(false);
   const activeMutationToast = mutationToastQueue[0] ?? null;
+  const activeRecoveryToast = recoveryToastQueue[0] ?? null;
 
   const enqueueMutationToasts = useCallback((toasts: MutationOutcome[]) => {
     if (toasts.length === 0) return;
@@ -186,24 +204,27 @@ function App() {
     setMutationToastQueue((prev) => prev.slice(1));
   }, []);
 
-  const applyGrowthWithMutation = useCallback((
+  const enqueueRecoveryToast = useCallback((message: string) => {
+    if (!message) return;
+    setRecoveryToastQueue((prev) => [...prev, message]);
+  }, []);
+
+  const dismissRecoveryToast = useCallback(() => {
+    setRecoveryToastQueue((prev) => prev.slice(1));
+  }, []);
+
+  const runFarmGrowth = useCallback((
     plots: Plot[],
     growthMinutes: number,
     nowTimestamp: number,
-  ): { plots: Plot[]; mutationToasts: MutationOutcome[] } => {
-    const mutationToasts: MutationOutcome[] = [];
-    const nextPlots = plots.map((plot) => {
-      if (plot.state !== 'growing') return plot;
-
-      const growthResult = updatePlotGrowth(plot, growthMinutes, nowTimestamp);
-      if (growthResult.mutationOutcome) {
-        mutationToasts.push(growthResult.mutationOutcome);
-      }
-      return growthResult.plot;
-    });
-
-    return { plots: nextPlots, mutationToasts };
-  }, []);
+    enableThiefRoll: boolean = true,
+  ) => applyGrowthWithMutationEngine(plots, growthMinutes, {
+    nowTimestamp,
+    todayKey,
+    focusMinutesToday: todayFocusMinutes,
+    guardianBarrierDate: farm.guardianBarrierDate,
+    enableThiefRoll,
+  }), [todayKey, todayFocusMinutes, farm.guardianBarrierDate]);
 
   useEffect(() => {
     const nowTimestamp = Date.now();
@@ -230,9 +251,10 @@ function App() {
       const offlineGrowthMinutes = calculateOfflineGrowth(witherStatus.inactiveMinutes);
       const focusBoostMinutes = calculateFocusBoost(todayFocusMinutes);
       const totalGrowthMinutes = (offlineGrowthMinutes + focusBoostMinutes) * timeMultiplierRef.current;
-      const { plots: newPlots, mutationToasts } = applyGrowthWithMutation(farm.plots, totalGrowthMinutes, nowTimestamp);
+      const { plots: newPlots, mutationToasts, stolenRecords } = runFarmGrowth(farm.plots, totalGrowthMinutes, nowTimestamp);
       updatePlots(newPlots);
       enqueueMutationToasts(mutationToasts);
+      stolenRecords.forEach(addStolenRecord);
       updateActiveDate(todayKey, witherStatus.inactiveDays, nowTimestamp);
     }
     farmUpdatedRef.current = true;
@@ -245,17 +267,40 @@ function App() {
     const intervalId = window.setInterval(() => {
       const minutesPerTick = (TICK_INTERVAL_MS / 60000) * timeMultiplier;
       const nowTimestamp = Date.now();
-      const { plots: newPlots, mutationToasts } = applyGrowthWithMutation(
+      const { plots: newPlots, mutationToasts, stolenRecords } = runFarmGrowth(
         farmPlotsRef.current,
         minutesPerTick,
         nowTimestamp,
       );
       updatePlotsRef.current(newPlots);
       enqueueMutationToasts(mutationToasts);
+      stolenRecords.forEach(addStolenRecord);
     }, TICK_INTERVAL_MS);
 
     return () => window.clearInterval(intervalId);
-  }, [timeMultiplier]);
+  }, [timeMultiplier, runFarmGrowth, enqueueMutationToasts, addStolenRecord]);
+
+  // 常规节拍：仅处理大盗倒计时（不触发新判定）
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      const nowTimestamp = Date.now();
+      const { plots: newPlots, stolenRecords } = runFarmGrowth(
+        farmPlotsRef.current,
+        0,
+        nowTimestamp,
+        false,
+      );
+      const currentPlots = farmPlotsRef.current;
+      const changed = newPlots.length !== currentPlots.length
+        || newPlots.some((plot, index) => plot !== currentPlots[index]);
+      if (changed) {
+        updatePlotsRef.current(newPlots);
+      }
+      stolenRecords.forEach(addStolenRecord);
+    }, 60_000);
+
+    return () => window.clearInterval(intervalId);
+  }, [runFarmGrowth, addStolenRecord]);
 
   // Wrapped synthesize with achievement detection
   const handleSynthesize = useCallback((recipe: import('./types').SynthesisRecipe, count: number = 1): boolean => {
@@ -387,32 +432,90 @@ function App() {
 
     mutationGunMutexRef.current = true;
     try {
-      // Update farm chance via updater (reads latest state)
-      setFarm(prev => {
-        const targetPlot = prev.plots.find((p) => p.id === plotId);
-        if (!targetPlot || targetPlot.state !== 'growing') return prev;
-        if ((targetPlot.mutationStatus ?? 'none') !== 'none') return prev;
+      const consumed = consumeShopItem('mutation-gun');
+      if (!consumed) return;
 
-        const currentChance = targetPlot.mutationChance ?? 0.02;
-        const nextChance = Math.min(1, currentChance + 0.20);
-        if (nextChance <= currentChance) return prev;
-
-        return {
-          ...prev,
-          plots: prev.plots.map(p =>
-            p.id === plotId ? { ...p, mutationChance: nextChance } : p
-          ),
-        };
-      });
-
-      // Consume gun item via updater (reads latest shed state)
-      consumeShopItem('mutation-gun');
+      const increased = updatePlotMutationChance(plotId, 0.20);
+      if (!increased) {
+        addShedItem('mutation-gun', 1);
+      }
     } finally {
       setTimeout(() => {
         mutationGunMutexRef.current = false;
       }, 0);
     }
-  }, [shed.items, setFarm, consumeShopItem]);
+  }, [shed.items, updatePlotMutationChance, consumeShopItem, addShedItem]);
+
+  const handleUseMoonDew = useCallback((plotId: number) => {
+    const plot = farm.plots.find((item) => item.id === plotId);
+    if (!plot || plot.state !== 'mature' || !plot.varietyId) return;
+
+    const rarity = VARIETY_DEFS[plot.varietyId]?.rarity;
+    if (rarity === 'legendary') {
+      upgradePlotRarity(plotId);
+      return;
+    }
+
+    const consumed = consumeShopItem('moon-dew');
+    if (!consumed) return;
+
+    const upgraded = upgradePlotRarity(plotId);
+    if (!upgraded) {
+      addShedItem('moon-dew', 1);
+    }
+  }, [farm.plots, consumeShopItem, upgradePlotRarity, addShedItem]);
+
+  const handleUseNectar = useCallback((plotId: number) => {
+    const consumed = consumeShopItem('nectar');
+    if (!consumed) return;
+    const revived = revivePlot(plotId);
+    if (!revived) {
+      addShedItem('nectar', 1);
+    }
+  }, [consumeShopItem, revivePlot, addShedItem]);
+
+  const handleUseStarTracker = useCallback((plotId: number) => {
+    const consumed = consumeShopItem('star-tracker');
+    if (!consumed) return;
+    const tracked = addPlotTracker(plotId);
+    if (!tracked) {
+      addShedItem('star-tracker', 1);
+    }
+  }, [consumeShopItem, addPlotTracker, addShedItem]);
+
+  const handleUseGuardianBarrier = useCallback(() => {
+    if (farm.guardianBarrierDate === todayKey) return;
+    const consumed = consumeShopItem('guardian-barrier');
+    if (!consumed) return;
+    const activated = activateGuardianBarrier(todayKey);
+    if (!activated) {
+      addShedItem('guardian-barrier', 1);
+    }
+  }, [farm.guardianBarrierDate, todayKey, consumeShopItem, activateGuardianBarrier, addShedItem]);
+
+  const handleUseTrapNet = useCallback((plotId: number) => {
+    const consumed = consumeShopItem('trap-net');
+    if (!consumed) return;
+
+    let success = false;
+    setFarm((prev) => {
+      const targetPlot = prev.plots.find((plot) => plot.id === plotId);
+      if (!targetPlot?.thief) return prev;
+      success = true;
+      return {
+        ...prev,
+        plots: prev.plots.map((plot) => (
+          plot.id === plotId
+            ? { ...plot, thief: undefined }
+            : plot
+        )),
+      };
+    });
+
+    if (!success) {
+      addShedItem('trap-net', 1);
+    }
+  }, [consumeShopItem, setFarm, addShedItem]);
 
   // ─── Gene injection handler ───
   const handleGeneInject = useCallback((galaxyId: import('./types/farm').GalaxyId, quality: import('./types/slicing').SeedQuality) => {
@@ -527,12 +630,10 @@ function App() {
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
   const [showProjectExit, setShowProjectExit] = useState(false);
 
-  const theme = THEMES[settings.theme]?.colors ?? THEMES.dark.colors;
-
-  // i18n
-  const t = useMemo(() => getMessages(settings.language), [settings.language]);
   const activeMutationToastMessage = activeMutationToast
-    ? `${t.mutationRevealed} · ${activeMutationToast.status === 'positive' ? t.mutationPositive : t.mutationNegative}`
+    ? (t.mutationPositiveToast
+      ? t.mutationPositiveToast(t.varietyName(activeMutationToast.varietyId))
+      : `${t.mutationRevealed} · ${t.mutationPositive}`)
     : null;
 
   // 连续打卡
@@ -627,6 +728,44 @@ function App() {
     return stage;
   }, [warehouse, updatePity, addItem, achievements]);
 
+  const recoverStolenHarvest = useCallback((focusMinutesAfterCompletion: number) => {
+    if (focusMinutesAfterCompletion < 25) return;
+
+    const nowTimestamp = Date.now();
+    const recoverableRecords = farm.stolenRecords.filter((record) => (
+      !record.resolved && nowTimestamp - record.stolenAt <= ONE_DAY_MS
+    ));
+    if (recoverableRecords.length === 0) return;
+
+    const recoveredCoins = recoverableRecords.reduce((total, record) => {
+      const varietyDef = VARIETY_DEFS[record.varietyId];
+      if (!varietyDef) return total;
+
+      const stolenPlot = farm.plots.find((plot) => (
+        plot.id === record.plotId
+        && plot.state === 'stolen'
+        && plot.varietyId === record.varietyId
+      ));
+      const multiplier = stolenPlot?.isMutant === true ? 3 : 1;
+      return total + (varietyDef.sellPrice * 0.5 * multiplier);
+    }, 0);
+
+    recoverableRecords.forEach((record) => {
+      markStolenRecordRecovered(record.stolenAt);
+    });
+    if (recoveredCoins > 0) {
+      addCoins(recoveredCoins);
+    }
+    enqueueRecoveryToast(t.thiefRecovered);
+  }, [
+    farm.plots,
+    farm.stolenRecords,
+    markStolenRecordRecovered,
+    addCoins,
+    enqueueRecoveryToast,
+    t,
+  ]);
+
   const handleTimerComplete = useCallback((phase: TimerPhase) => {
     try {
       if (phase === 'work') {
@@ -643,6 +782,7 @@ function App() {
         };
         setRecords((prev) => [record, ...prev]);
         syncRecord(record);
+        recoverStolenHarvest(todayFocusMinutes + settings.workMinutes);
         sendBrowserNotification(t.workComplete(emoji), `"${taskName}" · ${settings.workMinutes}${t.minutes}`);
         playAlertRepeated(settings.alertSound, settings.alertRepeatCount);
         // Check achievements after work completion
@@ -659,7 +799,20 @@ function App() {
       // Prevent timer completion errors from crashing the app
       console.error('[Timer] onComplete error:', err);
     }
-  }, [currentTask, records, setRecords, settings.alertSound, settings.alertRepeatCount, settings.workMinutes, t, resolveStageAndStore, syncRecord, achievements]);
+  }, [
+    currentTask,
+    records,
+    setRecords,
+    settings.alertSound,
+    settings.alertRepeatCount,
+    settings.workMinutes,
+    t,
+    resolveStageAndStore,
+    syncRecord,
+    achievements,
+    recoverStolenHarvest,
+    todayFocusMinutes,
+  ]);
 
   const handleSkipWork = useCallback((elapsedSeconds: number) => {
     try {
@@ -1179,6 +1332,7 @@ function App() {
             injectedSeeds={shed.injectedSeeds}
             hybridSeeds={shed.hybridSeeds}
             todayFocusMinutes={todayFocusMinutes}
+            todayKey={todayKey}
             addSeeds={addSeeds}
             onPlant={handleFarmPlant}
             onPlantInjected={handleFarmPlantInjected}
@@ -1186,6 +1340,11 @@ function App() {
             onHarvest={handleFarmHarvest}
             onClear={clearPlot}
             onUseMutationGun={handleUseMutationGun}
+            onUseMoonDew={handleUseMoonDew}
+            onUseNectar={handleUseNectar}
+            onUseStarTracker={handleUseStarTracker}
+            onUseGuardianBarrier={handleUseGuardianBarrier}
+            onUseTrapNet={handleUseTrapNet}
             onInject={handleGeneInject}
             onFusion={handleGeneFusion}
             onGoWarehouse={() => setActiveTab('warehouse')}
@@ -1225,6 +1384,16 @@ function App() {
               message={activeMutationToastMessage}
               duration={2600}
               onDone={dismissMutationToast}
+            />
+          </div>
+        )}
+
+        {activeRecoveryToast && (
+          <div className="fixed top-28 left-1/2 -translate-x-1/2 z-[140]">
+            <Toast
+              message={activeRecoveryToast}
+              duration={2600}
+              onDone={dismissRecoveryToast}
             />
           </div>
         )}

@@ -539,6 +539,7 @@ export const zh: Messages = {
   mutationNegative: '病变',
   mutationWithered: '西瓜因变异而枯萎了...',
   mutationDowngraded: '变异导致品质下降了...',
+  mutationPositiveToast: (varietyName) => `良性变异成功！${varietyName} 成为了变异体`,
   mutationGunUse: '使用射线枪',
   mutationChanceLabel: '变异概率',
   farmClear: '清除',
@@ -564,6 +565,22 @@ export const zh: Messages = {
   formatDuration,
   farmGoFarm: '去农场种植 🌱',
   farmUnlockHint: (n) => `集齐 ${n} 个品种解锁`,
+
+  // Thief & Items
+  thiefAppeared: '⚠️ 发现星际大盗！正在偷偷靠近...',
+  thiefStealing: (m) => `⚠️ 大盗正在偷瓜！剩余 ${m} 分钟`,
+  thiefStolen: '😱 西瓜被偷走了！大盗留下了一张欠条...',
+  thiefCaught: '🎉 抓住大盗了！追回了西瓜并获得额外奖赏',
+  thiefNote: '📜 欠条：这颗瓜我先借走了，想追回就去专注吧！',
+  thiefRecoveryActive: '📡 追踪器生效！大盗被吓跑了，西瓜已追回',
+  thiefRecoveryTask: '🏃 专注追回：24小时内专注 25 分钟可追回 50% 收获',
+  thiefRecovered: '✨ 追回成功！拿回了 50% 的收获',
+  itemGuardianBarrierActive: '🎪 结界保护中：全田今日免疫大盗',
+  itemStarTrackerActive: '📡 已安装追踪器：被偷后自动追回',
+  itemNectarSuccess: '💧 琼浆玉露生效！西瓜重获新生',
+  itemMoonDewSuccess: '🌙 月神甘露生效！稀有度提升了',
+  itemMoonDewFail: '🌙 已经是最高稀有度了，月神甘露不忍浪费',
+  itemTrapNetSuccess: '🪤 捕网生效！成功抓获星际大盗',
 
   // Collection
   starJourneyTitle: '🚀 星际旅程',

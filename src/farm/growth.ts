@@ -3,7 +3,7 @@
  *
  * 计算分钟级生长进度、枯萎检测、品种随机。
  */
-import type { Plot, VarietyId, GrowthStage, GalaxyId, MutationStatus } from '../types/farm';
+import type { Plot, VarietyId, GrowthStage, GalaxyId, MutationStatus, StolenRecord } from '../types/farm';
 import type { SeedQuality } from '../types/slicing';
 import {
   GALAXY_VARIETIES, VARIETY_DEFS, GROWTH_STAGES,
@@ -14,6 +14,21 @@ const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR;
 const WITHER_THRESHOLD_HOURS = 72;
 const WITHER_THRESHOLD_MINUTES = WITHER_THRESHOLD_HOURS * MINUTES_PER_HOUR;
 const MUTATION_TRIGGER_PROGRESS = 0.20;
+const THIEF_STEAL_DELAY_MINUTES = 30;
+const THIEF_STEAL_DELAY_MS = THIEF_STEAL_DELAY_MINUTES * 60 * 1000;
+
+/**
+ * 星际大盗出现概率（按当天专注分钟）：
+ * - >= 60 分钟：0.5%
+ * - >= 25 分钟：2%
+ * - 其他：5%
+ */
+export function getThiefAppearanceChance(focusMinutesToday: number): number {
+  const safeMinutes = Number.isFinite(focusMinutesToday) ? Math.max(0, Math.floor(focusMinutesToday)) : 0;
+  if (safeMinutes >= 60) return 0.005;
+  if (safeMinutes >= 25) return 0.02;
+  return 0.05;
+}
 
 /**
  * 离线成长分钟数：
@@ -138,6 +153,8 @@ export function rollMutation(plot: Plot): Plot {
       ? {
           ...plot,
           state: 'withered',
+          progress: 0,
+          accumulatedMinutes: 0,
           mutationStatus: 'negative',
           mutationChance: 0,
           isMutant: false,
@@ -163,6 +180,36 @@ export function rollMutation(plot: Plot): Plot {
 export interface MutationOutcome {
   varietyId: VarietyId;
   status: Exclude<MutationStatus, 'none'>;
+}
+
+export interface ApplyGrowthOptions {
+  nowTimestamp?: number;
+  todayKey?: string;
+  focusMinutesToday?: number;
+  guardianBarrierDate?: string;
+  enableThiefRoll?: boolean;
+}
+
+export interface ApplyGrowthResult {
+  plots: Plot[];
+  mutationToasts: MutationOutcome[];
+  stolenRecords: StolenRecord[];
+}
+
+function createStolenRecord(plot: Plot, stolenAt: number): StolenRecord | null {
+  if (!plot.varietyId) return null;
+  const id = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `${stolenAt}-${plot.id}-${Math.random().toString(36).slice(2, 9)}`;
+
+  return {
+    id,
+    plotId: plot.id,
+    varietyId: plot.varietyId,
+    stolenAt,
+    resolved: false,
+    recoveredCount: 0,
+  };
 }
 
 // ─── 品种随机 ───
@@ -239,10 +286,11 @@ export function updatePlotGrowth(
   };
   const currentMutationStatus = preMutationPlot.mutationStatus ?? 'none';
   const currentMutationChance = preMutationPlot.mutationChance ?? 0.02;
-  const shouldRollMutation = newProgress >= MUTATION_TRIGGER_PROGRESS
+  const reachedSproutThreshold = prevProgress < MUTATION_TRIGGER_PROGRESS
+    && newProgress >= MUTATION_TRIGGER_PROGRESS;
+  const shouldRollMutation = reachedSproutThreshold
     && currentMutationStatus === 'none'
-    && currentMutationChance > 0
-    && (prevProgress < MUTATION_TRIGGER_PROGRESS || currentMutationChance > 0.02);
+    && currentMutationChance > 0;
   const finalPlot = shouldRollMutation ? rollMutation(preMutationPlot) : preMutationPlot;
   const finalMutationStatus = finalPlot.mutationStatus;
   const mutationOutcome = shouldRollMutation && (finalMutationStatus === 'positive' || finalMutationStatus === 'negative')
@@ -254,6 +302,90 @@ export function updatePlotGrowth(
     justRevealed,
     mutationOutcome,
   };
+}
+
+/**
+ * 批量应用地块生长 + 变异 + 大盗逻辑
+ */
+export function applyGrowthWithMutation(
+  plots: Plot[],
+  growthMinutes: number,
+  options: ApplyGrowthOptions = {},
+): ApplyGrowthResult {
+  const mutationToasts: MutationOutcome[] = [];
+  const stolenRecords: StolenRecord[] = [];
+
+  const safeNow = Number.isFinite(options.nowTimestamp) && (options.nowTimestamp ?? 0) > 0
+    ? (options.nowTimestamp as number)
+    : Date.now();
+  const safeTodayKey = options.todayKey ?? new Date(safeNow).toISOString().slice(0, 10);
+  const safeGrowthMinutes = Math.max(0, Math.floor(growthMinutes));
+  const thiefRollEnabled = (options.enableThiefRoll ?? true) && safeGrowthMinutes > 0;
+  const thiefChance = getThiefAppearanceChance(options.focusMinutesToday ?? 0);
+  const barrierActiveToday = (options.guardianBarrierDate ?? '') === safeTodayKey;
+
+  const nextPlots = plots.map((plot) => {
+    let nextPlot = plot;
+
+    if (nextPlot.state === 'growing' && safeGrowthMinutes > 0) {
+      const growthResult = updatePlotGrowth(nextPlot, safeGrowthMinutes, safeNow);
+      if (
+        growthResult.mutationOutcome?.status === 'positive'
+        && growthResult.plot.isMutant === true
+      ) {
+        mutationToasts.push(growthResult.mutationOutcome);
+      }
+      nextPlot = growthResult.plot;
+    }
+
+    if (nextPlot.thief) {
+      if (safeNow < nextPlot.thief.stealAt) return nextPlot;
+
+      if (nextPlot.hasTracker) {
+        return {
+          ...nextPlot,
+          thief: undefined,
+          hasTracker: false,
+          lastUpdateDate: safeTodayKey,
+          lastActivityTimestamp: safeNow,
+        };
+      }
+
+      const stolenRecord = createStolenRecord(nextPlot, safeNow);
+      if (stolenRecord) {
+        stolenRecords.push(stolenRecord);
+      }
+
+      return {
+        ...nextPlot,
+        state: 'stolen' as const,
+        thief: undefined,
+        hasTracker: false,
+        lastUpdateDate: safeTodayKey,
+        lastActivityTimestamp: safeNow,
+      };
+    }
+
+    const canRollThief = thiefRollEnabled
+      && !barrierActiveToday
+      && (nextPlot.state === 'growing' || nextPlot.state === 'mature')
+      && Boolean(nextPlot.varietyId);
+
+    if (!canRollThief) return nextPlot;
+    if (Math.random() >= thiefChance) return nextPlot;
+
+    return {
+      ...nextPlot,
+      thief: {
+        appearedAt: safeNow,
+        stealAt: safeNow + THIEF_STEAL_DELAY_MS,
+      },
+      lastUpdateDate: safeTodayKey,
+      lastActivityTimestamp: safeNow,
+    };
+  });
+
+  return { plots: nextPlots, mutationToasts, stolenRecords };
 }
 
 /**

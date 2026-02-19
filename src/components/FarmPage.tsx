@@ -7,7 +7,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../i18n';
-import type { Plot, VarietyId, FarmStorage, GalaxyId } from '../types/farm';
+import type { Plot, VarietyId, FarmStorage, GalaxyId, StolenRecord } from '../types/farm';
 import type { GeneInventory } from '../types/gene';
 import type { SeedQuality, SeedCounts, InjectedSeed, HybridSeed, ItemId } from '../types/slicing';
 import { VARIETY_DEFS, RARITY_COLOR, RARITY_STARS, PLOT_MILESTONES } from '../types/farm';
@@ -24,6 +24,7 @@ interface FarmPageProps {
   injectedSeeds: InjectedSeed[];
   hybridSeeds: HybridSeed[];
   todayFocusMinutes: number;
+  todayKey: string;
   addSeeds: (count: number, quality?: SeedQuality) => void;
   onPlant: (plotId: number, quality: SeedQuality) => VarietyId;
   onPlantInjected: (plotId: number, seedId: string) => void;
@@ -39,6 +40,11 @@ interface FarmPageProps {
   };
   onClear: (plotId: number) => void;
   onUseMutationGun: (plotId: number) => void;
+  onUseMoonDew: (plotId: number) => void;
+  onUseNectar: (plotId: number) => void;
+  onUseStarTracker: (plotId: number) => void;
+  onUseGuardianBarrier: () => void;
+  onUseTrapNet: (plotId: number) => void;
   onGoWarehouse: () => void;
 }
 
@@ -70,6 +76,7 @@ export function FarmPage({
   injectedSeeds,
   hybridSeeds,
   todayFocusMinutes,
+  todayKey,
   addSeeds,
   onPlant,
   onPlantInjected,
@@ -79,6 +86,11 @@ export function FarmPage({
   onHarvest,
   onClear,
   onUseMutationGun,
+  onUseMoonDew,
+  onUseNectar,
+  onUseStarTracker,
+  onUseGuardianBarrier,
+  onUseTrapNet,
   onGoWarehouse,
 }: FarmPageProps) {
   const theme = useTheme();
@@ -90,6 +102,7 @@ export function FarmPage({
   const [harvestAnim, setHarvestAnim] = useState<HarvestAnim | null>(null);
   const [showFarmHelp, setShowFarmHelp] = useState(false);
   const [activeTooltipPlotId, setActiveTooltipPlotId] = useState<number | null>(null);
+  const [nowTimestamp, setNowTimestamp] = useState(() => Date.now());
 
   // 追踪已揭晓的地块（避免重复触发动画）
   const revealedRef = useRef<Set<number>>(new Set());
@@ -115,9 +128,21 @@ export function FarmPage({
     }
   }, [farm.plots]);
 
+  useEffect(() => {
+    const timerId = window.setInterval(() => setNowTimestamp(Date.now()), 1000);
+    return () => window.clearInterval(timerId);
+  }, []);
+
   const totalBaseSeeds = seeds.normal + seeds.epic + seeds.legendary;
   const totalPlantableSeeds = totalBaseSeeds + injectedSeeds.length + hybridSeeds.length;
   const mutationGunCount = (items as Record<string, number>)['mutation-gun'] ?? 0;
+  const moonDewCount = (items as Record<string, number>)['moon-dew'] ?? 0;
+  const nectarCount = (items as Record<string, number>)['nectar'] ?? 0;
+  const starTrackerCount = (items as Record<string, number>)['star-tracker'] ?? 0;
+  const guardianBarrierCount = (items as Record<string, number>)['guardian-barrier'] ?? 0;
+  const trapNetCount = (items as Record<string, number>)['trap-net'] ?? 0;
+  const barrierActiveToday = farm.guardianBarrierDate === todayKey;
+
   const plotSlots = useMemo(
     () => Array.from({ length: TOTAL_PLOT_SLOTS }, (_, index) => {
       const plot = farm.plots[index];
@@ -134,6 +159,17 @@ export function FarmPage({
     }),
     [farm.plots],
   );
+
+  const latestStolenRecordByPlotId = useMemo(() => {
+    const latestByPlot = new Map<number, StolenRecord>();
+    for (const record of farm.stolenRecords) {
+      const previous = latestByPlot.get(record.plotId);
+      if (!previous || record.stolenAt > previous.stolenAt) {
+        latestByPlot.set(record.plotId, record);
+      }
+    }
+    return latestByPlot;
+  }, [farm.stolenRecords]);
 
   const handlePlant = useCallback((quality: SeedQuality) => {
     if (plantingPlotId === null) return;
@@ -240,6 +276,25 @@ export function FarmPage({
         </span>
       </div>
 
+      {/* 道具快捷栏 */}
+      <div className="flex items-center gap-2 mb-3 overflow-x-auto no-scrollbar pb-1">
+        {(guardianBarrierCount > 0 || barrierActiveToday) && (
+          <button
+            onClick={onUseGuardianBarrier}
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium"
+            style={{
+              backgroundColor: `${theme.surface}cc`,
+              borderColor: barrierActiveToday ? '#fbbf24' : theme.border,
+              color: barrierActiveToday ? '#fbbf24' : theme.text,
+            }}
+            title={barrierActiveToday ? t.itemGuardianBarrierActive : t.itemName('guardian-barrier')}
+          >
+            <span>🎪</span>
+            <span>{barrierActiveToday ? t.itemGuardianBarrierActive : `${t.itemName('guardian-barrier')} · ${guardianBarrierCount}`}</span>
+          </button>
+        )}
+      </div>
+
       {/* 3×3 俯视网格 */}
       <div className="relative mb-3 sm:mb-5 overflow-visible">
         <div className="relative mx-auto w-full max-w-[90%] sm:max-w-[760px]">
@@ -258,6 +313,8 @@ export function FarmPage({
                 {slot.kind === 'plot' ? (
                   <PlotCard
                     plot={slot.plot}
+                    stolenRecord={latestStolenRecordByPlotId.get(slot.plot.id)}
+                    nowTimestamp={nowTimestamp}
                     theme={theme}
                     t={t}
                     isTooltipOpen={activeTooltipPlotId === slot.plot.id}
@@ -272,6 +329,14 @@ export function FarmPage({
                     onClearClick={() => onClear(slot.plot.id)}
                     mutationGunCount={mutationGunCount}
                     onUseMutationGun={() => onUseMutationGun(slot.plot.id)}
+                    moonDewCount={moonDewCount}
+                    onUseMoonDew={() => onUseMoonDew(slot.plot.id)}
+                    nectarCount={nectarCount}
+                    onUseNectar={() => onUseNectar(slot.plot.id)}
+                    starTrackerCount={starTrackerCount}
+                    onUseStarTracker={() => onUseStarTracker(slot.plot.id)}
+                    trapNetCount={trapNetCount}
+                    onUseTrapNet={() => onUseTrapNet(slot.plot.id)}
                   />
                 ) : (
                   <LockedPlotCard requiredVarieties={slot.requiredVarieties} theme={theme} t={t} />
@@ -419,8 +484,10 @@ function SubTabHeader({ subTab, setSubTab, theme, t }: {
 }
 
 // ─── 地块卡片 ───
-function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick, onHarvestClick, onClearClick, mutationGunCount, onUseMutationGun }: {
+function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick, onHarvestClick, onClearClick, mutationGunCount, onUseMutationGun, moonDewCount, onUseMoonDew, nectarCount, onUseNectar, starTrackerCount, onUseStarTracker, trapNetCount, onUseTrapNet }: {
   plot: Plot;
+  stolenRecord?: StolenRecord;
+  nowTimestamp: number;
   theme: ReturnType<typeof useTheme>;
   t: ReturnType<typeof useI18n>;
   isTooltipOpen: boolean;
@@ -430,6 +497,14 @@ function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick
   onClearClick: () => void;
   mutationGunCount: number;
   onUseMutationGun: () => void;
+  moonDewCount: number;
+  onUseMoonDew: () => void;
+  nectarCount: number;
+  onUseNectar: () => void;
+  starTrackerCount: number;
+  onUseStarTracker: () => void;
+  trapNetCount: number;
+  onUseTrapNet: () => void;
 }) {
   const variety = plot.varietyId ? VARIETY_DEFS[plot.varietyId] : null;
   const varietyLabel = plot.varietyId
@@ -450,10 +525,23 @@ function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick
   const flowShineColor = variety?.rarity === 'legendary' ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.62)';
   const matureMinutes = variety?.matureMinutes ?? 10000;
   const mutationChance = Math.max(0, Math.min(1, plot.mutationChance ?? 0.02));
-  const isMutationResolved = plot.progress >= 0.20 && mutationChance === 0;
-  const canUseMutationGun = (plot.mutationStatus ?? 'none') === 'none'
+  const isMutationResolved = plot.progress >= 0.20 && (plot.mutationChance ?? 0.02) === 0;
+  const canUseMutationGun = plot.state === 'growing'
+    && (plot.mutationStatus ?? 'none') === 'none'
     && mutationGunCount > 0
-    && !isMutationResolved;
+    && !isMutationResolved
+    && plot.progress < 0.20;
+  const canUseMoonDew = plot.state === 'mature' && moonDewCount > 0;
+  const canUseNectar = plot.state === 'withered' && nectarCount > 0;
+  const canUseStarTracker = (plot.state === 'growing' || plot.state === 'mature') && starTrackerCount > 0 && !plot.hasTracker;
+  const canUseTrapNet = Boolean(plot.thief) && trapNetCount > 0;
+  const thiefTotalMs = plot.thief ? Math.max(1, plot.thief.stealAt - plot.thief.appearedAt) : 1;
+  const thiefRemainingMs = plot.thief ? Math.max(0, plot.thief.stealAt - nowTimestamp) : 0;
+  const thiefElapsedPercent = plot.thief
+    ? Math.min(100, ((thiefTotalMs - thiefRemainingMs) / thiefTotalMs) * 100)
+    : 0;
+  const isStolenRecovered = stolenRecord?.resolved === true && stolenRecord.recoveredCount > 0;
+
   const stageSwayAnimation = stage === 'seed' || stage === 'sprout'
     ? 'plantSwaySm 4s ease-in-out infinite'
     : stage === 'leaf' || stage === 'flower'
@@ -465,14 +553,20 @@ function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick
     ? 'linear-gradient(145deg, #8b5a2b 0%, #6f4424 100%)'
     : plot.state === 'withered'
       ? `linear-gradient(145deg, ${theme.surface} 0%, ${theme.border} 100%)`
+      : plot.state === 'stolen'
+        ? 'linear-gradient(145deg, rgba(185,28,28,0.5) 0%, rgba(127,29,29,0.36) 100%)'
       : `linear-gradient(145deg, ${theme.surface} 0%, ${theme.inputBg} 100%)`;
   const tileBorderColor = plot.state === 'mature'
     ? '#fbbf24'
+    : plot.state === 'stolen'
+      ? '#ef4444'
     : plot.state === 'empty'
       ? '#7b4b2b'
       : theme.border;
   const tileShadow = plot.state === 'mature'
     ? '0 14px 26px rgba(251,191,36,0.26), 0 0 16px rgba(251,191,36,0.22)'
+    : plot.state === 'stolen'
+      ? '0 14px 26px rgba(239,68,68,0.28), 0 0 16px rgba(239,68,68,0.18)'
     : '0 10px 20px rgba(0,0,0,0.2), inset 0 -10px 16px rgba(0,0,0,0.14)';
 
   return (
@@ -484,7 +578,7 @@ function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick
             background: tileBackground,
             borderColor: tileBorderColor,
             boxShadow: tileShadow,
-            opacity: plot.state === 'withered' ? 0.74 : 1,
+            opacity: plot.state === 'withered' ? 0.74 : plot.state === 'stolen' ? 0.96 : 1,
           }}
         />
         <div
@@ -559,6 +653,23 @@ function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick
             <span className="mt-1 text-[10px]" style={{ color: theme.textFaint }}>
               {t.farmStage(stage)}
             </span>
+            {plot.thief && (
+              <div className="mt-1 w-[78%]">
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(239,68,68,0.25)' }}>
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{
+                      width: `${thiefElapsedPercent}%`,
+                      backgroundColor: '#ef4444',
+                      boxShadow: '0 0 8px rgba(239,68,68,0.75)',
+                    }}
+                  />
+                </div>
+                <span className="mt-1 block text-[10px] font-medium leading-tight" style={{ color: '#fca5a5' }}>
+                  {t.thiefStealing(Math.max(1, Math.ceil(thiefRemainingMs / 60000)))}
+                </span>
+              </div>
+            )}
             {negativeStatusText && (
               <span className="mt-1 text-[10px] font-medium leading-tight" style={{ color: '#ef4444' }}>
                 {negativeStatusText}
@@ -582,28 +693,58 @@ function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick
                 {revealed && variety && (
                   <div className="font-semibold">{varietyLabel}</div>
                 )}
-                <div>{`${Math.round(progressPercent)}%`}</div>
-                <div>{t.farmGrowthTime(plot.accumulatedMinutes, matureMinutes)}</div>
-                {negativeStatusText && <div>{negativeStatusText}</div>}
-                {plot.progress < 0.5 && <div>{t.farmFocusBoostHint}</div>}
-                {canUseMutationGun && (
+                {plot.state === 'growing' && (
                   <>
-                    <div>{`${t.mutationChanceLabel}: ${Math.round(mutationChance * 100)}%`}</div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onUseMutationGun();
-                      }}
-                      className="mt-2 w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
-                      style={{
-                        color: '#000',
-                        backgroundColor: '#fbbf24',
-                      }}
-                    >
-                      {`🔦 ${t.mutationGunUse} · ${mutationGunCount}`}
-                    </button>
+                    <div>{`${Math.round(progressPercent)}%`}</div>
+                    <div>{t.farmGrowthTime(plot.accumulatedMinutes, matureMinutes)}</div>
+                    {plot.hasTracker && <div style={{ color: '#fbbf24' }}>📡 {t.itemStarTrackerActive}</div>}
+                    {plot.progress < 0.5 && <div>{t.farmFocusBoostHint}</div>}
                   </>
                 )}
+                {plot.thief && (
+                  <div className="mt-1" style={{ color: '#ef4444' }}>
+                    {thiefRemainingMs > 0
+                      ? t.thiefStealing(Math.max(1, Math.ceil(thiefRemainingMs / (1000 * 60))))
+                      : t.thiefStolen}
+                  </div>
+                )}
+                {negativeStatusText && <div>{negativeStatusText}</div>}
+
+                <div className="flex flex-col gap-1.5 mt-2">
+                  {canUseMutationGun && (
+                    <>
+                      <div>{`${t.mutationChanceLabel}: ${Math.round(mutationChance * 100)}%`}</div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUseMutationGun();
+                        }}
+                        className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                        style={{ color: '#000', backgroundColor: '#fbbf24' }}
+                      >
+                        {`🔦 ${t.mutationGunUse} · ${mutationGunCount}`}
+                      </button>
+                    </>
+                  )}
+                  {canUseStarTracker && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onUseStarTracker(); }}
+                      className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                      style={{ color: '#000', backgroundColor: '#fbbf24' }}
+                    >
+                      📡 {t.itemName('star-tracker')} · {starTrackerCount}
+                    </button>
+                  )}
+                  {canUseTrapNet && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onUseTrapNet(); }}
+                      className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                      style={{ color: '#000', backgroundColor: '#fbbf24' }}
+                    >
+                      🪤 {t.itemName('trap-net')} · {trapNetCount}
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -638,6 +779,35 @@ function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick
           </button>
         )}
 
+        {plot.state === 'mature' && (
+          <div className="absolute left-2 top-2 z-30 flex flex-col gap-1">
+            {canUseMoonDew && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUseMoonDew();
+                }}
+                className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                style={{ backgroundColor: '#fbbf24', color: '#000' }}
+              >
+                {`🌙 ${moonDewCount}`}
+              </button>
+            )}
+            {canUseStarTracker && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUseStarTracker();
+                }}
+                className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                style={{ backgroundColor: '#60a5fa', color: '#001426' }}
+              >
+                {`📡 ${starTrackerCount}`}
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Withered plot */}
         {plot.state === 'withered' && (
           <button
@@ -657,8 +827,57 @@ function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick
           </button>
         )}
 
+        {plot.state === 'withered' && canUseNectar && (
+          <div className="absolute left-2 top-2 z-30">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onUseNectar();
+              }}
+              className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+              style={{ backgroundColor: '#38bdf8', color: '#001426' }}
+            >
+              {`💧 ${nectarCount}`}
+            </button>
+          </div>
+        )}
+
+        {/* Stolen plot */}
+        {plot.state === 'stolen' && (
+          <button
+            onClick={onClearClick}
+            className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center px-3 py-3 text-center"
+          >
+            <span className="text-[clamp(1.8rem,5.8vw,2.4rem)]">📜</span>
+            <span className="mt-1 text-[11px] font-semibold leading-tight" style={{ color: '#fee2e2' }}>
+              {t.thiefNote}
+            </span>
+            <span className="mt-1 text-[10px] leading-tight" style={{ color: '#fecaca' }}>
+              {t.thiefRecoveryTask}
+            </span>
+            {isStolenRecovered && (
+              <span
+                className="mt-1 rounded-full px-2.5 py-1 text-[10px] font-semibold leading-tight"
+                style={{
+                  color: '#dcfce7',
+                  backgroundColor: 'rgba(22,163,74,0.24)',
+                  border: '1px solid rgba(110,231,183,0.5)',
+                }}
+              >
+                {t.thiefRecovered}
+              </span>
+            )}
+            <span
+              className="mt-1 rounded-full px-3 py-1 text-[10px] font-medium"
+              style={{ color: '#fecaca', backgroundColor: 'rgba(127,29,29,0.5)' }}
+            >
+              {t.farmClear}
+            </span>
+          </button>
+        )}
+
         {/* Seed quality badge */}
-        {plot.seedQuality && plot.state !== 'empty' && plot.state !== 'withered' && (
+        {plot.seedQuality && plot.state !== 'empty' && plot.state !== 'withered' && plot.state !== 'stolen' && (
           <div className="absolute right-2 top-2 z-20">
             <span
               className="rounded-full px-1.5 py-0.5 text-[10px] font-medium"
