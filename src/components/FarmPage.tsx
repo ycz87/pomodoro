@@ -7,7 +7,20 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../i18n';
-import type { Plot, VarietyId, FarmStorage, GalaxyId, StolenRecord, FusionHistory } from '../types/farm';
+import { useWeather } from '../hooks/useWeather';
+import { useCreatures } from '../hooks/useCreatures';
+import { useAlienVisit } from '../hooks/useAlienVisit';
+import type {
+  Plot,
+  VarietyId,
+  FarmStorage,
+  GalaxyId,
+  StolenRecord,
+  FusionHistory,
+  Weather,
+  Creature,
+  AlienAppearance,
+} from '../types/farm';
 import type { GeneInventory } from '../types/gene';
 import type { DarkMatterFusion, DarkMatterFusionType, FusionResult } from '../types/gene';
 import type {
@@ -62,6 +75,7 @@ interface FarmPageProps {
   onUseStarTracker: (plotId: number) => void;
   onUseGuardianBarrier: () => void;
   onUseTrapNet: (plotId: number) => void;
+  mutationDoctorSignal: number;
   onGoWarehouse: () => void;
 }
 
@@ -84,6 +98,14 @@ const REVEAL_RARE_PLUS_MIN_STARS = 2;
 const TOTAL_PLOT_SLOTS = 9;
 const LAST_PLOT_UNLOCK_REQUIRED = PLOT_MILESTONES[PLOT_MILESTONES.length - 1]?.requiredVarieties ?? 0;
 const PLOT_UNLOCK_BY_TOTAL = new Map(PLOT_MILESTONES.map((milestone) => [milestone.totalPlots, milestone.requiredVarieties]));
+
+const WEATHER_ICON: Record<Weather, string> = {
+  sunny: '☀️',
+  cloudy: '☁️',
+  rainy: '🌧️',
+  night: '🌙',
+  rainbow: '🌈',
+};
 
 export function FarmPage({
   farm,
@@ -116,10 +138,13 @@ export function FarmPage({
   onUseStarTracker,
   onUseGuardianBarrier,
   onUseTrapNet,
+  mutationDoctorSignal,
   onGoWarehouse,
 }: FarmPageProps) {
   const theme = useTheme();
   const t = useI18n();
+  const { weatherState } = useWeather();
+  const { creatures } = useCreatures();
 
   const [subTab, setSubTab] = useState<SubTab>('plots');
   const [plantingPlotId, setPlantingPlotId] = useState<number | null>(null);
@@ -195,6 +220,17 @@ export function FarmPage({
     }
     return latestByPlot;
   }, [farm.stolenRecords]);
+
+  const plantedMelonCount = useMemo(
+    () => farm.plots.filter((plot) => plot.state !== 'empty').length,
+    [farm.plots],
+  );
+
+  const { alienVisit } = useAlienVisit({
+    plantedMelonCount,
+    todayKey,
+    mutationDoctorSignal,
+  });
 
   const handlePlant = useCallback((quality: SeedQuality) => {
     if (plantingPlotId === null) return;
@@ -315,7 +351,7 @@ export function FarmPage({
           </button>
         </div>
         <span className="text-xs whitespace-nowrap" style={{ color: theme.textFaint }}>
-          {`🌰 ${totalBaseSeeds} · 🧬 ${injectedSeeds.length} · 🌈 ${prismaticSeeds.length} · 🌑 ${darkMatterSeeds.length}`}
+          {`${WEATHER_ICON[weatherState.current]} ${t.farmWeatherName(weatherState.current)} · 🌰 ${totalBaseSeeds} · 🧬 ${injectedSeeds.length} · 🌈 ${prismaticSeeds.length} · 🌑 ${darkMatterSeeds.length}`}
         </span>
       </div>
 
@@ -356,14 +392,16 @@ export function FarmPage({
       {/* 3×3 俯视网格 */}
       <div className="relative mb-3 sm:mb-5 overflow-visible">
         <div className="relative mx-auto w-full max-w-[90%] sm:max-w-[760px]">
+          <WeatherLayer weather={weatherState.current} theme={theme} t={t} />
           <div
-            className="pointer-events-none absolute inset-0 rounded-[30px]"
+            className="pointer-events-none absolute inset-0 rounded-[30px] z-[1]"
             style={{
               background: `radial-gradient(circle at 50% 16%, ${theme.surface}66 0%, ${theme.surface}00 72%)`,
             }}
           />
           <div
-            className="farm-grid-perspective relative grid grid-cols-3 gap-1 sm:gap-2"
+            className="farm-grid-perspective relative z-[5] grid grid-cols-3 gap-1 sm:gap-2"
+            style={{ filter: getWeatherGridFilter(weatherState.current) }}
             onClick={() => setActiveTooltipPlotId(null)}
           >
             {plotSlots.map((slot, index) => (
@@ -402,6 +440,8 @@ export function FarmPage({
               </div>
             ))}
           </div>
+          <CreatureLayer creatures={creatures} />
+          <AlienLayer alien={alienVisit.current} theme={theme} t={t} />
         </div>
       </div>
       <style>{`
@@ -409,6 +449,23 @@ export function FarmPage({
           transform: perspective(600px) rotateX(12deg);
           transform-origin: center top;
           transform-style: flat;
+        }
+        @keyframes weatherDrift {
+          0%, 100% { transform: translateY(0px); opacity: 0.7; }
+          50% { transform: translateY(-8px); opacity: 1; }
+        }
+        @keyframes weatherRainDrop {
+          0% { transform: translateY(-18px); opacity: 0; }
+          30% { opacity: 0.9; }
+          100% { transform: translateY(16px); opacity: 0; }
+        }
+        @keyframes creatureHover {
+          0%, 100% { transform: translateY(0px) scale(1); }
+          50% { transform: translateY(-8px) scale(1.06); }
+        }
+        @keyframes alienPop {
+          0% { transform: translateY(8px) scale(0.94); opacity: 0; }
+          100% { transform: translateY(0px) scale(1); opacity: 1; }
         }
         @media (min-width: 640px) {
           .farm-grid-perspective {
@@ -474,6 +531,176 @@ export function FarmPage({
           t={t}
         />
       )}
+    </div>
+  );
+}
+
+function getWeatherGridFilter(weather: Weather): string {
+  if (weather === 'sunny') return 'saturate(1.05) brightness(1.02)';
+  if (weather === 'cloudy') return 'saturate(0.95) brightness(0.98)';
+  if (weather === 'rainy') return 'saturate(0.9) brightness(0.94)';
+  if (weather === 'night') return 'saturate(0.85) brightness(0.88)';
+  return 'saturate(1.18) brightness(1.04)';
+}
+
+function getWeatherLayerBackground(weather: Weather, theme: ReturnType<typeof useTheme>): string {
+  if (weather === 'sunny') {
+    return `linear-gradient(180deg, #fde68a22 0%, ${theme.surface}20 55%, transparent 100%)`;
+  }
+  if (weather === 'cloudy') {
+    return `linear-gradient(180deg, #94a3b81f 0%, ${theme.surface}15 50%, transparent 100%)`;
+  }
+  if (weather === 'rainy') {
+    return `linear-gradient(180deg, #38bdf822 0%, #1d4ed814 45%, transparent 100%)`;
+  }
+  if (weather === 'night') {
+    return `linear-gradient(180deg, #0f172a4d 0%, #1e293b33 46%, transparent 100%)`;
+  }
+  return 'linear-gradient(180deg, rgba(244,114,182,0.18) 0%, rgba(59,130,246,0.16) 45%, transparent 100%)';
+}
+
+const WEATHER_DECOR: Record<Weather, string[]> = {
+  sunny: ['☀️', '✨', '🌤️', '✨'],
+  cloudy: ['☁️', '☁️', '🌥️', '☁️'],
+  rainy: ['🌧️', '💧', '🌧️', '💧'],
+  night: ['🌙', '✨', '⭐', '✨'],
+  rainbow: ['🌈', '✨', '🌈', '✨'],
+};
+
+const WEATHER_DECOR_POSITIONS: ReadonlyArray<{ x: number; y: number }> = [
+  { x: 8, y: 8 },
+  { x: 32, y: 14 },
+  { x: 68, y: 10 },
+  { x: 84, y: 18 },
+];
+
+const CREATURE_EMOJI: Record<Creature['type'], string> = {
+  bee: '🐝',
+  butterfly: '🦋',
+  ladybug: '🐞',
+  bird: '🐦',
+};
+
+function WeatherLayer({ weather, theme, t }: {
+  weather: Weather;
+  theme: ReturnType<typeof useTheme>;
+  t: ReturnType<typeof useI18n>;
+}) {
+  const isRainy = weather === 'rainy';
+
+  return (
+    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[30px]">
+      <div
+        className="absolute inset-0"
+        style={{
+          background: getWeatherLayerBackground(weather, theme),
+          filter: getWeatherGridFilter(weather),
+        }}
+      />
+      {WEATHER_DECOR[weather].map((emoji, index) => {
+        const position = WEATHER_DECOR_POSITIONS[index];
+        if (!position) return null;
+        const baseDuration = isRainy ? 1.5 : 3.6;
+        return (
+          <span
+            key={`${weather}-${index}`}
+            className="absolute text-base sm:text-xl"
+            style={{
+              left: `${position.x}%`,
+              top: `${position.y}%`,
+              animation: isRainy
+                ? `weatherRainDrop ${baseDuration + (index * 0.2)}s linear infinite`
+                : `weatherDrift ${baseDuration + (index * 0.35)}s ease-in-out infinite`,
+              animationDelay: `${index * 0.18}s`,
+              filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.35))',
+            }}
+          >
+            {emoji}
+          </span>
+        );
+      })}
+      <div
+        className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-medium"
+        style={{
+          color: theme.text,
+          backgroundColor: `${theme.surface}cc`,
+          border: `1px solid ${theme.border}`,
+        }}
+      >
+        {`${WEATHER_ICON[weather]} ${t.farmWeatherName(weather)}`}
+      </div>
+    </div>
+  );
+}
+
+function CreatureLayer({ creatures }: { creatures: Creature[] }) {
+  if (creatures.length === 0) return null;
+
+  return (
+    <div className="pointer-events-none absolute inset-0 z-[30]">
+      {creatures.map((creature, index) => (
+        <span
+          key={creature.id}
+          className="absolute text-xl sm:text-2xl"
+          style={{
+            left: `${creature.xPercent}%`,
+            top: `${creature.yPercent}%`,
+            transform: 'translate(-50%, -50%)',
+            animation: `creatureHover ${2.6 + index * 0.25}s ease-in-out infinite`,
+            filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.3))',
+          }}
+        >
+          {CREATURE_EMOJI[creature.type]}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function AlienLayer({ alien, theme, t }: {
+  alien: AlienAppearance | null;
+  theme: ReturnType<typeof useTheme>;
+  t: ReturnType<typeof useI18n>;
+}) {
+  if (!alien) return null;
+
+  const avatar = alien.type === 'melon-alien' ? '👽' : '🧪';
+  let bubbleText = t.alienMelonGreeting;
+  switch (alien.messageKey) {
+    case 'alienMelonGreeting':
+      bubbleText = t.alienMelonGreeting;
+      break;
+    case 'alienMutationDoctor':
+      bubbleText = t.alienMutationDoctor;
+      break;
+  }
+
+  return (
+    <div
+      className="pointer-events-none absolute bottom-2 right-2 z-[35] flex items-end gap-2"
+      style={{ animation: 'alienPop 220ms ease-out both' }}
+    >
+      <div
+        className="max-w-[180px] rounded-xl px-3 py-2 text-[11px] leading-relaxed"
+        style={{
+          color: theme.text,
+          backgroundColor: `${theme.surface}f2`,
+          border: `1px solid ${theme.border}`,
+          boxShadow: '0 8px 18px rgba(0,0,0,0.22)',
+        }}
+      >
+        {bubbleText}
+      </div>
+      <div
+        className="h-10 w-10 rounded-full border flex items-center justify-center text-lg"
+        style={{
+          backgroundColor: `${theme.inputBg}ef`,
+          borderColor: theme.border,
+          boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+        }}
+      >
+        {avatar}
+      </div>
     </div>
   );
 }

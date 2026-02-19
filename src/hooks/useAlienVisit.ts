@@ -1,0 +1,167 @@
+import { useEffect, useRef } from 'react';
+import { useLocalStorage } from './useLocalStorage';
+import type {
+  AlienAppearance,
+  AlienDialogueKey,
+  AlienType,
+  AlienVisit,
+} from '../types/farm';
+import { DEFAULT_ALIEN_VISIT } from '../types/farm';
+
+const ALIEN_VISIT_STORAGE_KEY = 'alienVisit';
+const ALIEN_DISPLAY_DURATION_MS = 3_000;
+
+interface UseAlienVisitOptions {
+  plantedMelonCount: number;
+  todayKey: string;
+  mutationDoctorSignal: number;
+}
+
+function isAlienType(value: unknown): value is AlienType {
+  return value === 'melon-alien' || value === 'mutation-doctor';
+}
+
+function isAlienDialogueKey(value: unknown): value is AlienDialogueKey {
+  return value === 'alienMelonGreeting' || value === 'alienMutationDoctor';
+}
+
+function normalizeAppearance(raw: unknown): AlienAppearance | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const candidate = raw as Record<string, unknown>;
+  if (typeof candidate.id !== 'string' || candidate.id.length === 0) return null;
+  if (!isAlienType(candidate.type) || !isAlienDialogueKey(candidate.messageKey)) return null;
+  if (typeof candidate.appearedAt !== 'number' || !Number.isFinite(candidate.appearedAt)) return null;
+  if (typeof candidate.expiresAt !== 'number' || !Number.isFinite(candidate.expiresAt)) return null;
+
+  return {
+    id: candidate.id,
+    type: candidate.type,
+    messageKey: candidate.messageKey,
+    appearedAt: candidate.appearedAt,
+    expiresAt: candidate.expiresAt,
+  };
+}
+
+function migrateAlienVisit(raw: unknown): AlienVisit {
+  if (!raw || typeof raw !== 'object') return DEFAULT_ALIEN_VISIT;
+
+  const candidate = raw as Record<string, unknown>;
+  const current = normalizeAppearance(candidate.current);
+  const lastMelonAlienCheckDate = typeof candidate.lastMelonAlienCheckDate === 'string'
+    ? candidate.lastMelonAlienCheckDate
+    : '';
+
+  return {
+    lastMelonAlienCheckDate,
+    current,
+  };
+}
+
+function clearExpiredAppearance(visit: AlienVisit, now: number): AlienVisit {
+  if (!visit.current) return visit;
+  if (visit.current.expiresAt > now) return visit;
+  return {
+    ...visit,
+    current: null,
+  };
+}
+
+function createAppearance(
+  type: AlienType,
+  messageKey: AlienDialogueKey,
+  now: number,
+  idSuffix: string,
+): AlienAppearance {
+  return {
+    id: `${type}-${now}-${idSuffix}`,
+    type,
+    messageKey,
+    appearedAt: now,
+    expiresAt: now + ALIEN_DISPLAY_DURATION_MS,
+  };
+}
+
+export function useAlienVisit({ plantedMelonCount, todayKey, mutationDoctorSignal }: UseAlienVisitOptions) {
+  const [alienVisit, setAlienVisit] = useLocalStorage<AlienVisit>(
+    ALIEN_VISIT_STORAGE_KEY,
+    DEFAULT_ALIEN_VISIT,
+    migrateAlienVisit,
+  );
+  const previousSignalRef = useRef(mutationDoctorSignal);
+
+  // App open / day check: melon alien appears with 10% chance when 3+ melons exist.
+  useEffect(() => {
+    if (!todayKey) return;
+
+    const now = Date.now();
+    const melonAlienChanceRoll = Math.random();
+    const melonAlienIdSuffix = Math.random().toString(36).slice(2, 8);
+    setAlienVisit((prev) => {
+      const cleaned = clearExpiredAppearance(prev, now);
+
+      if (plantedMelonCount < 3) {
+        return cleaned;
+      }
+      if (cleaned.lastMelonAlienCheckDate === todayKey) {
+        return cleaned;
+      }
+
+      const checkedToday: AlienVisit = {
+        ...cleaned,
+        lastMelonAlienCheckDate: todayKey,
+      };
+
+      if (melonAlienChanceRoll >= 0.10) {
+        return checkedToday;
+      }
+
+      return {
+        ...checkedToday,
+        current: createAppearance('melon-alien', 'alienMelonGreeting', now, melonAlienIdSuffix),
+      };
+    });
+  }, [plantedMelonCount, todayKey, setAlienVisit]);
+
+  // Mutation doctor: 15% chance when gene modifier is consumed.
+  useEffect(() => {
+    if (mutationDoctorSignal <= previousSignalRef.current) {
+      previousSignalRef.current = mutationDoctorSignal;
+      return;
+    }
+
+    previousSignalRef.current = mutationDoctorSignal;
+    const mutationDoctorChanceRoll = Math.random();
+    if (mutationDoctorChanceRoll >= 0.15) return;
+
+    const now = Date.now();
+    const mutationDoctorIdSuffix = Math.random().toString(36).slice(2, 8);
+    setAlienVisit((prev) => ({
+      ...clearExpiredAppearance(prev, now),
+      current: createAppearance('mutation-doctor', 'alienMutationDoctor', now, mutationDoctorIdSuffix),
+    }));
+  }, [mutationDoctorSignal, setAlienVisit]);
+
+  // Auto-hide active alien bubble after 3 seconds.
+  useEffect(() => {
+    const currentExpiresAt = alienVisit.current?.expiresAt;
+    if (!currentExpiresAt) return;
+    const remainingMs = currentExpiresAt - Date.now();
+    if (remainingMs <= 0) {
+      setAlienVisit((prev) => clearExpiredAppearance(prev, Date.now()));
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setAlienVisit((prev) => clearExpiredAppearance(prev, Date.now()));
+    }, remainingMs + 10);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [alienVisit.current?.expiresAt, setAlienVisit]);
+
+  return {
+    alienVisit,
+    setAlienVisit,
+  };
+}

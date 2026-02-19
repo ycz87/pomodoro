@@ -548,6 +548,13 @@ export const zh: Messages = {
   farmSeedHint: '品质越高，稀有品种概率越大',
   farmNoSeeds: '还没有种子，去切瓜获取吧！',
   farmGoSlice: '去切瓜 🔪',
+  farmWeatherName: (weather) => ({
+    sunny: '晴天',
+    cloudy: '多云',
+    rainy: '雨天',
+    night: '夜晚',
+    rainbow: '彩虹',
+  }[weather] ?? weather),
   farmReveal: '叮！原来是——',
   farmNewVariety: '新品种！',
   farmNewFlash: 'NEW',
@@ -565,6 +572,8 @@ export const zh: Messages = {
   formatDuration,
   farmGoFarm: '去农场种植 🌱',
   farmUnlockHint: (n) => `集齐 ${n} 个品种解锁`,
+  alienMelonGreeting: '👽 瓜瓜星人：我们检测到你的瓜田生命力很旺，继续种植吧！',
+  alienMutationDoctor: '🧪 变异博士：你使用了基因改造液，变异波动正在上升！',
 
   // Thief & Items
   thiefAppeared: '⚠️ 发现星际大盗！正在偷偷靠近...',

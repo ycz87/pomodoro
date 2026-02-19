@@ -156,6 +156,7 @@ function App() {
   const [showCosmicHeartCelebration, setShowCosmicHeartCelebration] = useState(false);
   const [mutationToastQueue, setMutationToastQueue] = useState<MutationOutcome[]>([]);
   const [recoveryToastQueue, setRecoveryToastQueue] = useState<string[]>([]);
+  const [mutationDoctorSignal, setMutationDoctorSignal] = useState(0);
   const suppressCelebrationRef = useRef(false);
   const timeMultiplierRef = useRef(timeMultiplier);
 
@@ -734,6 +735,8 @@ function App() {
       if (!consumedModifier) {
         fusionResult = attemptFusion(fragment1, fragment2, 0);
         if (!fusionResult) return null;
+      } else {
+        setMutationDoctorSignal((prev) => prev + 1);
       }
     }
 
@@ -1684,6 +1687,7 @@ function App() {
             onUseStarTracker={handleUseStarTracker}
             onUseGuardianBarrier={handleUseGuardianBarrier}
             onUseTrapNet={handleUseTrapNet}
+            mutationDoctorSignal={mutationDoctorSignal}
             onInject={handleGeneInject}
             onFusion={handleGeneFusion}
             onFiveElementFusion={handleFiveElementFusion}

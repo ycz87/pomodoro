@@ -1,65 +1,78 @@
 # TASK.md - 任务进度
 
-## 当前任务：Phase 6 Step 2 — 暗物质星
-派发时间：2026-02-20 00:50（北京时间）
+## 当前任务：Phase 6 Step 3 — 天气 + 生命感
+派发时间：2026-02-20 01:31（北京时间）
 优先级：P0
-背景：Phase 6 Step 1（五行融合+幻彩星）已完成，继续推进 Phase 6。
-目标：实现暗物质星 3 个品种 + 虚空瓜/黑洞瓜融合 + 宇宙之心终极动画。
+背景：Phase 6 Step 1（五行融合+幻彩星）和 Step 2（暗物质星）已完成，继续推进 Phase 6。
+目标：实现天气系统 + 小动物装饰 + 外星人对话，为农场增添生命感和趣味性。
 
 ## 子任务
-- [x] 暗物质星 3 个品种数据录入（完成 01:08）
-- [x] 虚空瓜融合逻辑（5颗幻彩基因 → 100%成功）（完成 01:08）
-- [x] 黑洞瓜融合逻辑（10种双元素基因 → 100%成功）（完成 01:08）
-- [x] 宇宙之心自动出现逻辑（全收集78品种触发）（完成 01:08）
-- [x] 终极动画（宇宙之心出现特效）（完成 01:08）
-- [x] 图鉴内获取指引 UI（暗物质品种点击剪影显示条件）（完成 01:08）
-- [x] i18n 8 语言翻译（完成 01:08）
-- [x] E2E 测试（完成 01:10，8/8 通过）
-- [x] Claude Code 审查（完成 01:24，发现 2 个必须修复问题）
-- [-] 修复审查问题（进行中 01:24）
+- [x] 天气系统（5种天气随机切换）（完成 01:42）
+- [x] 天气切换逻辑（每6小时随机）（完成 01:42）
+- [x] 小动物装饰系统（4种小动物偶尔出现）（完成 01:42）
+- [x] 小动物出现逻辑（随机位置 + 随机时机）（完成 01:42）
+- [x] 外星人对话系统（瓜瓜星人/变异博士随机出现 + 对话）（完成 01:42）
+- [x] 天气/小动物/外星人 UI 渲染（完成 01:42）
+- [x] i18n 8 语言翻译（外星人对话）（完成 01:42）
+- [x] E2E 测试（完成 01:58，3/3 通过）
+- [x] Claude Code 审查（完成 02:04，发现 3 个必须修复问题）
+- [-] 修复审查问题（进行中 02:04）
 
 ## 验收标准
-- 拥有5个不同幻彩基因时虚空瓜融合按钮可用，点击后100%成功（E2E 测试覆盖）
-- 拥有10种双元素基因时黑洞瓜融合按钮可用，点击后100%成功（E2E 测试覆盖）
-- 集齐78品种后宇宙之心自动出现 + 终极动画播放（E2E 测试覆盖）
-- 图鉴内暗物质品种剪影点击显示获取指引（视觉验收）
-- i18n 8 语言正确显示（视觉验收）
-- E2E 测试覆盖三种融合 + 宇宙之心触发
+- 天气每6小时随机切换，彩虹稀有出现（E2E 测试覆盖）
+- 小动物偶尔出现在瓜田，停留几秒后消失（E2E 测试覆盖）
+- 瓜瓜星人/变异博士按概率出现 + 显示对话（E2E 测试覆盖）
+- i18n 8 语言正确显示外星人对话（视觉验收）
+- E2E 测试覆盖天气切换 + 小动物出现 + 外星人触发
 
 ## 技术方案（参考你的计划）
 
 **数据结构：**
 ```typescript
-// types/gene.ts 新增
-interface DarkMatterFusion {
-  type: 'void' | 'blackhole' | 'cosmic-heart';
-  requiredGenes: string[]; // 需要的基因 ID 列表
-  success: boolean;
+// types/farm.ts 新增
+type Weather = 'sunny' | 'cloudy' | 'rainy' | 'night' | 'rainbow';
+
+interface WeatherState {
+  current: Weather;
+  lastChangeAt: number; // 上次切换时间戳
+}
+
+interface Creature {
+  id: string;
+  type: 'bee' | 'butterfly' | 'ladybug' | 'bird';
+  x: number; // 位置 %
+  y: number;
+  appearAt: number; // 出现时间戳
+  duration: number; // 停留时长 ms
+}
+
+interface AlienVisit {
+  type: 'melon-alien' | 'mutation-doctor';
+  appearAt: number;
+  dialogue: string; // i18n key
 }
 ```
 
 **核心逻辑：**
-- 虚空瓜：检查背包里是否有 5 个不同幻彩品种的基因，有则消耗 → 100% 产出虚空瓜种子
-- 黑洞瓜：检查背包里是否有全部 10 种双元素组合的基因（土火/土水/.../木金），有则消耗 → 100% 产出黑洞瓜种子
-- 宇宙之心：监听图鉴收集进度，当 encyclopedia.collected.length === 78 时触发特殊事件 → 弹窗动画 → 自动添加宇宙之心到图鉴 + 背包
+- 天气切换：每次打开 app 检查距离上次切换是否≥6h，是则随机切换（彩虹5%概率，其他均分）
+- 小动物：每次打开 app 10% 概率出现一只，随机类型 + 随机位置，停留 5-15 秒后消失
+- 外星人：瓜瓜星人（≥3棵瓜时10%/天）、变异博士（使用基因改造液时15%触发），出现后显示对话气泡 3 秒
 
 **UI 布局：**
-- 基因实验室新增"暗物质融合"区域（五行融合下方）
-- 两个按钮：虚空瓜融合 / 黑洞瓜融合
-- 按钮下方显示所需基因清单 + 当前拥有状态（✅/❌）
-- 图鉴内暗物质品种剪影点击 → 弹窗显示获取指引
+- 天气：瓜田背景层渲染对应天气效果（CSS filter + SVG overlay）
+- 小动物：absolute 定位在瓜田上方，CSS animation 飞行/爬行
+- 外星人：瓜田右下角出现头像 + 对话气泡
 
 **集成点：**
-- `src/store/geneStore.ts` 新增 `fuseDarkMatter()` 方法
-- `src/store/encyclopediaStore.ts` 新增 `checkCosmicHeart()` 监听器
-- `src/components/Farm/GeneLabTab.tsx` 新增暗物质融合区
-- `src/components/Farm/EncyclopediaTab.tsx` 修改品种详情弹窗，暗物质品种显示指引
-- `src/data/varieties.ts` 新增暗物质星 3 个品种数据
+- `src/store/farmStore.ts` 新增 `weatherState` + `creatures` + `alienVisit`
+- `src/components/Farm/FarmTab.tsx` 渲染天气层 + 小动物层 + 外星人层
+- `src/utils/weather.ts` 天气切换逻辑
+- `src/utils/creatures.ts` 小动物生成逻辑
+- `src/locales/*.json` 新增外星人对话 i18n key
 
 ## 相关文件
 - `/home/ycz87/cosmelon/docs/FARM-DESIGN-v3.md` — 农场设计完整文档
 - `/home/ycz87/cosmelon/docs/FARM-ROADMAP-v1.md` — Phase 6 详细说明
-- `/home/ycz87/cosmelon/docs/ENCYCLOPEDIA-v1.md` — 品种数据
 
 ## 阻塞
 无
@@ -67,6 +80,7 @@ interface DarkMatterFusion {
 ---
 
 ## 历史记录
+- Phase 6 Step 2 (v0.34.0): 暗物质星 ✅
 - Phase 6 Step 1 (v0.33.0): 五行融合 + 幻彩星 ✅
 - Phase 5 Step 2 (v0.32.0): 星际大盗 + 防护道具 + 月神甘露 ✅
 - Phase 5 Step 1 (v0.31.0): 变异系统 ✅

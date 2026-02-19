@@ -556,6 +556,45 @@ export const GROWTH_STAGES: StageDef[] = [
   { id: 'fruit',  threshold: 1.00, emoji: '🍉' },
 ];
 
+// ─── Farm ambience (Phase 6) ───
+export type Weather = 'sunny' | 'cloudy' | 'rainy' | 'night' | 'rainbow';
+
+export interface WeatherState {
+  current: Weather;
+  lastChangeAt: number; // ms timestamp
+}
+
+export type CreatureType = 'bee' | 'butterfly' | 'ladybug' | 'bird';
+
+export interface Creature {
+  id: string;
+  type: CreatureType;
+  xPercent: number;
+  yPercent: number;
+  expiresAt: number; // ms timestamp
+}
+
+export type AlienType = 'melon-alien' | 'mutation-doctor';
+export type AlienDialogueKey = 'alienMelonGreeting' | 'alienMutationDoctor';
+
+export interface AlienAppearance {
+  id: string;
+  type: AlienType;
+  messageKey: AlienDialogueKey;
+  appearedAt: number;
+  expiresAt: number; // ms timestamp
+}
+
+export interface AlienVisit {
+  lastMelonAlienCheckDate: string; // YYYY-MM-DD
+  current: AlienAppearance | null;
+}
+
+export const DEFAULT_ALIEN_VISIT: AlienVisit = {
+  lastMelonAlienCheckDate: '',
+  current: null,
+};
+
 // ─── 地块 ───
 export type PlotState = 'empty' | 'growing' | 'mature' | 'withered' | 'stolen';
 export type MutationStatus = 'none' | 'positive' | 'negative';

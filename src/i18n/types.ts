@@ -377,6 +377,7 @@ export interface Messages {
   farmSeedHint: string;
   farmNoSeeds: string;
   farmGoSlice: string;
+  farmWeatherName: (weather: string) => string;
   farmReveal: string;
   farmNewVariety: string;
   farmNewFlash: string;
@@ -394,6 +395,8 @@ export interface Messages {
   formatDuration: (minutes: number) => string;
   farmGoFarm: string;
   farmUnlockHint: (requiredVarieties: number) => string;
+  alienMelonGreeting: string;
+  alienMutationDoctor: string;
 
   // ─── Thief & Items (v0.32.0) ───
   thiefAppeared: string;
