@@ -363,6 +363,13 @@ export interface Messages {
   farmPlant: string;
   farmHarvest: string;
   farmWithered: string;
+  mutationRevealed: string;
+  mutationPositive: string;
+  mutationNegative: string;
+  mutationWithered: string;
+  mutationDowngraded: string;
+  mutationGunUse: string;
+  mutationChanceLabel: string;
   farmClear: string;
   farmSelectGalaxy: string;
   farmSelectSeed: string;

@@ -4,6 +4,18 @@
 
 ---
 
+## [0.31.0] - 2026-02-19
+### Added
+- 🧬 Mutation system in farm growth: 2% natural trigger chance in early growth
+- 🎲 Mutation outcome distribution: 40% positive / 30% negative / 30% no-effect
+- ☠️ Negative mutation split: 50% withered / 50% seed-quality downgrade
+- 🔦 Mutation Ray Gun increases target plot mutation chance by +20% per use (caps at 100% after 5 uses)
+- 💎 Mutant collection entries (`isMutant`) with 3x sell price in market sell tab
+- 🧪 New `e2e/mutation.spec.ts` covering AC1-AC8
+
+### Changed
+- Updated `e2e/market-sell.spec.ts` AC6 to validate buy-tab item list instead of `marketBuyComingSoon`
+
 ## [0.30.0] - 2026-02-19
 ### Added
 - 🛒 Market buy tab with 14 shop items

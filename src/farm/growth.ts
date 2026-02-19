@@ -3,7 +3,7 @@
  *
  * 计算分钟级生长进度、枯萎检测、品种随机。
  */
-import type { Plot, VarietyId, GrowthStage, GalaxyId } from '../types/farm';
+import type { Plot, VarietyId, GrowthStage, GalaxyId, MutationStatus } from '../types/farm';
 import type { SeedQuality } from '../types/slicing';
 import {
   GALAXY_VARIETIES, VARIETY_DEFS, GROWTH_STAGES,
@@ -13,6 +13,7 @@ const MINUTES_PER_HOUR = 60;
 const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR;
 const WITHER_THRESHOLD_HOURS = 72;
 const WITHER_THRESHOLD_MINUTES = WITHER_THRESHOLD_HOURS * MINUTES_PER_HOUR;
+const MUTATION_TRIGGER_PROGRESS = 0.20;
 
 /**
  * 离线成长分钟数：
@@ -94,6 +95,76 @@ export function isVarietyRevealed(progress: number): boolean {
   return progress >= 0.60;
 }
 
+function downgradeSeedQuality(seedQuality: SeedQuality | undefined): SeedQuality {
+  if (seedQuality === 'legendary') return 'epic';
+  if (seedQuality === 'epic') return 'normal';
+  return 'normal';
+}
+
+/**
+ * 变异判定（单次）：
+ * - 已判定（positive/negative）直接跳过
+ * - 一旦判定（包含未命中概率）即将 mutationChance 归零，避免重复判定
+ */
+export function rollMutation(plot: Plot): Plot {
+  if ((plot.mutationStatus ?? 'none') !== 'none') return plot;
+
+  const mutationChance = plot.mutationChance ?? 0.02;
+  if (mutationChance <= 0) return plot;
+  if (Math.random() >= mutationChance) {
+    return {
+      ...plot,
+      mutationChance: 0,
+      isMutant: false,
+    };
+  }
+
+  const mutationRoll = Math.random();
+
+  // 40% 良性变异 (0.0 <= roll < 0.4)
+  if (mutationRoll < 0.4) {
+    return {
+      ...plot,
+      mutationStatus: 'positive',
+      mutationChance: 0,
+      isMutant: true,
+    };
+  }
+
+  // 30% 恶性变异 (0.4 <= roll < 0.7)
+  if (mutationRoll < 0.7) {
+    const shouldWither = Math.random() < 0.5;
+    return shouldWither
+      ? {
+          ...plot,
+          state: 'withered',
+          mutationStatus: 'negative',
+          mutationChance: 0,
+          isMutant: false,
+        }
+      : {
+          ...plot,
+          mutationStatus: 'negative',
+          mutationChance: 0,
+          isMutant: false,
+          seedQuality: downgradeSeedQuality(plot.seedQuality),
+        };
+  }
+
+  // 30% 触发但无效果 (0.7 <= roll < 1.0)
+  return {
+    ...plot,
+    mutationStatus: 'none',
+    mutationChance: 0,
+    isMutant: false,
+  };
+}
+
+export interface MutationOutcome {
+  varietyId: VarietyId;
+  status: Exclude<MutationStatus, 'none'>;
+}
+
 // ─── 品种随机 ───
 
 /**
@@ -136,7 +207,7 @@ export function updatePlotGrowth(
   plot: Plot,
   growthMinutes: number,
   nowTimestamp: number = Date.now(),
-): { plot: Plot; justRevealed: boolean } {
+): { plot: Plot; justRevealed: boolean; mutationOutcome?: MutationOutcome } {
   if (plot.state !== 'growing') return { plot, justRevealed: false };
   if (!plot.varietyId) return { plot, justRevealed: false };
 
@@ -158,17 +229,30 @@ export function updatePlotGrowth(
   const justRevealed = !wasRevealed && nowRevealed;
 
   const newState = newProgress >= 1 ? 'mature' as const : 'growing' as const;
+  const preMutationPlot: Plot = {
+    ...plot,
+    progress: newProgress,
+    accumulatedMinutes: nextAccumulatedMinutes,
+    state: newState,
+    lastUpdateDate: todayKey,
+    lastActivityTimestamp: safeNow,
+  };
+  const currentMutationStatus = preMutationPlot.mutationStatus ?? 'none';
+  const currentMutationChance = preMutationPlot.mutationChance ?? 0.02;
+  const shouldRollMutation = newProgress >= MUTATION_TRIGGER_PROGRESS
+    && currentMutationStatus === 'none'
+    && currentMutationChance > 0
+    && (prevProgress < MUTATION_TRIGGER_PROGRESS || currentMutationChance > 0.02);
+  const finalPlot = shouldRollMutation ? rollMutation(preMutationPlot) : preMutationPlot;
+  const finalMutationStatus = finalPlot.mutationStatus;
+  const mutationOutcome = shouldRollMutation && (finalMutationStatus === 'positive' || finalMutationStatus === 'negative')
+    ? { varietyId: plot.varietyId, status: finalMutationStatus }
+    : undefined;
 
   return {
-    plot: {
-      ...plot,
-      progress: newProgress,
-      accumulatedMinutes: nextAccumulatedMinutes,
-      state: newState,
-      lastUpdateDate: todayKey,
-      lastActivityTimestamp: safeNow,
-    },
+    plot: finalPlot,
     justRevealed,
+    mutationOutcome,
   };
 }
 

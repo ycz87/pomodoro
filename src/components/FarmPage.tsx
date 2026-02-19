@@ -30,8 +30,15 @@ interface FarmPageProps {
   onPlantHybrid: (plotId: number, seedId: string) => void;
   onInject: (galaxyId: GalaxyId, quality: SeedQuality) => void;
   onFusion: (fragment1Id: string, fragment2Id: string, useModifier: boolean) => { success: boolean; galaxyPair: string } | null;
-  onHarvest: (plotId: number) => { varietyId?: VarietyId; isNew: boolean; collectedCount?: number; rewardSeedQuality?: SeedQuality };
+  onHarvest: (plotId: number) => {
+    varietyId?: VarietyId;
+    isMutant?: boolean;
+    isNew: boolean;
+    collectedCount?: number;
+    rewardSeedQuality?: SeedQuality;
+  };
   onClear: (plotId: number) => void;
+  onUseMutationGun: (plotId: number) => void;
   onGoWarehouse: () => void;
 }
 
@@ -71,6 +78,7 @@ export function FarmPage({
   onFusion,
   onHarvest,
   onClear,
+  onUseMutationGun,
   onGoWarehouse,
 }: FarmPageProps) {
   const theme = useTheme();
@@ -109,6 +117,7 @@ export function FarmPage({
 
   const totalBaseSeeds = seeds.normal + seeds.epic + seeds.legendary;
   const totalPlantableSeeds = totalBaseSeeds + injectedSeeds.length + hybridSeeds.length;
+  const mutationGunCount = (items as Record<string, number>)['mutation-gun'] ?? 0;
   const plotSlots = useMemo(
     () => Array.from({ length: TOTAL_PLOT_SLOTS }, (_, index) => {
       const plot = farm.plots[index];
@@ -261,6 +270,8 @@ export function FarmPage({
                     }}
                     onHarvestClick={() => handleHarvest(slot.plot.id)}
                     onClearClick={() => onClear(slot.plot.id)}
+                    mutationGunCount={mutationGunCount}
+                    onUseMutationGun={() => onUseMutationGun(slot.plot.id)}
                   />
                 ) : (
                   <LockedPlotCard requiredVarieties={slot.requiredVarieties} theme={theme} t={t} />
@@ -408,7 +419,7 @@ function SubTabHeader({ subTab, setSubTab, theme, t }: {
 }
 
 // ─── 地块卡片 ───
-function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick, onHarvestClick, onClearClick }: {
+function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick, onHarvestClick, onClearClick, mutationGunCount, onUseMutationGun }: {
   plot: Plot;
   theme: ReturnType<typeof useTheme>;
   t: ReturnType<typeof useI18n>;
@@ -417,8 +428,16 @@ function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick
   onPlantClick: () => void;
   onHarvestClick: () => void;
   onClearClick: () => void;
+  mutationGunCount: number;
+  onUseMutationGun: () => void;
 }) {
   const variety = plot.varietyId ? VARIETY_DEFS[plot.varietyId] : null;
+  const varietyLabel = plot.varietyId
+    ? `${t.varietyName(plot.varietyId)}${plot.isMutant ? ` · ${t.mutationPositive}` : ''}`
+    : '';
+  const negativeStatusText = plot.mutationStatus === 'negative'
+    ? (plot.state === 'withered' ? t.mutationWithered : t.mutationDowngraded)
+    : null;
   const revealed = plot.varietyId ? isVarietyRevealed(plot.progress) : false;
   const stage = getGrowthStage(plot.progress);
   const stageEmoji = getStageEmoji(plot.progress, plot.varietyId);
@@ -430,6 +449,11 @@ function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick
   const hasFlowingShine = variety ? (variety.rarity === 'epic' || variety.rarity === 'legendary') : false;
   const flowShineColor = variety?.rarity === 'legendary' ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.62)';
   const matureMinutes = variety?.matureMinutes ?? 10000;
+  const mutationChance = Math.max(0, Math.min(1, plot.mutationChance ?? 0.02));
+  const isMutationResolved = plot.progress >= 0.20 && mutationChance === 0;
+  const canUseMutationGun = (plot.mutationStatus ?? 'none') === 'none'
+    && mutationGunCount > 0
+    && !isMutationResolved;
   const stageSwayAnimation = stage === 'seed' || stage === 'sprout'
     ? 'plantSwaySm 4s ease-in-out infinite'
     : stage === 'leaf' || stage === 'flower'
@@ -506,7 +530,7 @@ function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick
             </span>
             {revealed && variety ? (
               <span className="text-[11px] font-semibold leading-tight" style={{ color: theme.text }}>
-                {t.varietyName(plot.varietyId!)}
+                {varietyLabel}
               </span>
             ) : (
               <span className="text-[11px] font-medium" style={{ color: theme.textFaint }}>???</span>
@@ -535,6 +559,11 @@ function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick
             <span className="mt-1 text-[10px]" style={{ color: theme.textFaint }}>
               {t.farmStage(stage)}
             </span>
+            {negativeStatusText && (
+              <span className="mt-1 text-[10px] font-medium leading-tight" style={{ color: '#ef4444' }}>
+                {negativeStatusText}
+              </span>
+            )}
             {isTooltipOpen && (
               <div
                 className="absolute left-1/2 top-full z-50 mt-2 w-max max-w-[200px] -translate-x-1/2 rounded-[12px] px-4 py-3 text-[11px] leading-relaxed text-white"
@@ -551,11 +580,30 @@ function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick
                   }}
                 />
                 {revealed && variety && (
-                  <div className="font-semibold">{t.varietyName(plot.varietyId!)}</div>
+                  <div className="font-semibold">{varietyLabel}</div>
                 )}
                 <div>{`${Math.round(progressPercent)}%`}</div>
                 <div>{t.farmGrowthTime(plot.accumulatedMinutes, matureMinutes)}</div>
+                {negativeStatusText && <div>{negativeStatusText}</div>}
                 {plot.progress < 0.5 && <div>{t.farmFocusBoostHint}</div>}
+                {canUseMutationGun && (
+                  <>
+                    <div>{`${t.mutationChanceLabel}: ${Math.round(mutationChance * 100)}%`}</div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUseMutationGun();
+                      }}
+                      className="mt-2 w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                      style={{
+                        color: '#000',
+                        backgroundColor: '#fbbf24',
+                      }}
+                    >
+                      {`🔦 ${t.mutationGunUse} · ${mutationGunCount}`}
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -574,8 +622,13 @@ function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick
               {variety.emoji}
             </span>
             <span className="text-[11px] font-semibold leading-tight" style={{ color: theme.text }}>
-              {t.varietyName(plot.varietyId!)}
+              {varietyLabel}
             </span>
+            {negativeStatusText && (
+              <span className="mt-1 text-[10px] font-medium leading-tight" style={{ color: '#ef4444' }}>
+                {negativeStatusText}
+              </span>
+            )}
             <span
               className="mt-1 rounded-full px-3 py-1 text-[10px] font-bold"
               style={{ backgroundColor: '#fbbf24', color: '#000' }}
@@ -592,7 +645,9 @@ function PlotCard({ plot, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick
             className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center px-3 py-3 text-center"
           >
             <span className="text-[clamp(1.9rem,6vw,2.5rem)] grayscale">💀</span>
-            <span className="text-[11px] font-medium" style={{ color: theme.textMuted }}>{t.farmWithered}</span>
+            <span className="text-[11px] font-medium" style={{ color: theme.textMuted }}>
+              {negativeStatusText ?? t.farmWithered}
+            </span>
             <span
               className="mt-1 rounded-full px-3 py-1 text-[10px] font-medium"
               style={{ color: theme.textMuted, backgroundColor: `${theme.border}66` }}

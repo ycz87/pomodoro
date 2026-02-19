@@ -13,7 +13,8 @@ function getCollectedVarietyCountByGalaxy(collection: CollectedVariety[]): Map<G
     const varietyDef = VARIETY_DEFS[record.varietyId];
     if (!varietyDef) continue;
     const set = byGalaxy.get(varietyDef.galaxy) ?? new Set<string>();
-    set.add(record.varietyId);
+    const key = `${record.varietyId}:${record.isMutant === true ? 'mutant' : 'normal'}`;
+    set.add(key);
     byGalaxy.set(varietyDef.galaxy, set);
   }
 
@@ -25,7 +26,9 @@ function getCollectedVarietyCountByGalaxy(collection: CollectedVariety[]): Map<G
 }
 
 function getCollectedUniqueVarietyCount(collection: CollectedVariety[]): number {
-  const ids = new Set(collection.map(c => c.varietyId));
+  const ids = new Set(collection.map((record) => (
+    `${record.varietyId}:${record.isMutant === true ? 'mutant' : 'normal'}`
+  )));
   return ids.size;
 }
 

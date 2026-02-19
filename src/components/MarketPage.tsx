@@ -15,7 +15,7 @@ import { ConfirmModal } from './ConfirmModal';
 interface MarketPageProps {
   balance: number;
   collection: CollectedVariety[];
-  onSellVariety: (varietyId: VarietyId) => void;
+  onSellVariety: (varietyId: VarietyId, isMutant: boolean) => void;
   onBuyItem: (itemId: ShopItemId) => void;
   onBuyPlot: (plotIndex: number) => void;
   unlockedPlotCount: number;
@@ -25,7 +25,9 @@ interface MarketPageProps {
 type MarketTab = 'buy' | 'sell';
 
 interface SellableVariety {
+  key: string;
   varietyId: VarietyId;
+  isMutant: boolean;
   name: string;
   emoji: string;
   count: number;
@@ -40,7 +42,7 @@ export function MarketPage(props: MarketPageProps) {
   const theme = useTheme();
   const { balance, collection, onSellVariety, onBuyItem, onBuyPlot, unlockedPlotCount, messages } = props;
   const [activeTab, setActiveTab] = useState<MarketTab>('buy');
-  const [pendingSellId, setPendingSellId] = useState<VarietyId | null>(null);
+  const [pendingSellKey, setPendingSellKey] = useState<string | null>(null);
   const [pendingPurchase, setPendingPurchase] = useState<PendingPurchase | null>(null);
   const [recentBoughtItemId, setRecentBoughtItemId] = useState<ShopItemId | null>(null);
 
@@ -48,28 +50,33 @@ export function MarketPage(props: MarketPageProps) {
     return collection.flatMap((entry) => {
       const def = VARIETY_DEFS[entry.varietyId];
       if (!def || entry.count <= 0 || def.sellPrice <= 0) return [];
+      const isMutant = entry.isMutant === true;
       return [{
+        key: `${entry.varietyId}:${isMutant ? 'mutant' : 'normal'}`,
         varietyId: entry.varietyId,
-        name: messages.varietyName(entry.varietyId),
+        isMutant,
+        name: isMutant
+          ? `${messages.varietyName(entry.varietyId)} · ${messages.mutationPositive}`
+          : messages.varietyName(entry.varietyId),
         emoji: def.emoji,
         count: entry.count,
-        sellPrice: def.sellPrice,
+        sellPrice: isMutant ? def.sellPrice * 3 : def.sellPrice,
       }];
     });
   }, [collection, messages]);
 
   const pendingVariety = useMemo(() => {
-    if (!pendingSellId) return null;
-    return sellableVarieties.find((item) => item.varietyId === pendingSellId) ?? null;
-  }, [pendingSellId, sellableVarieties]);
+    if (!pendingSellKey) return null;
+    return sellableVarieties.find((item) => item.key === pendingSellKey) ?? null;
+  }, [pendingSellKey, sellableVarieties]);
 
   const handleConfirmSell = () => {
     if (!pendingVariety) {
-      setPendingSellId(null);
+      setPendingSellKey(null);
       return;
     }
-    onSellVariety(pendingVariety.varietyId);
-    setPendingSellId(null);
+    onSellVariety(pendingVariety.varietyId, pendingVariety.isMutant);
+    setPendingSellKey(null);
   };
 
   const buyablePlots = useMemo(() => {
@@ -247,8 +254,8 @@ export function MarketPage(props: MarketPageProps) {
               <div className="flex flex-col gap-2">
                 {sellableVarieties.map((item) => (
                   <button
-                    key={item.varietyId}
-                    onClick={() => setPendingSellId(item.varietyId)}
+                    key={item.key}
+                    onClick={() => setPendingSellKey(item.key)}
                     className="w-full p-3 rounded-xl border cursor-pointer transition-all text-left"
                     style={{ backgroundColor: theme.inputBg, borderColor: theme.border }}
                   >
@@ -283,7 +290,7 @@ export function MarketPage(props: MarketPageProps) {
           confirmText={messages.marketSellConfirmButton}
           cancelText={messages.marketSellCancelButton}
           onConfirm={handleConfirmSell}
-          onCancel={() => setPendingSellId(null)}
+          onCancel={() => setPendingSellKey(null)}
         />
       )}
 
