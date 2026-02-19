@@ -1,0 +1,65 @@
+/**
+ * useMelonCoin — 瓜币余额存储 hook
+ *
+ * 使用 localStorage 持久化余额，提供加币、扣币和直接设置余额能力。
+ */
+import { useCallback, useEffect, useState } from 'react';
+import type { MelonCoinState } from '../types/market';
+import { DEFAULT_MELON_COIN } from '../types/market';
+
+const MELON_COIN_KEY = 'watermelon-coins';
+
+function readInitialMelonCoinState(): MelonCoinState {
+  try {
+    const raw = localStorage.getItem(MELON_COIN_KEY);
+    if (!raw) return DEFAULT_MELON_COIN;
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== 'object') return DEFAULT_MELON_COIN;
+    const candidate = parsed as Record<string, unknown>;
+    if (typeof candidate.balance !== 'number' || !Number.isFinite(candidate.balance)) {
+      return DEFAULT_MELON_COIN;
+    }
+    return { balance: candidate.balance };
+  } catch {
+    return DEFAULT_MELON_COIN;
+  }
+}
+
+export function useMelonCoin() {
+  const [state, setState] = useState<MelonCoinState>(() => readInitialMelonCoinState());
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(MELON_COIN_KEY, JSON.stringify(state));
+    } catch {
+      // Storage full or unavailable — silently ignore
+    }
+  }, [state]);
+
+  const addCoins = useCallback((amount: number) => {
+    if (amount <= 0) return;
+    setState((prev) => ({ ...prev, balance: prev.balance + amount }));
+  }, []);
+
+  const spendCoins = useCallback((amount: number): boolean => {
+    if (amount <= 0) return false;
+    let success = false;
+    setState((prev) => {
+      if (prev.balance < amount) return prev;
+      success = true;
+      return { ...prev, balance: prev.balance - amount };
+    });
+    return success;
+  }, []);
+
+  const setBalance = useCallback((balance: number) => {
+    setState({ balance });
+  }, []);
+
+  return {
+    balance: state.balance,
+    addCoins,
+    spendCoins,
+    setBalance,
+  };
+}

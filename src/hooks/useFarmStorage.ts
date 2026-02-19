@@ -158,6 +158,28 @@ export function useFarmStorage() {
     return { varietyId: harvestedVariety, isNew, collectedCount, rewardSeedQuality };
   }, [setFarm]);
 
+  /** 卖出品种（仅减少图鉴 count，条目保留） */
+  const sellVariety = useCallback((varietyId: VarietyId): boolean => {
+    let success = false;
+
+    setFarm(prev => {
+      const record = prev.collection.find(item => item.varietyId === varietyId);
+      if (!record || record.count <= 0) return prev;
+      success = true;
+
+      return {
+        ...prev,
+        collection: prev.collection.map(item => (
+          item.varietyId === varietyId
+            ? { ...item, count: Math.max(0, item.count - 1) }
+            : item
+        )),
+      };
+    });
+
+    return success;
+  }, [setFarm]);
+
   /** 清除枯萎地块 */
   const clearPlot = useCallback((plotId: number) => {
     setFarm(prev => ({
@@ -186,5 +208,15 @@ export function useFarmStorage() {
     }));
   }, [setFarm]);
 
-  return { farm, setFarm, plantSeed, plantSeedWithVariety, harvestPlot, clearPlot, updatePlots, updateActiveDate };
+  return {
+    farm,
+    setFarm,
+    plantSeed,
+    plantSeedWithVariety,
+    harvestPlot,
+    sellVariety,
+    clearPlot,
+    updatePlots,
+    updateActiveDate,
+  };
 }

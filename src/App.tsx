@@ -40,6 +40,7 @@ import { AchievementCelebration } from './components/AchievementCelebration';
 import { SlicingScene } from './components/SlicingScene';
 import { updatePity as updatePityCalc } from './slicing/engine';
 import { FarmPage } from './components/FarmPage';
+import { MarketPage } from './components/MarketPage';
 import { DebugToolbar } from './components/DebugToolbar';
 import { useTimer } from './hooks/useTimer';
 import type { TimerPhase } from './hooks/useTimer';
@@ -49,6 +50,7 @@ import { useShedStorage } from './hooks/useShedStorage';
 import { useAchievements } from './hooks/useAchievements';
 import { useFarmStorage } from './hooks/useFarmStorage';
 import { useGeneStorage } from './hooks/useGeneStorage';
+import { useMelonCoin } from './hooks/useMelonCoin';
 import { useAuth } from './hooks/useAuth';
 import { useSync } from './hooks/useSync';
 import { ThemeProvider } from './hooks/useTheme';
@@ -78,7 +80,7 @@ import type { GrowthStage } from './types';
 import type { AppMode } from './types/project';
 import type { ProjectRecord } from './types/project';
 import { DEFAULT_FARM_STORAGE, VARIETY_DEFS } from './types/farm';
-import type { CollectedVariety, Plot } from './types/farm';
+import type { CollectedVariety, Plot, VarietyId } from './types/farm';
 
 function App() {
   const [currentTask, setCurrentTask] = useState('');
@@ -91,7 +93,7 @@ function App() {
   const [mode, setMode] = useState<AppMode>('pomodoro');
   const [showGuide, setShowGuide] = useState(false);
   const [lastRolledStage, setLastRolledStage] = useState<GrowthStage | null>(null);
-  const [activeTab, setActiveTab] = useState<'focus' | 'warehouse' | 'farm'>('focus');
+  const [activeTab, setActiveTab] = useState<'focus' | 'warehouse' | 'farm' | 'market'>('focus');
   const [debugMode, setDebugMode] = useState(() => localStorage.getItem('watermelon-debug') === 'true');
   const [timeMultiplier, setTimeMultiplier] = useState(1);
   const suppressCelebrationRef = useRef(false);
@@ -125,10 +127,12 @@ function App() {
   } = useShedStorage();
 
   // Farm storage
-  const { farm, setFarm, plantSeed, plantSeedWithVariety, harvestPlot, clearPlot, updatePlots, updateActiveDate } = useFarmStorage();
+  const { farm, setFarm, plantSeed, plantSeedWithVariety, harvestPlot, sellVariety, clearPlot, updatePlots, updateActiveDate } = useFarmStorage();
   const { geneInventory, addFragment, removeFragment, removeFragmentsByGalaxy } = useGeneStorage();
+  const { balance, addCoins } = useMelonCoin();
   const farmPlotsRef = useRef(farm.plots);
   const updatePlotsRef = useRef(updatePlots);
+  const sellingRef = useRef(false);
 
   // Slicing scene state
   const [slicingMelon, setSlicingMelon] = useState<'ripe' | 'legendary' | null>(null);
@@ -283,9 +287,28 @@ function App() {
     if (result.varietyId) {
       const variety = VARIETY_DEFS[result.varietyId];
       addFragment(variety.galaxy, result.varietyId, variety.rarity);
+      if (result.isNew) {
+        addCoins(variety.sellPrice);
+      }
     }
     return result;
-  }, [addFragment, harvestPlot, todayKey]);
+  }, [addCoins, addFragment, harvestPlot, todayKey]);
+
+  const handleSellVariety = useCallback((varietyId: VarietyId) => {
+    const price = VARIETY_DEFS[varietyId]?.sellPrice ?? 0;
+    if (price <= 0) return;
+
+    if (sellingRef.current) return;
+    sellingRef.current = true;
+    try {
+      const sold = sellVariety(varietyId);
+      if (sold) {
+        addCoins(price);
+      }
+    } finally {
+      sellingRef.current = false;
+    }
+  }, [sellVariety, addCoins]);
 
   // ─── Gene injection handler ───
   const handleGeneInject = useCallback((galaxyId: import('./types/farm').GalaxyId, quality: import('./types/slicing').SeedQuality) => {
@@ -820,6 +843,14 @@ function App() {
     : timer.status === 'idle' ? theme.bg
     : theme.bgWork;
 
+  const mainTabs = [
+    { id: 'focus', emoji: '🍉', label: t.tabFocus },
+    { id: 'warehouse', emoji: '🏠', label: t.tabWarehouse },
+    { id: 'farm', emoji: '🌱', label: t.tabFarm },
+    { id: 'market', emoji: '🏪', label: t.tabMarket },
+  ] as const;
+  const activeTabIndex = Math.max(0, mainTabs.findIndex((tab) => tab.id === activeTab));
+
   return (
     <I18nProvider value={t}>
     <ThemeProvider value={theme}>
@@ -860,22 +891,21 @@ function App() {
               style={{
                 backgroundColor: theme.accent,
                 opacity: 0.15,
-                width: 'calc(33.333% - 2px)',
-                left: activeTab === 'focus' ? '3px' : activeTab === 'warehouse' ? 'calc(33.333% + 1px)' : 'calc(66.666% - 1px)',
+                width: `calc((100% - 6px) / ${mainTabs.length})`,
+                left: '3px',
+                transform: `translateX(${activeTabIndex * 100}%)`,
               }}
             />
-            {(['focus', 'warehouse', 'farm'] as const).map((tab) => {
-              const emoji = tab === 'focus' ? '🍉' : tab === 'warehouse' ? '🏠' : '🌱';
-              const label = tab === 'focus' ? t.tabFocus : tab === 'warehouse' ? t.tabWarehouse : t.tabFarm;
-              const isActive = activeTab === tab;
+            {mainTabs.map((tab) => {
+              const isActive = activeTab === tab.id;
               return (
                 <button
-                  key={tab}
-                  onClick={() => !isAnyTimerActive && setActiveTab(tab)}
-                  className={`relative z-10 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors duration-200 ${isAnyTimerActive && !isActive ? 'opacity-40' : 'cursor-pointer'}`}
+                  key={tab.id}
+                  onClick={() => !isAnyTimerActive && setActiveTab(tab.id)}
+                  className={`relative z-10 px-2.5 py-1.5 rounded-full text-xs font-semibold transition-colors duration-200 flex-1 text-center ${isAnyTimerActive && !isActive ? 'opacity-40' : 'cursor-pointer'}`}
                   style={{ color: isActive ? theme.accent : theme.textMuted }}
                 >
-                  {emoji} {label}
+                  {tab.emoji} {tab.label}
                 </button>
               );
             })}
@@ -1051,6 +1081,15 @@ function App() {
             onInject={handleGeneInject}
             onFusion={handleGeneFusion}
             onGoWarehouse={() => setActiveTab('warehouse')}
+          />
+        )}
+
+        {activeTab === 'market' && (
+          <MarketPage
+            balance={balance}
+            collection={farm.collection}
+            onSellVariety={handleSellVariety}
+            messages={t}
           />
         )}
         {/* 全屏切瓜场景 */}

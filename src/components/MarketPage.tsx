@@ -1,0 +1,170 @@
+/**
+ * MarketPage — 商城页面（买入 / 卖出）
+ *
+ * Phase 4 Step 1 仅实现卖出能力：
+ * - 列出背包中可卖出的西瓜（count > 0 且 sellPrice > 0）
+ * - 确认后卖出 1 个
+ */
+import { useMemo, useState } from 'react';
+import { useTheme } from '../hooks/useTheme';
+import type { Messages } from '../i18n/types';
+import { VARIETY_DEFS } from '../types/farm';
+import type { CollectedVariety, VarietyId } from '../types/farm';
+import { ConfirmModal } from './ConfirmModal';
+
+interface MarketPageProps {
+  balance: number;
+  collection: CollectedVariety[];
+  onSellVariety: (varietyId: VarietyId) => void;
+  messages: Messages;
+}
+
+type MarketTab = 'buy' | 'sell';
+
+interface SellableVariety {
+  varietyId: VarietyId;
+  name: string;
+  emoji: string;
+  count: number;
+  sellPrice: number;
+}
+
+export function MarketPage(props: MarketPageProps) {
+  const theme = useTheme();
+  const { balance, collection, onSellVariety, messages } = props;
+  const [activeTab, setActiveTab] = useState<MarketTab>('buy');
+  const [pendingSellId, setPendingSellId] = useState<VarietyId | null>(null);
+
+  const sellableVarieties = useMemo<SellableVariety[]>(() => {
+    return collection.flatMap((entry) => {
+      const def = VARIETY_DEFS[entry.varietyId];
+      if (!def || entry.count <= 0 || def.sellPrice <= 0) return [];
+      return [{
+        varietyId: entry.varietyId,
+        name: messages.varietyName(entry.varietyId),
+        emoji: def.emoji,
+        count: entry.count,
+        sellPrice: def.sellPrice,
+      }];
+    });
+  }, [collection, messages]);
+
+  const pendingVariety = useMemo(() => {
+    if (!pendingSellId) return null;
+    return sellableVarieties.find((item) => item.varietyId === pendingSellId) ?? null;
+  }, [pendingSellId, sellableVarieties]);
+
+  const handleConfirmSell = () => {
+    if (!pendingVariety) {
+      setPendingSellId(null);
+      return;
+    }
+    onSellVariety(pendingVariety.varietyId);
+    setPendingSellId(null);
+  };
+
+  return (
+    <div className="w-full max-w-xs sm:max-w-sm px-4 pt-4 pb-6">
+      <div
+        className="rounded-2xl p-5 border"
+        style={{ backgroundColor: theme.surface, borderColor: theme.border }}
+      >
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold" style={{ color: theme.text }}>{messages.marketTitle}</h2>
+          <div
+            className="text-sm font-semibold px-3 py-1.5 rounded-full"
+            style={{ backgroundColor: theme.inputBg, color: '#fbbf24' }}
+          >
+            💰 {balance}
+          </div>
+        </div>
+
+        <div className="mb-4 relative flex items-center rounded-full p-[3px]" style={{ backgroundColor: theme.inputBg }}>
+          <div
+            className="absolute top-[3px] bottom-[3px] rounded-full transition-all duration-200 ease-out"
+            style={{
+              backgroundColor: theme.border,
+              width: 'calc(50% - 3px)',
+              left: activeTab === 'buy' ? '3px' : 'calc(50%)',
+            }}
+          />
+          <button
+            onClick={() => setActiveTab('buy')}
+            className="relative z-10 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 cursor-pointer flex-1"
+            style={{ color: activeTab === 'buy' ? theme.text : theme.textMuted }}
+          >
+            {messages.marketTabBuy}
+          </button>
+          <button
+            onClick={() => setActiveTab('sell')}
+            className="relative z-10 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 cursor-pointer flex-1"
+            style={{ color: activeTab === 'sell' ? theme.text : theme.textMuted }}
+          >
+            {messages.marketTabSell}
+          </button>
+        </div>
+
+        {activeTab === 'buy' && (
+          <div
+            className="text-sm text-center py-10 rounded-xl border"
+            style={{ color: theme.textMuted, borderColor: theme.border, backgroundColor: theme.inputBg }}
+          >
+            {messages.marketBuyComingSoon}
+          </div>
+        )}
+
+        {activeTab === 'sell' && (
+          <>
+            {sellableVarieties.length === 0 ? (
+              <div
+                className="text-sm text-center py-10 rounded-xl border"
+                style={{ color: theme.textMuted, borderColor: theme.border, backgroundColor: theme.inputBg }}
+              >
+                {messages.marketSellEmpty}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {sellableVarieties.map((item) => (
+                  <button
+                    key={item.varietyId}
+                    onClick={() => setPendingSellId(item.varietyId)}
+                    className="w-full p-3 rounded-xl border cursor-pointer transition-all text-left"
+                    style={{ backgroundColor: theme.inputBg, borderColor: theme.border }}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xl">{item.emoji}</span>
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium truncate" style={{ color: theme.text }}>
+                            {item.name}
+                          </div>
+                          <div className="text-xs" style={{ color: theme.textMuted }}>
+                            {messages.marketSellOwned(item.count)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-sm font-semibold" style={{ color: '#fbbf24' }}>
+                        {item.sellPrice} 💰
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {pendingVariety && (
+        <ConfirmModal
+          title={messages.marketSellConfirmTitle}
+          message={messages.marketSellConfirmMessage(pendingVariety.name, pendingVariety.sellPrice)}
+          confirmText={messages.marketSellConfirmButton}
+          cancelText={messages.marketSellCancelButton}
+          onConfirm={handleConfirmSell}
+          onCancel={() => setPendingSellId(null)}
+        />
+      )}
+    </div>
+  );
+}
