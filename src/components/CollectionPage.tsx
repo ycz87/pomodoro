@@ -288,7 +288,7 @@ function VarietyDetailModal({ varietyId, collected, collectionCount, totalCount,
       data-modal-overlay
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" />
       <div
         className="relative w-full max-w-sm rounded-2xl border p-5 max-h-[85vh] overflow-y-auto shadow-2xl animate-fade-up"
         style={{ backgroundColor: theme.surface, borderColor: theme.border }}

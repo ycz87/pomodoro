@@ -59,6 +59,7 @@ import { ThemeProvider } from './hooks/useTheme';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useDragScroll } from './hooks/useDragScroll';
 import { useWeather } from './hooks/useWeather';
+import { withOpacity } from './utils/color';
 import {
   requestNotificationPermission, sendBrowserNotification,
   playAlertRepeated, stopAlert,
@@ -1518,9 +1519,9 @@ function App() {
         <header
           className="w-full h-12 flex items-center px-3 sm:px-5 shrink-0 z-40 sticky top-0 border-b"
           style={{
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            backgroundColor: `${theme.surface}cc`,
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            backgroundColor: withOpacity(theme.surface, 0.8),
             borderColor: theme.border,
           }}
         >
@@ -1812,7 +1813,7 @@ function App() {
             className="fixed inset-0 z-[180] flex items-center justify-center p-4"
             onClick={() => setShowCosmicHeartCelebration(false)}
           >
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" />
             <div
               className="relative max-w-md w-full rounded-2xl border px-6 py-7 text-center"
               style={{

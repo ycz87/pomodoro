@@ -15,7 +15,7 @@ export function ProjectRecoveryModal({ onRecover, onDiscard }: Props) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" />
       <div className="relative w-full max-w-sm rounded-2xl border shadow-2xl p-6 flex flex-col gap-4 animate-fade-up"
         style={{ backgroundColor: theme.surface, borderColor: theme.textFaint }}>
         <div className="text-center">

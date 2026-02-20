@@ -80,6 +80,44 @@ body {
   animation: fade-up 0.3s ease-out forwards;
 }
 
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.22s ease-out forwards;
+}
+
+.ui-hover-button,
+.ui-hover-card {
+  box-shadow: var(--shadow-card);
+}
+
+@media (hover: hover) {
+  .ui-hover-button,
+  .ui-hover-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    will-change: transform, box-shadow;
+  }
+
+  .ui-hover-button:hover {
+    box-shadow: var(--shadow-elevated) !important;
+  }
+
+  .ui-hover-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  button[class*="hover:-translate-y-0.5"][style*="--shadow-card"]:not(.ui-hover-button):not(.ui-hover-card):hover {
+    box-shadow: var(--shadow-elevated) !important;
+  }
+
+  [class*="hover:-translate-y-0.5"][style*="--shadow-card"]:not(button):not(.ui-hover-button):not(.ui-hover-card):hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+  }
+}
+
 /* ─── Celebration animations ─── */
 
 /* Particle burst outward then fade */

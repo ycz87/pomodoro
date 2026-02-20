@@ -72,7 +72,7 @@ export function HistoryPanel({ records, projectRecords = [], onClose }: HistoryP
 
   return (
     <div className="fixed inset-0 z-[90] flex items-end justify-center" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in" />
       <div
         className="relative w-full max-w-lg max-h-[85vh] rounded-t-3xl overflow-y-auto animate-slide-up"
         style={{ backgroundColor: theme.surface, color: theme.text }}

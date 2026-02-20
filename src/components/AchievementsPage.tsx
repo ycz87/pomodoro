@@ -167,12 +167,12 @@ function BadgeDetailModal({ def, data, series, language, onClose }: {
   return createPortal(
     <div
       className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
       onClick={onClose}
       data-modal-overlay
     >
+      <div className="absolute inset-0 animate-fade-in" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} />
       <div
-        className="w-full max-w-xs rounded-[var(--radius-panel)] p-6 border animate-fade-up"
+        className="relative w-full max-w-xs rounded-[var(--radius-panel)] p-6 border animate-fade-up"
         style={{ backgroundColor: theme.surface, borderColor: theme.border, boxShadow: 'var(--shadow-elevated)' }}
         onClick={e => e.stopPropagation()}
       >

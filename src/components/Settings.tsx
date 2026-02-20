@@ -11,6 +11,7 @@ import type { AmbienceMixerConfig } from '../audio';
 import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../i18n';
 import type { Locale } from '../i18n';
+import { withOpacity } from '../utils/color';
 import { AmbienceMixerModal } from './AmbienceMixerModal';
 import { AlertPickerModal } from './AlertPickerModal';
 import { LanguagePickerModal } from './LanguagePickerModal';
@@ -89,16 +90,22 @@ function NumberStepper({ label, value, onChange, min, max, step = 1, unit, disab
       <div className="text-sm" style={{ color: t.textMuted }}>{label}</div>
       <div className={`flex items-center gap-1 ${disabled ? 'opacity-40 pointer-events-none' : ''}`}>
         <button onClick={() => onChange(clamp(value - step))}
-          className="w-8 h-8 rounded-[var(--radius-sm)] flex items-center justify-center transition-all duration-200 ease-in-out hover:-translate-y-0.5 cursor-pointer text-sm"
+          className="w-8 h-8 rounded-[var(--radius-sm)] flex items-center justify-center transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button cursor-pointer text-sm"
           style={{ backgroundColor: t.inputBg, color: t.textMuted }}>−</button>
         <input ref={inputRef} type="number" value={value}
           onChange={(e) => { const v = parseInt(e.target.value, 10); if (!isNaN(v)) onChange(clamp(v)); }}
           onBlur={() => { if (inputRef.current) { const v = parseInt(inputRef.current.value, 10); if (isNaN(v) || v < min) onChange(min); else if (v > max) onChange(max); } }}
           min={min} max={max}
-          className="w-12 h-8 rounded-[var(--radius-sm)] text-center text-sm outline-none transition-all duration-200 ease-in-out [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-          style={{ backgroundColor: t.inputBg, color: t.text }} />
+          className="w-12 h-8 rounded-[var(--radius-sm)] text-center text-sm outline-none transition-all duration-200 ease-in-out focus:ring-2 focus:ring-[var(--focus-ring-color)] focus:ring-opacity-50 focus:shadow-[0_0_0_3px_var(--focus-ring-glow)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          style={{
+            backgroundColor: t.inputBg,
+            color: t.text,
+            '--focus-ring-color': withOpacity(t.accent, 0.5),
+            '--focus-ring-glow': withOpacity(t.accent, 0.1),
+          } as React.CSSProperties}
+        />
         <button onClick={() => onChange(clamp(value + step))}
-          className="w-8 h-8 rounded-[var(--radius-sm)] flex items-center justify-center transition-all duration-200 ease-in-out hover:-translate-y-0.5 cursor-pointer text-sm"
+          className="w-8 h-8 rounded-[var(--radius-sm)] flex items-center justify-center transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button cursor-pointer text-sm"
           style={{ backgroundColor: t.inputBg, color: t.textMuted }}>+</button>
         <span className="text-xs ml-1 w-8" style={{ color: t.textMuted }}>{unit}</span>
       </div>
@@ -177,7 +184,7 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
   };
 
   const optBtn = (active: boolean) =>
-    `px-3 py-1 rounded-[var(--radius-sm)] text-xs transition-all duration-200 ease-in-out hover:-translate-y-0.5 cursor-pointer ${active ? 'font-medium' : ''}`;
+    `px-3 py-1 rounded-[var(--radius-sm)] text-xs transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button cursor-pointer ${active ? 'font-medium' : ''}`;
   const optStyle = (active: boolean) => ({
     backgroundColor: active ? `${theme.accent}30` : theme.inputBg,
     color: active ? theme.accent : theme.textMuted,
@@ -208,7 +215,7 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
     <>
       <div className="relative" ref={panelRef}>
         <button onClick={() => setIsOpen(!isOpen)}
-          className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ease-in-out hover:-translate-y-0.5 cursor-pointer"
+          className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button cursor-pointer"
           style={{ color: isOpen ? theme.textMuted : theme.textFaint }}
           aria-label={i18n.settings}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -278,7 +285,7 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
                       </span>
                       <button
                         onClick={() => setShowAlertModal(true)}
-                        className="px-3 py-1 rounded-[var(--radius-sm)] text-xs transition-all duration-200 ease-in-out hover:-translate-y-0.5 cursor-pointer"
+                        className="px-3 py-1 rounded-[var(--radius-sm)] text-xs transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button cursor-pointer"
                         style={{ backgroundColor: `${theme.accent}20`, color: theme.accent }}>
                         {i18n.alertCustomize}
                       </button>
@@ -310,7 +317,7 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
                       </span>
                       <button
                         onClick={() => setShowAmbienceModal(true)}
-                        className="px-3 py-1 rounded-[var(--radius-sm)] text-xs transition-all duration-200 ease-in-out hover:-translate-y-0.5 cursor-pointer"
+                        className="px-3 py-1 rounded-[var(--radius-sm)] text-xs transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button cursor-pointer"
                         style={{ backgroundColor: `${theme.accent}20`, color: theme.accent }}>
                         {i18n.ambienceCustomize}
                       </button>
@@ -332,7 +339,7 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
                   <div className="grid grid-cols-3 gap-2">
                     {(Object.keys(THEMES) as ThemeId[]).map((id) => (
                       <button key={id} onClick={() => update({ theme: id })}
-                        className="flex items-center gap-2 px-3 py-2 rounded-[var(--radius-sm)] text-xs transition-all duration-200 ease-in-out hover:-translate-y-0.5 cursor-pointer"
+                        className="flex items-center gap-2 px-3 py-2 rounded-[var(--radius-sm)] text-xs transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button cursor-pointer"
                         style={{
                           backgroundColor: settings.theme === id ? `${THEMES[id].colors.accent}30` : theme.inputBg,
                           color: settings.theme === id ? THEMES[id].colors.accent : theme.textMuted,
@@ -348,7 +355,7 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
                     <div className="text-sm" style={{ color: theme.textMuted }}>{i18n.language}</div>
                     <button
                       onClick={() => setShowLanguageModal(true)}
-                      className="flex items-center gap-2 px-3 py-1 rounded-[var(--radius-sm)] text-xs transition-all duration-200 ease-in-out hover:-translate-y-0.5 cursor-pointer"
+                      className="flex items-center gap-2 px-3 py-1 rounded-[var(--radius-sm)] text-xs transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button cursor-pointer"
                       style={{ backgroundColor: `${theme.accent}20`, color: theme.accent }}>
                       <span>{LANGUAGE_DISPLAY[settings.language]?.flag}</span>
                       <span>{LANGUAGE_DISPLAY[settings.language]?.name}</span>
@@ -363,7 +370,7 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
                 <div className="flex flex-col gap-3 mt-3">
                   <button
                     onClick={onExport}
-                    className="w-full py-2 rounded-[var(--radius-sm)] text-xs transition-all duration-200 ease-in-out hover:-translate-y-0.5 cursor-pointer"
+                    className="w-full py-2 rounded-[var(--radius-sm)] text-xs transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button cursor-pointer"
                     style={{ backgroundColor: theme.inputBg, color: theme.textMuted }}
                   >
                     {i18n.exportData}
@@ -372,7 +379,7 @@ export function Settings({ settings, onChange, disabled, isWorkRunning, onExport
                   {onShowGuide && (
                     <button
                       onClick={() => { onShowGuide(); setIsOpen(false); }}
-                      className="w-full py-2 rounded-[var(--radius-sm)] text-xs transition-all duration-200 ease-in-out hover:-translate-y-0.5 cursor-pointer"
+                      className="w-full py-2 rounded-[var(--radius-sm)] text-xs transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button cursor-pointer"
                       style={{ backgroundColor: theme.inputBg, color: theme.textMuted }}
                     >
                       {i18n.settingsGuide}

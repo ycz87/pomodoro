@@ -101,7 +101,7 @@ export function AmbienceMixerModal({ config, onChange, onClose, keepOnClose }: P
       data-modal-overlay
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" />
 
       {/* Modal */}
       <div className="relative w-full max-w-md max-h-[80vh] rounded-2xl border shadow-2xl overflow-hidden flex flex-col animate-fade-up"

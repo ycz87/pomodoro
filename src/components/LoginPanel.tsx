@@ -136,7 +136,7 @@ export function LoginPanel({ open, onClose, onLogin }: LoginPanelProps) {
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 transition-opacity duration-300"
+        className="absolute inset-0 transition-opacity duration-300 animate-fade-in"
         style={{
           backgroundColor: 'rgba(0,0,0,0.5)',
           opacity: animating ? 1 : 0,

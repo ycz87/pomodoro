@@ -150,7 +150,8 @@ export function MarketPage(props: MarketPageProps) {
           <div
             className="absolute top-[3px] bottom-[3px] rounded-full transition-all duration-200 ease-in-out"
             style={{
-              backgroundColor: theme.border,
+              backgroundColor: theme.accent,
+              opacity: 0.16,
               width: 'calc((100% - 6px) / 3)',
               left: '3px',
               transform: `translateX(${marketTabIndex[activeTab] * 100}%)`,

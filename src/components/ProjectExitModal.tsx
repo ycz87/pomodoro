@@ -65,7 +65,7 @@ export function ProjectExitModal({
     // Normal (non-break) step 1: confirm exit current task
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center px-4" data-modal-overlay>
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onCancel} />
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={onCancel} />
         <div className="relative w-full max-w-xs rounded-2xl p-5 animate-fade-up"
           style={{ backgroundColor: theme.surface }}>
           <h3 className="text-base font-semibold mb-1" style={{ color: theme.text }}>
@@ -110,7 +110,7 @@ export function ProjectExitModal({
   // Step 2: Choose next action
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-4" data-modal-overlay>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={isBreak ? onCancel : undefined} />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={isBreak ? onCancel : undefined} />
       <div className="relative w-full max-w-xs rounded-2xl p-5 animate-fade-up"
         style={{ backgroundColor: theme.surface }}>
         <h3 className="text-base font-semibold mb-4" style={{ color: theme.text }}>
