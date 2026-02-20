@@ -83,7 +83,7 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
           {!inline && onClose && (
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ease-in-out hover:-translate-y-0.5 cursor-pointer"
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button cursor-pointer"
               style={{ color: theme.textMuted, backgroundColor: theme.inputBg }}
             >✕</button>
           )}
@@ -92,7 +92,8 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
           <div
             className="absolute top-[3px] bottom-[3px] rounded-full transition-all duration-200 ease-in-out"
             style={{
-              backgroundColor: theme.border,
+              backgroundColor: theme.accent,
+              opacity: 0.16,
               width: 'calc(50% - 3px)',
               left: activeTab === 'shed' ? '3px' : 'calc(50%)',
             }}
@@ -130,7 +131,7 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
               return (
                 <div
                   key={stage}
-                  className="flex flex-col items-center gap-2 p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5"
+                  className="flex flex-col items-center gap-2 p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-card"
                   style={{
                     backgroundColor: locked ? theme.inputBg : count > 0 ? `${theme.accent}08` : theme.inputBg,
                     borderColor: count > 0 && !locked ? `${theme.accent}30` : theme.border,
@@ -166,7 +167,7 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
               return (
                 <div
                   key={`${recipe.from}-${recipe.to}`}
-                  className="flex items-center gap-3 p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5"
+                  className="flex items-center gap-3 p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-card"
                   style={{
                     backgroundColor: isAnimating ? `${theme.accent}15` : theme.inputBg,
                     borderColor: theme.border,
@@ -185,7 +186,7 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
                       <>
                         <button
                           onClick={() => handleSynthesize(recipe)}
-                          className="px-3 py-1 rounded-[var(--radius-sm)] text-xs font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
+                          className="px-3 py-1 rounded-[var(--radius-sm)] text-xs font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button"
                           style={{ backgroundColor: `${theme.accent}20`, color: theme.accent }}
                         >
                           {t.synthesisSynthesize}
@@ -193,7 +194,7 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
                         {canMake > 1 && (
                           <button
                             onClick={() => handleSynthesizeAll(recipe)}
-                            className="px-3 py-1 rounded-[var(--radius-sm)] text-xs font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
+                            className="px-3 py-1 rounded-[var(--radius-sm)] text-xs font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button"
                             style={{ backgroundColor: `${theme.accent}10`, color: theme.accent }}
                           >
                             {t.synthesisSynthesizeAll}
@@ -306,7 +307,7 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
                 <p className="text-xs ml-1" style={{ color: theme.textFaint }}>{t.shedFarmComingSoon}</p>
                 <button
                   onClick={onGoFarm}
-                  className="px-3 py-2 rounded-[var(--radius-sm)] text-xs font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
+                  className="px-3 py-2 rounded-[var(--radius-sm)] text-xs font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button"
                   style={{ backgroundColor: `${theme.accent}15`, color: theme.accent, border: `1px solid ${theme.accent}30` }}
                 >
                   {t.farmGoFarm}
@@ -329,7 +330,7 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
                     <button
                       key={id}
                       onClick={() => setFlavorTooltip(flavorTooltip === id ? null : id)}
-                      className="flex flex-col items-center gap-1 p-3 rounded-[var(--radius-card)] border cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
+                      className="flex flex-col items-center gap-1 p-3 rounded-[var(--radius-card)] border cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-card"
                       style={{
                         backgroundColor: isRare ? '#fbbf2408' : theme.inputBg,
                         borderColor: isRare ? '#fbbf2430' : theme.border,
@@ -404,9 +405,10 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 animate-fade-in" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} />
       <div
-        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[var(--radius-container)] border p-5 mx-4 animate-fade-up"
+        className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[var(--radius-container)] border p-5 mx-4 animate-fade-up"
         style={{ backgroundColor: theme.surface, borderColor: theme.border, boxShadow: 'var(--shadow-elevated)' }}
       >
         {content}

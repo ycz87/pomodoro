@@ -365,7 +365,7 @@ export function FarmPage({
         {(guardianBarrierCount > 0 || barrierActiveToday) && (
           <button
             onClick={onUseGuardianBarrier}
-            className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-[var(--radius-sm)] border text-xs font-medium transition-all duration-200 ease-in-out hover:-translate-y-0.5"
+            className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-[var(--radius-sm)] border text-xs font-medium transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button"
             style={{
               backgroundColor: `${theme.surface}cc`,
               borderColor: barrierActiveToday ? '#fbbf24' : theme.border,
@@ -742,7 +742,8 @@ function SubTabHeader({ subTab, setSubTab, theme, t }: {
         <div
           className="absolute top-[3px] bottom-[3px] rounded-full transition-all duration-200 ease-in-out"
           style={{
-            backgroundColor: theme.border,
+            backgroundColor: theme.accent,
+            opacity: 0.16,
             width: 'calc((100% - 6px) / 4)',
             left: '3px',
             transform: `translateX(${subTabIndex[subTab] * 100}%)`,
@@ -1446,8 +1447,9 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMat
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="rounded-[var(--radius-panel)] border p-5 mx-4 max-w-sm w-full" style={{ backgroundColor: theme.surface, borderColor: theme.border, boxShadow: 'var(--shadow-elevated)' }}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center">
+      <div className="absolute inset-0 animate-fade-in" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} />
+      <div className="relative rounded-[var(--radius-panel)] border p-5 mx-4 max-w-sm w-full animate-fade-up" style={{ backgroundColor: theme.surface, borderColor: theme.border, boxShadow: 'var(--shadow-elevated)' }}>
         <h3 className="text-base font-semibold text-center mb-4" style={{ color: theme.text }}>{t.farmSelectSeed}</h3>
         <div className="flex flex-col gap-2">
           {options.map(opt => (
@@ -1455,7 +1457,7 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMat
               key={opt.quality}
               disabled={opt.count <= 0}
               onClick={() => onSelect(opt.quality)}
-              className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5"
+              className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-card"
               style={{
                 backgroundColor: opt.count > 0 ? opt.color + '08' : theme.inputBg,
                 borderColor: opt.count > 0 ? opt.color + '30' : theme.border,
@@ -1485,7 +1487,7 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMat
                   <button
                     key={seed.id}
                     onClick={() => onSelectInjected(seed.id)}
-                    className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 text-left"
+                    className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-card text-left"
                     style={{
                       backgroundColor: `${badgeColor}10`,
                       borderColor: `${badgeColor}45`,
@@ -1518,7 +1520,7 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMat
                 <button
                   key={seed.galaxyPair}
                   onClick={() => onSelectHybrid(seed.seedId)}
-                  className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 text-left"
+                  className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-card text-left"
                   style={{
                     backgroundColor: `${theme.accent}10`,
                     borderColor: `${theme.accent}35`,
@@ -1547,7 +1549,7 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMat
                 <button
                   key={seed.varietyId}
                   onClick={() => onSelectPrismatic(seed.seedId)}
-                  className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 text-left"
+                  className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-card text-left"
                   style={{
                     backgroundColor: '#a78bfa12',
                     borderColor: '#a78bfa45',
@@ -1576,7 +1578,7 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMat
                 <button
                   key={seed.varietyId}
                   onClick={() => onSelectDarkMatter(seed.seedId)}
-                  className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 text-left"
+                  className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-card text-left"
                   style={{
                     backgroundColor: '#0f172a55',
                     borderColor: '#94a3b855',
@@ -1596,7 +1598,7 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMat
         )}
 
         <p className="text-xs text-center mt-3" style={{ color: theme.textFaint }}>{t.farmSeedHint}</p>
-        <button onClick={onClose} className="w-full mt-3 py-2 rounded-[var(--radius-sm)] text-sm transition-all duration-200 ease-in-out hover:-translate-y-0.5" style={{ color: theme.textMuted, backgroundColor: theme.border + '30' }}>
+        <button onClick={onClose} className="w-full mt-3 py-2 rounded-[var(--radius-sm)] text-sm transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button" style={{ color: theme.textMuted, backgroundColor: theme.border + '30' }}>
           {t.cancel}
         </button>
       </div>
@@ -1997,15 +1999,16 @@ function FarmHelpModal({ theme, t, onClose }: {
 }) {
   const rules = [t.farmHelpPlant, t.farmHelpGrow, t.farmHelpHarvest, t.farmHelpWither, t.farmHelpUnlock];
   return (
-    <div className='fixed inset-0 z-[60] flex items-center justify-center' style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className='rounded-[var(--radius-panel)] border p-5 mx-4 max-w-sm w-full' style={{ backgroundColor: theme.surface, borderColor: theme.border, boxShadow: 'var(--shadow-elevated)' }}>
+    <div className='fixed inset-0 z-[60] flex items-center justify-center'>
+      <div className='absolute inset-0 animate-fade-in' style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} />
+      <div className='relative rounded-[var(--radius-panel)] border p-5 mx-4 max-w-sm w-full animate-fade-up' style={{ backgroundColor: theme.surface, borderColor: theme.border, boxShadow: 'var(--shadow-elevated)' }}>
         <h3 className='text-base font-semibold text-center mb-4' style={{ color: theme.text }}>{t.farmHelpTitle}</h3>
         <div className='flex flex-col gap-3'>
           {rules.map((rule, i) => (
             <p key={i} className='text-sm leading-relaxed' style={{ color: theme.textMuted }}>{rule}</p>
           ))}
         </div>
-        <button onClick={onClose} className='w-full mt-4 py-2 rounded-[var(--radius-sm)] text-sm transition-all duration-200 ease-in-out hover:-translate-y-0.5' style={{ color: theme.textMuted, backgroundColor: theme.border + '30' }}>
+        <button onClick={onClose} className='w-full mt-4 py-2 rounded-[var(--radius-sm)] text-sm transition-all duration-200 ease-in-out hover:-translate-y-0.5 ui-hover-button' style={{ color: theme.textMuted, backgroundColor: theme.border + '30' }}>
           {t.cancel}
         </button>
       </div>

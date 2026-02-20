@@ -16,9 +16,9 @@ function Guide({ onClose }: GuideProps) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" />
       <div
-        className="relative max-w-sm w-full rounded-2xl p-6 shadow-2xl animate-scale-in max-h-[80vh] overflow-y-auto"
+        className="relative max-w-sm w-full rounded-2xl p-6 shadow-2xl animate-fade-up max-h-[80vh] overflow-y-auto"
         style={{ backgroundColor: theme.surface, color: theme.text }}
         onClick={(e) => e.stopPropagation()}
       >
