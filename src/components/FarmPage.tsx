@@ -326,7 +326,7 @@ export function FarmPage({
   return (
     <div
       className="flex-1 flex flex-col w-full px-4 pt-4 pb-6 gap-4 rounded-[var(--radius-panel)] transition-[background] duration-300 ease-out"
-      style={{ background: getFarmAtmosphereBackground(weather, theme) }}
+      style={{ background: getFarmSceneBackground(weather, theme) }}
     >
       {/* Sub-tab header */}
       <SubTabHeader subTab={subTab} setSubTab={setSubTab} theme={theme} t={t} />
@@ -398,80 +398,76 @@ export function FarmPage({
       {/* 天空 + 3×3 俯视网格 */}
       <div className="relative overflow-visible">
         <div className="relative mx-auto w-full max-w-[90%] sm:max-w-[760px]">
-          <SkyWeatherLayer weather={weather} theme={theme} t={t} />
-          <div className="relative mt-2">
+          <div
+            className="relative overflow-hidden rounded-[var(--radius-panel)]"
+            style={{
+              background: getFarmSceneBackground(weather, theme),
+              filter: weather === null ? 'none' : getFarmToneFilter(weather),
+              transition: 'background 320ms ease-out, filter 260ms ease-out',
+              willChange: 'filter',
+            }}
+          >
             <div
-              className="pointer-events-none absolute inset-0 rounded-[var(--radius-card)] z-[1]"
+              className="pointer-events-none absolute inset-0 z-[1]"
               style={{
-                background: `radial-gradient(circle at 50% 16%, ${theme.surface}66 0%, ${theme.surface}00 72%)`,
+                background: getSceneSoilOverlay(weather),
               }}
             />
-            {weather === 'rainy' && (
-              <div className="pointer-events-none absolute inset-0 z-[7] overflow-hidden rounded-[var(--radius-card)]">
-                {GRID_RAIN_DROPS.map((drop, index) => (
-                  <span
-                    key={`grid-rain-${index}`}
-                    className="absolute block rounded-full"
-                    style={{
-                      left: `${drop.left}%`,
-                      top: `${drop.top}%`,
-                      width: `${drop.size}px`,
-                      height: `${drop.size}px`,
-                      backgroundColor: 'rgba(219,234,254,0.72)',
-                      animation: `farmRainDropSlide ${drop.duration}s linear infinite`,
-                      animationDelay: `${drop.delay}s`,
-                    }}
-                  />
+            <div
+              className="pointer-events-none absolute inset-0 z-[2]"
+              style={{
+                background: 'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 62%)',
+              }}
+            />
+            <div className="weather-elements pointer-events-none absolute inset-0 z-[6]">
+              <SkyWeatherLayer weather={weather} theme={theme} t={t} />
+            </div>
+
+            <div className="farm-plots relative z-[10] px-1 sm:px-2 pb-2 sm:pb-3 pt-20 sm:pt-32 md:pt-36">
+              <div
+                className="farm-grid-perspective relative z-[5] grid grid-cols-3 gap-1 sm:gap-2"
+                onClick={() => setActiveTooltipPlotId(null)}
+              >
+                {plotSlots.map((slot, index) => (
+                  <div key={slot.kind === 'plot' ? `plot-${slot.plot.id}` : `locked-${index}`}>
+                    {slot.kind === 'plot' ? (
+                      <PlotCard
+                        plot={slot.plot}
+                        weather={weather}
+                        stolenRecord={latestStolenRecordByPlotId.get(slot.plot.id)}
+                        nowTimestamp={nowTimestamp}
+                        theme={theme}
+                        t={t}
+                        isTooltipOpen={activeTooltipPlotId === slot.plot.id}
+                        onTooltipToggle={() => {
+                          setActiveTooltipPlotId((prev) => (prev === slot.plot.id ? null : slot.plot.id));
+                        }}
+                        onPlantClick={() => {
+                          if (totalPlantableSeeds > 0) setPlantingPlotId(slot.plot.id);
+                          else onGoWarehouse();
+                        }}
+                        onHarvestClick={() => handleHarvest(slot.plot.id)}
+                        onClearClick={() => onClear(slot.plot.id)}
+                        mutationGunCount={mutationGunCount}
+                        onUseMutationGun={() => onUseMutationGun(slot.plot.id)}
+                        moonDewCount={moonDewCount}
+                        onUseMoonDew={() => onUseMoonDew(slot.plot.id)}
+                        nectarCount={nectarCount}
+                        onUseNectar={() => onUseNectar(slot.plot.id)}
+                        starTrackerCount={starTrackerCount}
+                        onUseStarTracker={() => onUseStarTracker(slot.plot.id)}
+                        trapNetCount={trapNetCount}
+                        onUseTrapNet={() => onUseTrapNet(slot.plot.id)}
+                      />
+                    ) : (
+                      <LockedPlotCard requiredVarieties={slot.requiredVarieties} theme={theme} t={t} />
+                    )}
+                  </div>
                 ))}
               </div>
-            )}
-            <div
-              className="farm-grid-perspective relative z-[5] grid grid-cols-3 gap-1 sm:gap-2"
-              style={{
-                filter: weather === null ? 'none' : getWeatherGridFilter(weather),
-                transition: 'filter 260ms ease-out',
-                willChange: 'filter',
-              }}
-              onClick={() => setActiveTooltipPlotId(null)}
-            >
-              {plotSlots.map((slot, index) => (
-                <div key={slot.kind === 'plot' ? `plot-${slot.plot.id}` : `locked-${index}`}>
-                  {slot.kind === 'plot' ? (
-                    <PlotCard
-                      plot={slot.plot}
-                      stolenRecord={latestStolenRecordByPlotId.get(slot.plot.id)}
-                      nowTimestamp={nowTimestamp}
-                      theme={theme}
-                      t={t}
-                      isTooltipOpen={activeTooltipPlotId === slot.plot.id}
-                      onTooltipToggle={() => {
-                        setActiveTooltipPlotId((prev) => (prev === slot.plot.id ? null : slot.plot.id));
-                      }}
-                      onPlantClick={() => {
-                        if (totalPlantableSeeds > 0) setPlantingPlotId(slot.plot.id);
-                        else onGoWarehouse();
-                      }}
-                      onHarvestClick={() => handleHarvest(slot.plot.id)}
-                      onClearClick={() => onClear(slot.plot.id)}
-                      mutationGunCount={mutationGunCount}
-                      onUseMutationGun={() => onUseMutationGun(slot.plot.id)}
-                      moonDewCount={moonDewCount}
-                      onUseMoonDew={() => onUseMoonDew(slot.plot.id)}
-                      nectarCount={nectarCount}
-                      onUseNectar={() => onUseNectar(slot.plot.id)}
-                      starTrackerCount={starTrackerCount}
-                      onUseStarTracker={() => onUseStarTracker(slot.plot.id)}
-                      trapNetCount={trapNetCount}
-                      onUseTrapNet={() => onUseTrapNet(slot.plot.id)}
-                    />
-                  ) : (
-                    <LockedPlotCard requiredVarieties={slot.requiredVarieties} theme={theme} t={t} />
-                  )}
-                </div>
-              ))}
+              <CreatureLayer creatures={creatures} />
+              <AlienLayer alien={alienVisit.current} theme={theme} t={t} />
             </div>
-            <CreatureLayer creatures={creatures} />
-            <AlienLayer alien={alienVisit.current} theme={theme} t={t} />
           </div>
         </div>
       </div>
@@ -540,64 +536,97 @@ export function FarmPage({
   );
 }
 
-function getWeatherGridFilter(weather: Weather): string {
-  if (weather === 'sunny') return 'brightness(1.05) saturate(1.08)';
-  if (weather === 'cloudy') return 'brightness(0.9) saturate(0.8)';
-  if (weather === 'rainy') return 'brightness(0.92) saturate(1.1)';
-  if (weather === 'night') return 'brightness(0.85) hue-rotate(10deg)';
-  if (weather === 'snowy') return 'brightness(1.02) saturate(0.95)';
-  if (weather === 'stormy') return 'brightness(0.82) saturate(0.75)';
-  return 'brightness(1.06) saturate(1.18)';
+function getFarmToneFilter(weather: Weather): string {
+  if (weather === 'sunny') return 'brightness(1.05) saturate(1.1) contrast(1.02)';
+  if (weather === 'cloudy') return 'brightness(0.85) saturate(0.7) contrast(0.95)';
+  if (weather === 'rainy') return 'brightness(0.75) saturate(0.8) contrast(0.9) hue-rotate(5deg)';
+  if (weather === 'night') return 'brightness(0.6) saturate(0.9) contrast(1.1) hue-rotate(-5deg)';
+  if (weather === 'snowy') return 'brightness(0.95) saturate(0.85) contrast(1.05)';
+  if (weather === 'stormy') return 'brightness(0.65) saturate(0.75) contrast(0.85) hue-rotate(8deg)';
+  return 'brightness(1.08) saturate(1.15) contrast(1.04)';
 }
 
-function getSkyBackground(weather: Weather | null, theme: ReturnType<typeof useTheme>): string {
-  if (weather === null) {
-    return `radial-gradient(circle at 50% -18%, rgba(255,255,255,0.46) 0%, rgba(255,255,255,0) 62%), linear-gradient(180deg, ${theme.inputBg} 0%, ${theme.surface} 100%)`;
-  }
+function getFarmSceneBackground(weather: Weather | null, theme: ReturnType<typeof useTheme>): string {
   if (weather === 'sunny') {
-    return 'radial-gradient(circle at 22% 8%, rgba(255,255,255,0.52) 0%, rgba(255,255,255,0) 46%), linear-gradient(180deg, #dbeafe 0%, #f0f9ff 48%, #e0f2fe 100%)';
-  }
-  if (weather === 'cloudy') {
-    return 'radial-gradient(circle at 30% 10%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 54%), linear-gradient(180deg, #cbd5e1 0%, #94a3b8 56%, #64748b 100%)';
-  }
-  if (weather === 'rainy') {
-    return 'radial-gradient(circle at 28% 5%, rgba(219,234,254,0.36) 0%, rgba(219,234,254,0) 52%), linear-gradient(180deg, #93c5fd 0%, #60a5fa 56%, #3b82f6 100%)';
+    return 'linear-gradient(180deg, #87CEEB 0%, #E0F6FF 42%, #D4A574 64%, #8B7355 100%)';
   }
   if (weather === 'night') {
-    return 'radial-gradient(circle at 68% -8%, rgba(147,197,253,0.14) 0%, rgba(147,197,253,0) 46%), linear-gradient(180deg, #0b1f4a 0%, #1e3a8a 54%, #312e81 100%)';
-  }
-  if (weather === 'snowy') {
-    return 'radial-gradient(circle at 24% 7%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 50%), linear-gradient(180deg, #e2e8f0 0%, #dbeafe 52%, #cbd5e1 100%)';
-  }
-  if (weather === 'stormy') {
-    return 'radial-gradient(circle at 32% 8%, rgba(148,163,184,0.2) 0%, rgba(148,163,184,0) 50%), linear-gradient(180deg, #334155 0%, #1e293b 54%, #0f172a 100%)';
-  }
-  return 'radial-gradient(circle at 24% 8%, rgba(255,255,255,0.38) 0%, rgba(255,255,255,0) 46%), linear-gradient(180deg, #bfdbfe 0%, #a5b4fc 34%, #f9a8d4 66%, #fcd34d 100%)';
-}
-
-function getFarmAtmosphereBackground(weather: Weather | null, theme: ReturnType<typeof useTheme>): string {
-  if (weather === 'sunny') {
-    return 'linear-gradient(180deg, #dbeafe 0%, #f0f9ff 30%, #e0f2fe 52%, #d9f99d 74%, #bef264 100%)';
-  }
-  if (weather === 'night') {
-    return 'linear-gradient(180deg, #0b1f4a 0%, #1e3a8a 30%, #312e81 54%, #1f2937 78%, #0f172a 100%)';
+    return 'linear-gradient(180deg, #0F1729 0%, #1A2332 46%, #2A2520 66%, #4A4034 100%)';
   }
   if (weather === 'cloudy') {
-    return 'linear-gradient(180deg, #cbd5e1 0%, #94a3b8 34%, #64748b 56%, #647b5f 78%, #4b5f45 100%)';
+    return 'linear-gradient(180deg, #6B7280 0%, #9CA3AF 46%, #8B7355 68%, #6F5C46 100%)';
   }
   if (weather === 'rainy') {
-    return 'linear-gradient(180deg, #93c5fd 0%, #60a5fa 32%, #3b82f6 56%, #3f5f6f 78%, #334155 100%)';
+    return 'linear-gradient(180deg, #4B5563 0%, #6B7280 46%, #6B5D4F 66%, #4E443A 100%)';
   }
   if (weather === 'snowy') {
-    return 'linear-gradient(180deg, #e2e8f0 0%, #dbeafe 34%, #cbd5e1 56%, #d4dbe5 78%, #a8b4c9 100%)';
+    return 'linear-gradient(180deg, #E8F4F8 0%, #D6E9F0 46%, #C4D4DC 68%, #AFBEC8 100%)';
   }
   if (weather === 'stormy') {
-    return 'linear-gradient(180deg, #334155 0%, #1e293b 32%, #0f172a 58%, #1f2937 80%, #111827 100%)';
+    return 'linear-gradient(180deg, #2D3748 0%, #4A5568 44%, #5A5A5A 66%, #49443D 100%)';
   }
   if (weather === 'rainbow') {
-    return 'linear-gradient(180deg, #bfdbfe 0%, #a5b4fc 30%, #f9a8d4 52%, #fcd34d 74%, #bef264 100%)';
+    return 'linear-gradient(180deg, #87CEEB 0%, #E0F6FF 36%, #FFD700 56%, #D4A574 72%, #8B7355 100%)';
   }
-  return `linear-gradient(180deg, ${theme.inputBg} 0%, ${theme.surface} 46%, ${theme.border} 72%, ${theme.inputBg} 100%)`;
+  return `linear-gradient(180deg, ${theme.inputBg} 0%, ${theme.surface} 48%, ${theme.border} 70%, ${theme.inputBg} 100%)`;
+}
+
+function getSceneSoilOverlay(weather: Weather | null): string {
+  const wetSoil = weather === 'rainy' || weather === 'stormy';
+  const baseSoilColor = wetSoil ? '#6B5D4F' : '#8B7355';
+  const deepSoilColor = wetSoil ? '#54483D' : '#6D5A45';
+  const layers = [
+    'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.14) 69%, rgba(0,0,0,0.24) 100%)',
+    'radial-gradient(circle at 50% 74%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 42%)',
+    'repeating-linear-gradient(126deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 5px)',
+    `linear-gradient(180deg, ${adjustHexColor(baseSoilColor, 8)} 0%, ${baseSoilColor} 46%, ${deepSoilColor} 100%)`,
+  ];
+
+  if (wetSoil) {
+    layers.unshift('linear-gradient(164deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 24%, rgba(255,255,255,0) 58%)');
+  }
+
+  return layers.join(', ');
+}
+
+function getPlotLightOverlay(weather: Weather | null): string {
+  if (weather === 'sunny' || weather === 'rainbow') {
+    return 'linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 42%)';
+  }
+  if (weather === 'night') {
+    return 'radial-gradient(circle at 12% 8%, rgba(208,228,255,0.28) 0%, rgba(208,228,255,0.06) 28%, rgba(208,228,255,0) 64%)';
+  }
+  if (weather === 'cloudy') {
+    return 'linear-gradient(180deg, rgba(20,20,20,0.08) 0%, rgba(20,20,20,0.08) 100%)';
+  }
+  if (weather === 'rainy' || weather === 'stormy') {
+    return 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(40,40,40,0.12) 100%)';
+  }
+  return 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 40%)';
+}
+
+function adjustHexColor(hex: string, percent: number): string {
+  const normalized = hex.replace('#', '');
+  if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
+    return hex;
+  }
+  const ratio = percent / 100;
+  const toChannel = (offset: number): number => {
+    const value = Number.parseInt(normalized.slice(offset, offset + 2), 16);
+    const next = ratio >= 0
+      ? value + (255 - value) * ratio
+      : value * (1 + ratio);
+    return Math.min(255, Math.max(0, Math.round(next)));
+  };
+  const r = toChannel(0).toString(16).padStart(2, '0');
+  const g = toChannel(2).toString(16).padStart(2, '0');
+  const b = toChannel(4).toString(16).padStart(2, '0');
+  return `#${r}${g}${b}`;
+}
+
+function getPlotSoilVariance(plotId: number): number {
+  const value = Math.sin(plotId * 12.9898) * 43758.5453;
+  return (value - Math.floor(value) - 0.5) * 10;
 }
 
 interface SkyRainParticle {
@@ -605,6 +634,23 @@ interface SkyRainParticle {
   duration: number;
   delay: number;
   length: number;
+  bottom: number;
+}
+
+interface SkyRainSplashParticle {
+  left: number;
+  bottom: number;
+  duration: number;
+  delay: number;
+  size: number;
+}
+
+interface SkyCloudPoint {
+  left: number;
+  top: number;
+  size: number;
+  duration: number;
+  delay: number;
 }
 
 interface SkySnowParticle {
@@ -622,33 +668,39 @@ interface SkyStarPoint {
   delay: number;
 }
 
-interface GridRainDrop {
-  left: number;
-  top: number;
-  size: number;
-  duration: number;
-  delay: number;
-}
-
 const SKY_PARTICLE_DESKTOP_COUNT = 40;
 const SKY_PARTICLE_MOBILE_COUNT = 20;
-const SKY_FOREGROUND_CLOUDS = [
-  { left: 11, top: 8, size: 26, delay: 0 },
-  { left: 42, top: 12, size: 29, delay: 0.3 },
-  { left: 70, top: 9, size: 24, delay: 0.7 },
+const SKY_FOREGROUND_CLOUDS: ReadonlyArray<SkyCloudPoint> = [
+  { left: 9, top: 9, size: 34, duration: 9.4, delay: 0 },
+  { left: 38, top: 14, size: 40, duration: 8.8, delay: 0.45 },
+  { left: 66, top: 10, size: 36, duration: 9.9, delay: 1.05 },
 ];
-const SKY_BACKGROUND_CLOUDS = [
-  { left: 5, top: 4, size: 22, delay: 0.15 },
-  { left: 56, top: 6, size: 21, delay: 0.55 },
+const SKY_BACKGROUND_CLOUDS: ReadonlyArray<SkyCloudPoint> = [
+  { left: 4, top: 6, size: 18, duration: 5.2, delay: 0.22 },
+  { left: 29, top: 11, size: 20, duration: 5.6, delay: 0.5 },
+  { left: 54, top: 7, size: 19, duration: 5.1, delay: 0.8 },
+  { left: 79, top: 13, size: 17, duration: 5.8, delay: 1.1 },
 ];
 
 const SKY_RAIN_PARTICLES: ReadonlyArray<SkyRainParticle> = Array.from(
   { length: SKY_PARTICLE_DESKTOP_COUNT },
   (_, index) => ({
-    left: 1 + ((index * 11.7) % 96),
-    duration: 1 + (index % 11) * 0.02,
-    delay: (index % 10) * 0.08,
-    length: 10 + (index % 4) * 2,
+    left: 1 + ((index * 9.7) % 97),
+    duration: 0.8 + (index % 9) * 0.05,
+    delay: (index % 11) * 0.09,
+    length: 8 + (index % 7),
+    bottom: 24 + (index % 5) * 4,
+  }),
+);
+
+const SKY_RAIN_SPLASH_PARTICLES: ReadonlyArray<SkyRainSplashParticle> = Array.from(
+  { length: SKY_PARTICLE_DESKTOP_COUNT },
+  (_, index) => ({
+    left: 2 + ((index * 8.1 + 3) % 96),
+    bottom: 20 + (index % 6) * 3,
+    duration: 0.66 + (index % 7) * 0.05,
+    delay: (index % 12) * 0.1,
+    size: 5 + (index % 4),
   }),
 );
 
@@ -673,17 +725,6 @@ const SKY_STAR_POINTS: ReadonlyArray<SkyStarPoint> = Array.from(
   }),
 );
 
-const GRID_RAIN_DROPS: ReadonlyArray<GridRainDrop> = Array.from(
-  { length: 18 },
-  (_, index) => ({
-    left: 4 + ((index * 5.9 + 3) % 90),
-    top: 8 + ((index * 3.8) % 48),
-    size: 2 + (index % 3),
-    duration: 1.9 + (index % 6) * 0.18,
-    delay: (index % 7) * 0.22,
-  }),
-);
-
 const CREATURE_EMOJI: Record<Creature['type'], string> = {
   bee: '🐝',
   butterfly: '🦋',
@@ -696,34 +737,49 @@ function SkyWeatherLayer({ weather, theme, t }: {
   theme: ReturnType<typeof useTheme>;
   t: ReturnType<typeof useI18n>;
 }) {
-  const cloudColor = weather === 'stormy' ? '#1f2937' : weather === 'cloudy' ? '#94a3b8' : '#ffffff';
+  const cloudColor = weather === 'stormy'
+    ? '#2b3444'
+    : weather === 'cloudy'
+      ? '#d1d5db'
+      : 'rgba(255,255,255,0.95)';
   const weatherLabel = weather === null ? '⛅ --' : `${WEATHER_ICON[weather]} ${t.farmWeatherName(weather)}`;
   const showSun = weather === null || weather === 'sunny' || weather === 'rainbow';
   const showClouds = weather !== 'night';
   const showRain = weather === 'rainy' || weather === 'stormy';
 
   return (
-    <div
-      className="relative h-24 overflow-hidden rounded-[var(--radius-card)] border shadow-[var(--shadow-card)] transition-[background] duration-300 ease-out"
-      style={{ background: getSkyBackground(weather, theme), borderColor: theme.border }}
-    >
+    <div className="relative h-full w-full overflow-hidden transition-opacity duration-300 ease-out">
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0) 58%)',
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.06) 35%, rgba(255,255,255,0) 62%)',
         }}
       />
 
       {showSun && (
-        <div
-          className="absolute left-[9%] top-[8px] h-8 w-8 rounded-full"
-          style={{
-            background: 'radial-gradient(circle, rgba(254,243,199,0.95) 0%, rgba(251,191,36,0.72) 44%, rgba(251,191,36,0) 72%)',
-            boxShadow: '0 0 30px rgba(251, 191, 36, 0.8), 0 0 60px rgba(251, 191, 36, 0.5)',
-            animation: 'skySunPulse 3.2s ease-in-out infinite',
-          }}
-        >
-          <span className="absolute inset-0 flex items-center justify-center text-[22px]">☀️</span>
+        <div className="absolute left-[8%] top-[5%] h-14 w-14 sm:h-20 sm:w-20">
+          <span
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: 'radial-gradient(circle, rgba(255,223,0,0.1) 0%, rgba(255,223,0,0) 72%)',
+              animation: 'skySunHaloPulse 4.2s ease-in-out infinite',
+            }}
+          />
+          <span
+            className="absolute inset-[12%] rounded-full"
+            style={{
+              background: 'radial-gradient(circle, rgba(255,215,0,0.3) 0%, rgba(255,215,0,0) 68%)',
+              animation: 'skySunHaloPulse 3.2s ease-in-out infinite',
+            }}
+          />
+          <span
+            className="absolute inset-[26%] rounded-full"
+            style={{
+              background: 'radial-gradient(circle, rgba(255,255,0,0.5) 0%, rgba(255,255,0,0) 64%)',
+              animation: 'skySunHaloPulse 2.4s ease-in-out infinite',
+            }}
+          />
+          <span className="absolute inset-0 flex items-center justify-center text-[24px] sm:text-[30px]">☀️</span>
         </div>
       )}
 
@@ -735,11 +791,12 @@ function SkyWeatherLayer({ weather, theme, t }: {
               className="absolute"
               style={{
                 left: `${cloud.left}%`,
-                top: `${cloud.top}px`,
+                top: `${cloud.top}%`,
                 fontSize: `${cloud.size}px`,
                 color: cloudColor,
-                opacity: 0.6,
-                animation: 'skyCloudFloat 6.5s ease-in-out infinite',
+                opacity: 0.46,
+                filter: 'blur(0.5px)',
+                animation: `skyCloudDrift ${cloud.duration}s ease-in-out infinite`,
                 animationDelay: `${cloud.delay}s`,
               }}
             >
@@ -752,10 +809,12 @@ function SkyWeatherLayer({ weather, theme, t }: {
               className="absolute"
               style={{
                 left: `${cloud.left}%`,
-                top: `${cloud.top}px`,
+                top: `${cloud.top}%`,
                 fontSize: `${cloud.size}px`,
                 color: cloudColor,
-                animation: 'skyCloudFloat 4.5s ease-in-out infinite',
+                opacity: 0.78,
+                filter: 'blur(0.5px)',
+                animation: `skyCloudDrift ${cloud.duration}s ease-in-out infinite`,
                 animationDelay: `${cloud.delay}s`,
               }}
             >
@@ -767,8 +826,8 @@ function SkyWeatherLayer({ weather, theme, t }: {
 
       {weather === 'rainbow' && (
         <span
-          className="absolute left-[38%] top-[10px] text-[34px]"
-          style={{ animation: 'skyCloudFloat 5.2s ease-in-out infinite' }}
+          className="absolute left-[34%] top-[7%] text-[40px]"
+          style={{ animation: 'skyCloudDrift 6s ease-in-out infinite' }}
         >
           🌈
         </span>
@@ -782,12 +841,28 @@ function SkyWeatherLayer({ weather, theme, t }: {
               className={`absolute block w-[2px] rounded-full ${index >= SKY_PARTICLE_MOBILE_COUNT ? 'sky-particle-desktop-only' : ''}`}
               style={{
                 left: `${particle.left}%`,
-                top: weather === 'stormy' ? '34px' : '32px',
+                top: `${11 + particle.bottom * 0.5}%`,
                 height: `${particle.length}px`,
                 background: weather === 'stormy'
-                  ? 'linear-gradient(180deg, rgba(191,219,254,0) 0%, rgba(191,219,254,0.95) 52%, rgba(191,219,254,0) 100%)'
-                  : 'linear-gradient(180deg, rgba(219,234,254,0) 0%, rgba(219,234,254,0.95) 52%, rgba(219,234,254,0) 100%)',
-                animation: `skyRainFall ${weather === 'stormy' ? Math.max(0.86, particle.duration - 0.14) : particle.duration}s linear infinite`,
+                  ? 'linear-gradient(180deg, rgba(191,219,254,0) 0%, rgba(191,219,254,0.92) 52%, rgba(191,219,254,0) 100%)'
+                  : 'linear-gradient(180deg, rgba(219,234,254,0) 0%, rgba(219,234,254,0.96) 52%, rgba(219,234,254,0) 100%)',
+                animation: `skyRainFallLong ${particle.duration}s linear infinite`,
+                animationDelay: `${particle.delay}s`,
+              }}
+            />
+          ))}
+          {SKY_RAIN_SPLASH_PARTICLES.map((particle, index) => (
+            <span
+              key={`splash-${index}`}
+              className={`absolute block rounded-full border ${index >= SKY_PARTICLE_MOBILE_COUNT ? 'sky-particle-desktop-only' : ''}`}
+              style={{
+                left: `${particle.left}%`,
+                bottom: `${particle.bottom}%`,
+                width: `${particle.size}px`,
+                height: `${Math.max(2, particle.size * 0.35)}px`,
+                borderColor: 'rgba(255,255,255,0.55)',
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                animation: `skyRainSplash ${particle.duration}s ease-out infinite`,
                 animationDelay: `${particle.delay}s`,
               }}
             />
@@ -803,12 +878,12 @@ function SkyWeatherLayer({ weather, theme, t }: {
               className={`absolute block rounded-full ${index >= SKY_PARTICLE_MOBILE_COUNT ? 'sky-particle-desktop-only' : ''}`}
               style={{
                 left: `${particle.left}%`,
-                top: '32px',
+                top: '12%',
                 width: `${particle.size}px`,
                 height: `${particle.size}px`,
                 backgroundColor: '#ffffff',
                 boxShadow: '0 0 5px rgba(255,255,255,0.86)',
-                animation: `skySnowFall ${particle.duration}s linear infinite`,
+                animation: `skySnowFallLong ${particle.duration}s linear infinite`,
                 animationDelay: `${particle.delay}s`,
               }}
             />
@@ -818,7 +893,7 @@ function SkyWeatherLayer({ weather, theme, t }: {
 
       {weather === 'night' && (
         <>
-          <span className="absolute left-[12%] top-[8px] text-[28px]" style={{ animation: 'skyCloudFloat 5.4s ease-in-out infinite' }}>🌙</span>
+          <span className="absolute left-[12%] top-[6%] text-[34px]" style={{ animation: 'skyCloudDrift 6.5s ease-in-out infinite' }}>🌙</span>
           {SKY_STAR_POINTS.map((point, index) => (
             <span
               key={`star-${index}`}
@@ -841,8 +916,8 @@ function SkyWeatherLayer({ weather, theme, t }: {
 
       {weather === 'stormy' && (
         <>
-          <span className="absolute left-[42%] top-[20px] text-[20px]" style={{ animation: 'skyLightningFlash 2.8s ease-in-out infinite' }}>⚡</span>
-          <span className="absolute left-[66%] top-[22px] text-[18px]" style={{ animation: 'skyLightningFlash 3.4s ease-in-out infinite', animationDelay: '1.1s' }}>⚡</span>
+          <span className="absolute left-[42%] top-[22%] text-[20px]" style={{ animation: 'skyLightningFlash 2.8s ease-in-out infinite' }}>⚡</span>
+          <span className="absolute left-[66%] top-[25%] text-[18px]" style={{ animation: 'skyLightningFlash 3.4s ease-in-out infinite', animationDelay: '1.1s' }}>⚡</span>
         </>
       )}
 
@@ -850,7 +925,7 @@ function SkyWeatherLayer({ weather, theme, t }: {
         className="absolute left-2 top-2 rounded-full px-2 py-1 text-[10px] font-medium"
         style={{
           color: theme.text,
-          backgroundColor: `${theme.surface}cc`,
+          backgroundColor: `${theme.surface}b3`,
           border: `1px solid ${theme.border}`,
         }}
       >
@@ -991,8 +1066,9 @@ function SubTabHeader({ subTab, setSubTab, theme, t }: {
 }
 
 // ─── 地块卡片 ───
-function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick, onHarvestClick, onClearClick, mutationGunCount, onUseMutationGun, moonDewCount, onUseMoonDew, nectarCount, onUseNectar, starTrackerCount, onUseStarTracker, trapNetCount, onUseTrapNet }: {
+function PlotCard({ plot, weather, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick, onHarvestClick, onClearClick, mutationGunCount, onUseMutationGun, moonDewCount, onUseMoonDew, nectarCount, onUseNectar, starTrackerCount, onUseStarTracker, trapNetCount, onUseTrapNet }: {
   plot: Plot;
+  weather: Weather | null;
   stolenRecord?: StolenRecord;
   nowTimestamp: number;
   theme: ReturnType<typeof useTheme>;
@@ -1110,49 +1186,70 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
   const progressRingColor = `hsl(${progressHue} 84% 52%)`;
   const progressGlowColor = `hsla(${progressHue} 85% 58% / 0.5)`;
   const progressRing = `conic-gradient(${progressRingColor} ${progressPercent}%, rgba(255,255,255,0.16) ${progressPercent}% 100%)`;
-  const growingSoil = stage === 'seed' || stage === 'sprout'
-    ? ['#a58a66', '#85674d']
+  const wetSoil = weather === 'rainy' || weather === 'stormy';
+  const warmSoil = weather === 'sunny' || weather === 'rainbow';
+  const soilBaseColor = wetSoil ? '#6B5D4F' : warmSoil ? '#8F785A' : '#8B7355';
+  const soilDeepColor = wetSoil ? '#4F443A' : '#6C5843';
+  const soilVariance = getPlotSoilVariance(plot.id);
+  const variedSoilMid = adjustHexColor(soilBaseColor, soilVariance);
+  const variedSoilTop = adjustHexColor(variedSoilMid, 7);
+  const variedSoilBottom = adjustHexColor(soilDeepColor, soilVariance - 2);
+  const stageDarknessAdjust = stage === 'seed' || stage === 'sprout'
+    ? 3
     : stage === 'leaf' || stage === 'flower'
-      ? ['#937451', '#75573f']
-      : ['#7f6148', '#634733'];
-  const buildSoilTexture = (startColor: string, endColor: string): string => (
-    `radial-gradient(circle at 22% 24%, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0) 36%),
-      radial-gradient(circle at 79% 75%, rgba(0,0,0,0.14) 0%, rgba(0,0,0,0) 32%),
-      repeating-linear-gradient(42deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px),
-      linear-gradient(145deg, ${startColor} 0%, ${endColor} 100%)`
-  );
+      ? -1
+      : -4;
+  const growingSoilBottom = adjustHexColor(variedSoilBottom, stageDarknessAdjust);
+  const matureSoilBottom = adjustHexColor(variedSoilBottom, -7);
+  const buildSoilTexture = (topColor: string, bottomColor: string): string => {
+    const layers = [
+      'radial-gradient(circle at 50% 32%, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 56%)',
+      'radial-gradient(circle at 50% 100%, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 52%)',
+      `linear-gradient(180deg, ${adjustHexColor(topColor, 5)} 0%, ${bottomColor} 100%)`,
+      'repeating-linear-gradient(48deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, rgba(0,0,0,0.05) 1px, rgba(0,0,0,0.05) 4px)',
+      `linear-gradient(145deg, ${topColor} 0%, ${bottomColor} 100%)`,
+    ];
+    if (wetSoil) {
+      layers.unshift('linear-gradient(160deg, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0.08) 25%, rgba(255,255,255,0) 55%)');
+    }
+    return layers.join(', ');
+  };
 
   const tileBackground = plot.state === 'empty'
-    ? buildSoilTexture('#8b7355', '#6b5644')
+    ? buildSoilTexture(variedSoilTop, variedSoilBottom)
     : plot.state === 'growing'
-      ? buildSoilTexture(growingSoil[0], growingSoil[1])
-      : plot.state === 'withered'
-        ? `linear-gradient(145deg, ${theme.surface} 0%, ${theme.border} 100%)`
-        : plot.state === 'stolen'
-          ? 'linear-gradient(145deg, rgba(185,28,28,0.5) 0%, rgba(127,29,29,0.36) 100%)'
-          : `linear-gradient(145deg, ${theme.surface} 0%, ${theme.inputBg} 100%)`;
+      ? buildSoilTexture(variedSoilTop, growingSoilBottom)
+      : plot.state === 'mature'
+        ? buildSoilTexture(adjustHexColor(variedSoilTop, -4), matureSoilBottom)
+        : plot.state === 'withered'
+          ? `linear-gradient(145deg, ${theme.surface} 0%, ${theme.border} 100%)`
+          : plot.state === 'stolen'
+            ? 'linear-gradient(145deg, rgba(185,28,28,0.5) 0%, rgba(127,29,29,0.36) 100%)'
+            : `linear-gradient(145deg, ${theme.surface} 0%, ${theme.inputBg} 100%)`;
   const tileBorderColor = plot.state === 'mature'
     ? '#fbbf24'
     : plot.state === 'stolen'
       ? '#ef4444'
       : plot.state === 'empty'
-        ? (isHovered ? 'rgba(255,255,255,0.3)' : '#6b5644')
+        ? (isHovered ? 'rgba(255,255,255,0.35)' : adjustHexColor(variedSoilBottom, -8))
         : theme.border;
+  const plotInsetShadow = 'inset 0 2px 8px rgba(255,255,255,0.14), inset 0 -8px 16px rgba(0,0,0,0.28)';
   const tileShadow = plot.state === 'mature'
     ? (isHovered
-      ? '0 8px 24px rgba(0,0,0,0.2), 0 0 30px rgba(251,191,36,0.5), 0 0 44px rgba(251,191,36,0.34)'
-      : '0 2px 8px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.08), 0 0 20px rgba(251,191,36,0.6), 0 0 40px rgba(251,191,36,0.3)')
+      ? `${plotInsetShadow}, 0 8px 24px rgba(0,0,0,0.2), 0 0 30px rgba(251,191,36,0.5), 0 0 44px rgba(251,191,36,0.34)`
+      : `${plotInsetShadow}, 0 2px 8px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.08), 0 0 20px rgba(251,191,36,0.6), 0 0 40px rgba(251,191,36,0.3)`)
     : plot.state === 'stolen'
       ? (isHovered
-        ? '0 6px 20px rgba(239,68,68,0.34), 0 0 16px rgba(239,68,68,0.25)'
-        : '0 2px 8px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.08)')
+        ? `${plotInsetShadow}, 0 6px 20px rgba(239,68,68,0.34), 0 0 16px rgba(239,68,68,0.25)`
+        : `${plotInsetShadow}, 0 2px 8px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.08)`)
       : plot.state === 'empty'
         ? (isHovered
-          ? '0 6px 20px rgba(0,0,0,0.15)'
-          : '0 2px 8px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.08)')
+          ? `${plotInsetShadow}, 0 6px 20px rgba(0,0,0,0.15)`
+          : `${plotInsetShadow}, 0 2px 8px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.08)`)
         : (isHovered
-          ? '0 6px 20px rgba(0,0,0,0.15)'
-          : '0 2px 8px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.08)');
+          ? `${plotInsetShadow}, 0 6px 20px rgba(0,0,0,0.15)`
+          : `${plotInsetShadow}, 0 2px 8px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.08)`);
+  const plotLightOverlay = getPlotLightOverlay(weather);
 
   return (
     <div
@@ -1181,7 +1278,9 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
         <div
           className="pointer-events-none absolute inset-0 rounded-[16px]"
           style={{
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 46%)',
+            background: wetSoil
+              ? `${plotLightOverlay}, linear-gradient(160deg, rgba(255,255,255,0.26) 0%, rgba(255,255,255,0.08) 24%, rgba(255,255,255,0) 56%)`
+              : `${plotLightOverlay}, linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 48%)`,
           }}
         />
         {isPlantFxActive && (
