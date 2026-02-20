@@ -948,9 +948,6 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
   const stageEmoji = getStageEmoji(plot.progress, plot.varietyId);
   const rarityColor = variety ? RARITY_COLOR[variety.rarity] : '#4ade80';
   const progressPercent = Math.min(100, plot.progress * 100);
-  const progressGlow = variety
-    ? `0 0 8px ${rarityColor}AA, 0 0 16px ${rarityColor}55`
-    : `0 0 6px ${rarityColor}66`;
   const hasFlowingShine = variety ? (variety.rarity === 'epic' || variety.rarity === 'legendary') : false;
   const flowShineColor = variety?.rarity === 'legendary' ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.62)';
   const matureMinutes = variety?.matureMinutes ?? 10000;
@@ -974,6 +971,56 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
     : 0;
   const isStolenRecovered = stolenRecord?.resolved === true && stolenRecord.recoveredCount > 0;
 
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPlantFxActive, setIsPlantFxActive] = useState(false);
+  const [harvestFxEmoji, setHarvestFxEmoji] = useState<string | null>(null);
+  const previousPlotStateRef = useRef<Plot['state']>(plot.state);
+  const plantFxTimerRef = useRef<number | null>(null);
+  const harvestFxTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const previousState = previousPlotStateRef.current;
+    if (previousState === 'empty' && plot.state === 'growing') {
+      setIsPlantFxActive(true);
+      if (plantFxTimerRef.current !== null) {
+        window.clearTimeout(plantFxTimerRef.current);
+      }
+      plantFxTimerRef.current = window.setTimeout(() => {
+        setIsPlantFxActive(false);
+        plantFxTimerRef.current = null;
+      }, 680);
+    }
+    if (plot.state !== 'growing') {
+      setIsPlantFxActive(false);
+    }
+    previousPlotStateRef.current = plot.state;
+  }, [plot.state]);
+
+  useEffect(() => () => {
+    if (plantFxTimerRef.current !== null) {
+      window.clearTimeout(plantFxTimerRef.current);
+    }
+    if (harvestFxTimerRef.current !== null) {
+      window.clearTimeout(harvestFxTimerRef.current);
+    }
+  }, []);
+
+  const triggerHarvestFx = useCallback((emoji: string) => {
+    if (harvestFxTimerRef.current !== null) {
+      window.clearTimeout(harvestFxTimerRef.current);
+    }
+    setHarvestFxEmoji(emoji);
+    harvestFxTimerRef.current = window.setTimeout(() => {
+      setHarvestFxEmoji(null);
+      harvestFxTimerRef.current = null;
+    }, 720);
+  }, []);
+
+  const handleHarvestAction = useCallback(() => {
+    triggerHarvestFx(variety?.emoji ?? '🍉');
+    onHarvestClick();
+  }, [onHarvestClick, triggerHarvestFx, variety?.emoji]);
+
   const stageSwayAnimation = stage === 'seed' || stage === 'sprout'
     ? 'plantSwaySm 4s ease-in-out infinite'
     : stage === 'leaf' || stage === 'flower'
@@ -981,50 +1028,123 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
       : stage === 'green'
         ? 'plantSwayMd 3.2s ease-in-out infinite'
         : 'plantSwayLg 3.8s ease-in-out infinite';
+
+  const progressHue = Math.round(120 - (plot.progress * 75));
+  const progressRingColor = `hsl(${progressHue} 84% 52%)`;
+  const progressGlowColor = `hsla(${progressHue} 85% 58% / 0.5)`;
+  const progressRing = `conic-gradient(${progressRingColor} ${progressPercent}%, rgba(255,255,255,0.16) ${progressPercent}% 100%)`;
+  const growingSoil = stage === 'seed' || stage === 'sprout'
+    ? ['#a58a66', '#85674d']
+    : stage === 'leaf' || stage === 'flower'
+      ? ['#937451', '#75573f']
+      : ['#7f6148', '#634733'];
+  const buildSoilTexture = (startColor: string, endColor: string): string => (
+    `radial-gradient(circle at 22% 24%, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0) 36%),
+      radial-gradient(circle at 79% 75%, rgba(0,0,0,0.14) 0%, rgba(0,0,0,0) 32%),
+      repeating-linear-gradient(42deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px),
+      linear-gradient(145deg, ${startColor} 0%, ${endColor} 100%)`
+  );
+
   const tileBackground = plot.state === 'empty'
-    ? 'linear-gradient(145deg, #8b5a2b 0%, #6f4424 100%)'
-    : plot.state === 'withered'
-      ? `linear-gradient(145deg, ${theme.surface} 0%, ${theme.border} 100%)`
-      : plot.state === 'stolen'
-        ? 'linear-gradient(145deg, rgba(185,28,28,0.5) 0%, rgba(127,29,29,0.36) 100%)'
-      : `linear-gradient(145deg, ${theme.surface} 0%, ${theme.inputBg} 100%)`;
+    ? buildSoilTexture('#8b7355', '#6b5644')
+    : plot.state === 'growing'
+      ? buildSoilTexture(growingSoil[0], growingSoil[1])
+      : plot.state === 'withered'
+        ? `linear-gradient(145deg, ${theme.surface} 0%, ${theme.border} 100%)`
+        : plot.state === 'stolen'
+          ? 'linear-gradient(145deg, rgba(185,28,28,0.5) 0%, rgba(127,29,29,0.36) 100%)'
+          : `linear-gradient(145deg, ${theme.surface} 0%, ${theme.inputBg} 100%)`;
   const tileBorderColor = plot.state === 'mature'
     ? '#fbbf24'
     : plot.state === 'stolen'
       ? '#ef4444'
-    : plot.state === 'empty'
-      ? '#7b4b2b'
-      : theme.border;
+      : plot.state === 'empty'
+        ? (isHovered ? 'rgba(255,255,255,0.3)' : '#6b5644')
+        : theme.border;
   const tileShadow = plot.state === 'mature'
-    ? '0 14px 26px rgba(251,191,36,0.26), 0 0 16px rgba(251,191,36,0.22)'
+    ? (isHovered
+      ? '0 8px 24px rgba(0,0,0,0.2), 0 0 30px rgba(251,191,36,0.5), 0 0 44px rgba(251,191,36,0.34)'
+      : '0 2px 8px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.08), 0 0 20px rgba(251,191,36,0.6), 0 0 40px rgba(251,191,36,0.3)')
     : plot.state === 'stolen'
-      ? '0 14px 26px rgba(239,68,68,0.28), 0 0 16px rgba(239,68,68,0.18)'
-      : 'var(--shadow-card)';
+      ? (isHovered
+        ? '0 6px 20px rgba(239,68,68,0.34), 0 0 16px rgba(239,68,68,0.25)'
+        : '0 2px 8px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.08)')
+      : plot.state === 'empty'
+        ? (isHovered
+          ? '0 6px 20px rgba(0,0,0,0.15)'
+          : '0 2px 8px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.08)')
+        : (isHovered
+          ? '0 6px 20px rgba(0,0,0,0.15)'
+          : '0 2px 8px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.08)');
 
   return (
-    <div className={`group relative aspect-square sm:aspect-[3/4] w-full select-none${isTooltipOpen ? ' z-[100]' : ''}`}>
-      <div className="relative h-full w-full transition-all duration-200 ease-in-out group-hover:-translate-y-0.5">
+    <div
+      className={`group relative aspect-square sm:aspect-[3/4] w-full select-none${isTooltipOpen ? ' z-[100]' : ''}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onFocusCapture={() => setIsHovered(true)}
+      onBlurCapture={() => setIsHovered(false)}
+    >
+      <div
+        className="relative h-full w-full transform-gpu transition-all duration-200 ease-out"
+        style={{
+          transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+        }}
+      >
         <div
-          className="absolute inset-0 rounded-[var(--radius-card)] border-2"
+          className="absolute inset-0 rounded-[16px] border-2 transition-all duration-200 ease-out"
           style={{
             background: tileBackground,
             borderColor: tileBorderColor,
             boxShadow: tileShadow,
             opacity: plot.state === 'withered' ? 0.74 : plot.state === 'stolen' ? 0.96 : 1,
+            animation: isPlantFxActive ? 'farmSoilShake 260ms ease-in-out' : 'none',
           }}
         />
         <div
-          className="pointer-events-none absolute inset-0 rounded-[var(--radius-card)]"
+          className="pointer-events-none absolute inset-0 rounded-[16px]"
           style={{
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 46%)',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 46%)',
           }}
         />
+        {isPlantFxActive && (
+          <span
+            className="pointer-events-none absolute left-1/2 top-[14%] z-30 text-[1.35rem]"
+            style={{
+              transform: 'translateX(-50%)',
+              animation: 'farmSeedDrop 420ms ease-out forwards',
+            }}
+          >
+            🌰
+          </span>
+        )}
+        {harvestFxEmoji && (
+          <div className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center">
+            <span
+              className="text-[clamp(2.2rem,7vw,3.2rem)]"
+              style={{
+                animation: 'farmHarvestPop 520ms ease-out forwards',
+                filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.35))',
+              }}
+            >
+              {harvestFxEmoji}
+            </span>
+            <span
+              className="absolute text-[1.1rem]"
+              style={{
+                animation: 'farmSparkleRise 560ms ease-out forwards',
+              }}
+            >
+              ✨
+            </span>
+          </div>
+        )}
 
         {/* Empty plot */}
         {plot.state === 'empty' && (
           <button
             onClick={onPlantClick}
-            className="absolute inset-0 rounded-[var(--radius-card)] flex flex-col items-center justify-center gap-1 text-center transition-all duration-200 ease-in-out"
+            className="absolute inset-0 rounded-[16px] flex flex-col items-center justify-center gap-1 text-center transition-all duration-200 ease-out hover:-translate-y-0.5"
           >
             <span className="text-[clamp(1.7rem,5vw,2.4rem)] font-light leading-none" style={{ color: '#f8eddc' }}>+</span>
             <span className="text-[10px] font-medium tracking-wide leading-none" style={{ color: '#f8eddc' }}>
@@ -1036,53 +1156,68 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
         {/* Growing plot */}
         {plot.state === 'growing' && (
           <div
-            className="absolute inset-0 rounded-[var(--radius-card)] flex flex-col items-center justify-center px-3 py-3 text-center cursor-pointer transition-all duration-200 ease-in-out"
+            className="absolute inset-0 rounded-[16px] flex flex-col items-center justify-center px-3 py-3 text-center cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5"
             onClick={(e) => {
               e.stopPropagation();
               onTooltipToggle();
             }}
           >
-            <span
-              className="text-[clamp(1.9rem,6vw,2.6rem)]"
-              style={{
-                filter: variety && revealed && variety.rarity !== 'common'
-                  ? `drop-shadow(0 0 6px ${rarityColor})`
-                  : 'none',
-                animation: stageSwayAnimation,
-                transformOrigin: 'bottom center',
-              }}
-            >
-              {stageEmoji}
-            </span>
+            <div className="relative flex h-16 w-16 items-center justify-center">
+              <span
+                className="absolute inset-0 rounded-full transition-all duration-300 ease-out"
+                style={{
+                  background: progressRing,
+                  boxShadow: `0 0 8px ${progressGlowColor}`,
+                }}
+              />
+              <span
+                className="absolute inset-[5px] rounded-full"
+                style={{
+                  backgroundColor: 'rgba(0,0,0,0.22)',
+                  border: `1px solid ${theme.border}99`,
+                }}
+              />
+              {hasFlowingShine && progressPercent > 2 && (
+                <span
+                  className="absolute inset-y-2 left-[20%] w-[28%] rounded-full"
+                  style={{
+                    background: `linear-gradient(115deg, transparent 0%, ${flowShineColor} 50%, transparent 100%)`,
+                    filter: 'blur(0.5px)',
+                    animation: 'progressShine 1.7s linear infinite',
+                  }}
+                />
+              )}
+              <span
+                className="relative inline-flex items-center justify-center"
+                style={{
+                  animation: isPlantFxActive ? 'farmSprout 600ms cubic-bezier(0.34, 1.56, 0.64, 1) both' : 'none',
+                }}
+              >
+                <span
+                  className="block text-[clamp(2.3rem,7vw,3.15rem)] leading-none"
+                  style={{
+                    filter: variety && revealed && variety.rarity !== 'common'
+                      ? `drop-shadow(0 0 6px ${rarityColor})`
+                      : 'none',
+                    animation: stageSwayAnimation,
+                    transformOrigin: 'bottom center',
+                  }}
+                >
+                  {stageEmoji}
+                </span>
+              </span>
+            </div>
             {revealed && variety ? (
-              <span className="text-[11px] font-semibold leading-tight" style={{ color: theme.text }}>
+              <span className="mt-1 text-[11px] font-semibold leading-tight" style={{ color: theme.text }}>
                 {varietyLabel}
               </span>
             ) : (
-              <span className="text-[11px] font-medium" style={{ color: theme.textFaint }}>???</span>
+              <span className="mt-1 text-[11px] font-medium" style={{ color: theme.textFaint }}>???</span>
             )}
-            <div className="mt-1 h-1.5 w-[74%] overflow-hidden rounded-full" style={{ backgroundColor: theme.border }}>
-              <div
-                className="relative h-full overflow-hidden rounded-full transition-all duration-500"
-                style={{
-                  width: `${progressPercent}%`,
-                  backgroundColor: rarityColor,
-                  boxShadow: progressPercent > 1 ? progressGlow : 'none',
-                }}
-              >
-                {hasFlowingShine && progressPercent > 2 && (
-                  <span
-                    className="absolute inset-y-0 left-[-35%] w-[35%] rounded-full"
-                    style={{
-                      background: `linear-gradient(115deg, transparent 0%, ${flowShineColor} 50%, transparent 100%)`,
-                      filter: 'blur(0.5px)',
-                      animation: 'progressShine 1.7s linear infinite',
-                    }}
-                  />
-                )}
-              </div>
-            </div>
-            <span className="mt-1 text-[10px]" style={{ color: theme.textFaint }}>
+            <span className="mt-1 text-[10px] font-semibold" style={{ color: progressRingColor }}>
+              {`${Math.round(progressPercent)}%`}
+            </span>
+            <span className="text-[10px]" style={{ color: theme.textFaint }}>
               {t.farmStage(stage)}
             </span>
             {plot.thief && (
@@ -1151,7 +1286,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                           e.stopPropagation();
                           onUseMutationGun();
                         }}
-                        className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
+                        className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5"
                         style={{ color: '#000', backgroundColor: '#fbbf24' }}
                       >
                         {`🔦 ${t.mutationGunUse} · ${mutationGunCount}`}
@@ -1161,7 +1296,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                   {canUseStarTracker && (
                     <button
                       onClick={(e) => { e.stopPropagation(); onUseStarTracker(); }}
-                      className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
+                      className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5"
                       style={{ color: '#000', backgroundColor: '#fbbf24' }}
                     >
                       📡 {t.itemName('star-tracker')} · {starTrackerCount}
@@ -1170,7 +1305,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                   {canUseTrapNet && (
                     <button
                       onClick={(e) => { e.stopPropagation(); onUseTrapNet(); }}
-                      className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
+                      className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5"
                       style={{ color: '#000', backgroundColor: '#fbbf24' }}
                     >
                       🪤 {t.itemName('trap-net')} · {trapNetCount}
@@ -1191,13 +1326,13 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                 onTooltipToggle();
                 return;
               }
-              onHarvestClick();
+              handleHarvestAction();
             }}
-            className="absolute inset-0 rounded-[var(--radius-card)] flex flex-col items-center justify-center px-3 py-3 text-center transition-all duration-200 ease-in-out"
+            className="absolute inset-0 rounded-[16px] flex flex-col items-center justify-center px-3 py-3 text-center transition-all duration-200 ease-out hover:-translate-y-0.5"
           >
-            <span className="text-[clamp(2rem,6vw,2.7rem)]" style={{
+            <span className="text-[clamp(2.2rem,6.8vw,3.1rem)]" style={{
               filter: `drop-shadow(0 0 8px ${rarityColor})`,
-              animation: 'maturePulse 2s ease-in-out infinite',
+              animation: 'farmMaturePulse 1.5s ease-in-out infinite',
             }}>
               {variety.emoji}
             </span>
@@ -1210,8 +1345,13 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
               </span>
             )}
             <span
-              className="mt-1 rounded-full px-3 py-1 text-[10px] font-bold"
-              style={{ backgroundColor: '#fbbf24', color: '#000' }}
+              className="mt-1 rounded-full px-3 py-1 text-[10px] font-bold transition-all duration-200 ease-out"
+              style={{
+                background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                color: '#000',
+                boxShadow: '0 4px 12px rgba(251,191,36,0.4)',
+                transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+              }}
             >
               ✋ {t.farmHarvest}
             </span>
@@ -1226,8 +1366,8 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                   e.stopPropagation();
                   onUseMoonDew();
                 }}
-                className="rounded-full px-2 py-1 text-[10px] font-semibold"
-                style={{ backgroundColor: '#fbbf24', color: '#000' }}
+                className="rounded-full px-2 py-1 text-[10px] font-semibold transition-all duration-200 ease-out hover:-translate-y-0.5"
+                style={{ backgroundColor: '#fbbf24', color: '#000', boxShadow: '0 4px 10px rgba(251,191,36,0.3)' }}
               >
                 {`🌙 ${moonDewCount}`}
               </button>
@@ -1238,8 +1378,8 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                   e.stopPropagation();
                   onUseStarTracker();
                 }}
-                className="rounded-full px-2 py-1 text-[10px] font-semibold"
-                style={{ backgroundColor: '#60a5fa', color: '#001426' }}
+                className="rounded-full px-2 py-1 text-[10px] font-semibold transition-all duration-200 ease-out hover:-translate-y-0.5"
+                style={{ backgroundColor: '#60a5fa', color: '#001426', boxShadow: '0 4px 10px rgba(96,165,250,0.28)' }}
               >
                 {`📡 ${starTrackerCount}`}
               </button>
@@ -1272,7 +1412,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                     e.stopPropagation();
                     onUseMoonDew();
                   }}
-                  className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
+                  className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5"
                   style={{ color: '#000', backgroundColor: '#fbbf24' }}
                 >
                   🌙 {t.itemName('moon-dew')} · {moonDewCount}
@@ -1284,7 +1424,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                     e.stopPropagation();
                     onUseStarTracker();
                   }}
-                  className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
+                  className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5"
                   style={{ color: '#000', backgroundColor: '#60a5fa' }}
                 >
                   📡 {t.itemName('star-tracker')} · {starTrackerCount}
@@ -1293,10 +1433,10 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onHarvestClick();
+                  handleHarvestAction();
                 }}
-                className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
-                style={{ color: '#000', backgroundColor: '#fbbf24' }}
+                className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5"
+                style={{ color: '#000', background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)', boxShadow: '0 4px 12px rgba(251,191,36,0.4)' }}
               >
                 ✋ {t.farmHarvest}
               </button>
@@ -1315,7 +1455,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
               }
               onClearClick();
             }}
-            className="absolute inset-0 rounded-[var(--radius-card)] flex flex-col items-center justify-center px-3 py-3 text-center transition-all duration-200 ease-in-out"
+            className="absolute inset-0 rounded-[16px] flex flex-col items-center justify-center px-3 py-3 text-center transition-all duration-200 ease-out hover:-translate-y-0.5"
           >
             <span className="text-[clamp(1.9rem,6vw,2.5rem)] grayscale">💀</span>
             <span className="text-[11px] font-medium" style={{ color: theme.textMuted }}>
@@ -1337,8 +1477,8 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                 e.stopPropagation();
                 onUseNectar();
               }}
-              className="rounded-full px-2 py-1 text-[10px] font-semibold"
-              style={{ backgroundColor: '#38bdf8', color: '#001426' }}
+              className="rounded-full px-2 py-1 text-[10px] font-semibold transition-all duration-200 ease-out hover:-translate-y-0.5"
+              style={{ backgroundColor: '#38bdf8', color: '#001426', boxShadow: '0 4px 10px rgba(56,189,248,0.32)' }}
             >
               {`💧 ${nectarCount}`}
             </button>
@@ -1369,7 +1509,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                     e.stopPropagation();
                     onUseNectar();
                   }}
-                  className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
+                  className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5"
                   style={{ color: '#000', backgroundColor: '#38bdf8' }}
                 >
                   💧 {t.itemName('nectar')} · {nectarCount}
@@ -1380,7 +1520,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                   e.stopPropagation();
                   onClearClick();
                 }}
-                className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
+                className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5"
                 style={{ color: theme.textMuted, backgroundColor: `${theme.border}66` }}
               >
                 {t.farmClear}
@@ -1393,7 +1533,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
         {plot.state === 'stolen' && (
           <button
             onClick={onClearClick}
-            className="absolute inset-0 rounded-[var(--radius-card)] flex flex-col items-center justify-center px-3 py-3 text-center transition-all duration-200 ease-in-out"
+            className="absolute inset-0 rounded-[16px] flex flex-col items-center justify-center px-3 py-3 text-center transition-all duration-200 ease-out hover:-translate-y-0.5"
           >
             <span className="text-[clamp(1.8rem,5.8vw,2.4rem)]">📜</span>
             <span className="mt-1 text-[11px] font-semibold leading-tight" style={{ color: '#fee2e2' }}>
@@ -1452,14 +1592,6 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
           0%, 100% { transform: rotate(-3deg); }
           50% { transform: rotate(3deg); }
         }
-        @keyframes fadeIn {
-          0% { opacity: 0; }
-          100% { opacity: 1; }
-        }
-        @keyframes maturePulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.08); }
-        }
         @keyframes progressShine {
           0% { transform: translateX(-110%); opacity: 0.2; }
           35% { opacity: 0.95; }
@@ -1478,7 +1610,7 @@ function LockedPlotCard({ requiredVarieties, theme, t }: {
   return (
     <div className="relative aspect-square sm:aspect-[3/4] w-full select-none">
       <div
-        className="absolute inset-0 rounded-[var(--radius-card)] border-2"
+        className="absolute inset-0 rounded-[16px] border-2"
         style={{
           background: `linear-gradient(145deg, ${theme.surface} 0%, ${theme.inputBg} 100%)`,
           borderColor: theme.border,
@@ -1487,7 +1619,7 @@ function LockedPlotCard({ requiredVarieties, theme, t }: {
         }}
       />
       <div
-        className="pointer-events-none absolute inset-0 rounded-[var(--radius-card)]"
+        className="pointer-events-none absolute inset-0 rounded-[16px]"
         style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 56%)' }}
       />
       <div className="absolute inset-0 flex flex-col items-center justify-center px-3 text-center">
