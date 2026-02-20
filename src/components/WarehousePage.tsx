@@ -83,14 +83,14 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
           {!inline && onClose && (
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ease-in-out hover:-translate-y-0.5 cursor-pointer"
               style={{ color: theme.textMuted, backgroundColor: theme.inputBg }}
             >✕</button>
           )}
         </div>
         <div className="mt-3 relative flex items-center rounded-full p-[3px]" style={{ backgroundColor: theme.inputBg }}>
           <div
-            className="absolute top-[3px] bottom-[3px] rounded-full transition-all duration-200 ease-out"
+            className="absolute top-[3px] bottom-[3px] rounded-full transition-all duration-200 ease-in-out"
             style={{
               backgroundColor: theme.border,
               width: 'calc(50% - 3px)',
@@ -99,14 +99,14 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
           />
           <button
             onClick={() => { setActiveTab('shed'); setFlavorTooltip(null); }}
-            className="relative z-10 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 cursor-pointer flex-1"
+            className="relative z-10 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ease-in-out cursor-pointer flex-1"
             style={{ color: activeTab === 'shed' ? theme.text : theme.textMuted }}
           >
             {t.warehouseTabShed}
           </button>
           <button
             onClick={() => { setActiveTab('backpack'); setFlavorTooltip(null); }}
-            className="relative z-10 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 cursor-pointer flex-1"
+            className="relative z-10 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ease-in-out cursor-pointer flex-1"
             style={{ color: activeTab === 'backpack' ? theme.text : theme.textMuted }}
           >
             {t.warehouseTabBackpack}
@@ -130,11 +130,12 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
               return (
                 <div
                   key={stage}
-                  className="flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all"
+                  className="flex flex-col items-center gap-2 p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                   style={{
                     backgroundColor: locked ? theme.inputBg : count > 0 ? `${theme.accent}08` : theme.inputBg,
                     borderColor: count > 0 && !locked ? `${theme.accent}30` : theme.border,
                     opacity: locked ? 0.5 : 1,
+                    boxShadow: 'var(--shadow-card)',
                   }}
                 >
                   {locked ? (
@@ -157,7 +158,7 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
         {/* Synthesis */}
         <div className="mb-5">
           <h3 className="text-sm font-semibold mb-3" style={{ color: theme.text }}>{t.synthesisTitle}</h3>
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-3">
             {SYNTHESIS_RECIPES.map((recipe) => {
               const available = warehouse.items[recipe.from];
               const canMake = Math.floor(available / recipe.cost);
@@ -165,25 +166,26 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
               return (
                 <div
                   key={`${recipe.from}-${recipe.to}`}
-                  className="flex items-center gap-3 p-3 rounded-xl border transition-all"
+                  className="flex items-center gap-3 p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                   style={{
                     backgroundColor: isAnimating ? `${theme.accent}15` : theme.inputBg,
                     borderColor: theme.border,
+                    boxShadow: 'var(--shadow-card)',
                   }}
                 >
-                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
                     <GrowthIcon stage={recipe.from} size={22} />
                     <span className="text-xs font-medium" style={{ color: theme.textMuted }}>×{recipe.cost}</span>
                     <span className="text-xs" style={{ color: theme.textFaint }}>→</span>
                     <GrowthIcon stage={recipe.to} size={22} />
                     <span className="text-xs font-medium" style={{ color: theme.textMuted }}>×1</span>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     {canMake > 0 ? (
                       <>
                         <button
                           onClick={() => handleSynthesize(recipe)}
-                          className="px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition-all"
+                          className="px-3 py-1 rounded-[var(--radius-sm)] text-xs font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                           style={{ backgroundColor: `${theme.accent}20`, color: theme.accent }}
                         >
                           {t.synthesisSynthesize}
@@ -191,7 +193,7 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
                         {canMake > 1 && (
                           <button
                             onClick={() => handleSynthesizeAll(recipe)}
-                            className="px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition-all"
+                            className="px-3 py-1 rounded-[var(--radius-sm)] text-xs font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                             style={{ backgroundColor: `${theme.accent}10`, color: theme.accent }}
                           >
                             {t.synthesisSynthesizeAll}
@@ -217,8 +219,8 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
             <div className="flex flex-col gap-2">
               {canSliceRipe && (
                 <div
-                  className="flex items-center justify-between p-3 rounded-xl border"
-                  style={{ backgroundColor: theme.inputBg, borderColor: theme.border }}
+                  className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border"
+                  style={{ backgroundColor: theme.inputBg, borderColor: theme.border, boxShadow: 'var(--shadow-card)' }}
                 >
                   <div className="flex items-center gap-2">
                     <GrowthIcon stage="ripe" size={28} />
@@ -228,7 +230,7 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
                   </div>
                   <button
                     onClick={() => onSlice('ripe')}
-                    className="px-4 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-all"
+                    className="px-4 py-2 rounded-[var(--radius-sm)] text-sm font-bold cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                     style={{ backgroundColor: '#ef4444', color: '#fff', boxShadow: '0 2px 8px rgba(239,68,68,0.4)' }}
                   >
                     {t.sliceButton}
@@ -237,8 +239,8 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
               )}
               {canSliceLegendary && (
                 <div
-                  className="flex items-center justify-between p-3 rounded-xl border"
-                  style={{ backgroundColor: '#fbbf2408', borderColor: '#fbbf2430' }}
+                  className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border"
+                  style={{ backgroundColor: '#fbbf2408', borderColor: '#fbbf2430', boxShadow: 'var(--shadow-card)' }}
                 >
                   <div className="flex items-center gap-2">
                     <GrowthIcon stage="legendary" size={28} />
@@ -248,7 +250,7 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
                   </div>
                   <button
                     onClick={() => onSlice('legendary')}
-                    className="px-4 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-all"
+                    className="px-4 py-2 rounded-[var(--radius-sm)] text-sm font-bold cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                     style={{ backgroundColor: '#fbbf24', color: '#78350f', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}
                   >
                     {t.sliceButton}
@@ -267,8 +269,8 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
               <h3 className="text-sm font-semibold mb-3" style={{ color: theme.text }}>{t.shedSeedsTitle}</h3>
               <div className="flex flex-col gap-2">
                 {shed.seeds.normal > 0 && (
-                  <div className="flex items-center justify-between p-3 rounded-xl border"
-                    style={{ backgroundColor: theme.inputBg, borderColor: theme.border }}>
+                  <div className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border"
+                    style={{ backgroundColor: theme.inputBg, borderColor: theme.border, boxShadow: 'var(--shadow-card)' }}>
                     <div className="flex items-center gap-2">
                       <span className="text-xl">🌰</span>
                       <span className="text-sm font-medium" style={{ color: theme.text }}>
@@ -278,8 +280,8 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
                   </div>
                 )}
                 {shed.seeds.epic > 0 && (
-                  <div className="flex items-center justify-between p-3 rounded-xl border"
-                    style={{ backgroundColor: '#a78bfa08', borderColor: '#a78bfa30' }}>
+                  <div className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border"
+                    style={{ backgroundColor: '#a78bfa08', borderColor: '#a78bfa30', boxShadow: 'var(--shadow-card)' }}>
                     <div className="flex items-center gap-2">
                       <span className="text-xl">💎</span>
                       <span className="text-sm font-medium" style={{ color: '#a78bfa' }}>
@@ -289,8 +291,8 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
                   </div>
                 )}
                 {shed.seeds.legendary > 0 && (
-                  <div className="flex items-center justify-between p-3 rounded-xl border"
-                    style={{ backgroundColor: '#fbbf2408', borderColor: '#fbbf2430' }}>
+                  <div className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border"
+                    style={{ backgroundColor: '#fbbf2408', borderColor: '#fbbf2430', boxShadow: 'var(--shadow-card)' }}>
                     <div className="flex items-center gap-2">
                       <span className="text-xl">🌟</span>
                       <span className="text-sm font-medium" style={{ color: '#fbbf24' }}>
@@ -304,7 +306,7 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
                 <p className="text-xs ml-1" style={{ color: theme.textFaint }}>{t.shedFarmComingSoon}</p>
                 <button
                   onClick={onGoFarm}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all"
+                  className="px-3 py-2 rounded-[var(--radius-sm)] text-xs font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                   style={{ backgroundColor: `${theme.accent}15`, color: theme.accent, border: `1px solid ${theme.accent}30` }}
                 >
                   {t.farmGoFarm}
@@ -327,10 +329,11 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
                     <button
                       key={id}
                       onClick={() => setFlavorTooltip(flavorTooltip === id ? null : id)}
-                      className="flex flex-col items-center gap-1 p-2.5 rounded-xl border cursor-pointer transition-all"
+                      className="flex flex-col items-center gap-1 p-3 rounded-[var(--radius-card)] border cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                       style={{
                         backgroundColor: isRare ? '#fbbf2408' : theme.inputBg,
                         borderColor: isRare ? '#fbbf2430' : theme.border,
+                        boxShadow: 'var(--shadow-card)',
                       }}
                     >
                       <span className="text-xl">{def.emoji}</span>
@@ -348,8 +351,8 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
             {/* Flavor tooltip */}
             {flavorTooltip && (
               <div
-                className="mt-2 p-3 rounded-xl text-xs italic"
-                style={{ backgroundColor: theme.inputBg, color: theme.textMuted, border: `1px solid ${theme.border}` }}
+                className="mt-2 p-3 rounded-[var(--radius-card)] text-xs italic"
+                style={{ backgroundColor: theme.inputBg, color: theme.textMuted, border: `1px solid ${theme.border}`, boxShadow: 'var(--shadow-card)' }}
               >
                 {t.itemFlavor(flavorTooltip)}
               </div>
@@ -359,7 +362,7 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
       )}
 
       {/* Stats */}
-      <div className="flex items-center justify-between px-2 py-3 mb-5 rounded-xl flex-wrap gap-2" style={{ backgroundColor: theme.inputBg }}>
+      <div className="flex items-center justify-between px-2 py-3 mb-5 rounded-[var(--radius-card)] flex-wrap gap-2" style={{ backgroundColor: theme.inputBg, boxShadow: 'var(--shadow-card)' }}>
         <div className="text-xs" style={{ color: theme.textMuted }}>
           {t.warehouseTotal}: <span style={{ color: theme.text, fontWeight: 600 }}>{warehouse.totalCollected}</span>
         </div>
@@ -403,8 +406,8 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
       <div
-        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border p-5 mx-4 animate-fade-up"
-        style={{ backgroundColor: theme.surface, borderColor: theme.border }}
+        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[var(--radius-container)] border p-5 mx-4 animate-fade-up"
+        style={{ backgroundColor: theme.surface, borderColor: theme.border, boxShadow: 'var(--shadow-elevated)' }}
       >
         {content}
       </div>

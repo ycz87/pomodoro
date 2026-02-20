@@ -337,7 +337,7 @@ export function FarmPage({
 
       {/* 今日专注信息 */}
       <div className="flex items-center justify-between mb-2 sm:mb-3 px-1">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <span className="text-xs" style={{ color: theme.textFaint }}>
             {t.farmTodayFocus(todayFocusMinutes)}
           </span>
@@ -365,11 +365,12 @@ export function FarmPage({
         {(guardianBarrierCount > 0 || barrierActiveToday) && (
           <button
             onClick={onUseGuardianBarrier}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium"
+            className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-[var(--radius-sm)] border text-xs font-medium transition-all duration-200 ease-in-out hover:-translate-y-0.5"
             style={{
               backgroundColor: `${theme.surface}cc`,
               borderColor: barrierActiveToday ? '#fbbf24' : theme.border,
               color: barrierActiveToday ? '#fbbf24' : theme.text,
+              boxShadow: 'var(--shadow-card)',
             }}
             title={barrierActiveToday ? t.itemGuardianBarrierActive : t.itemName('guardian-barrier')}
           >
@@ -379,11 +380,12 @@ export function FarmPage({
         )}
         {trapNetCount > 0 && (
           <div
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium"
+            className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-[var(--radius-sm)] border text-xs font-medium"
             style={{
               backgroundColor: `${theme.surface}cc`,
               borderColor: theme.border,
               color: theme.text,
+              boxShadow: 'var(--shadow-card)',
             }}
             title={t.itemName('trap-net')}
             data-testid="trap-net-inventory"
@@ -399,7 +401,7 @@ export function FarmPage({
         <div className="relative mx-auto w-full max-w-[90%] sm:max-w-[760px]">
           {weather !== null && <WeatherLayer weather={weather} theme={theme} t={t} />}
           <div
-            className="pointer-events-none absolute inset-0 rounded-[30px] z-[1]"
+            className="pointer-events-none absolute inset-0 rounded-[20px] z-[1]"
             style={{
               background: `radial-gradient(circle at 50% 16%, ${theme.surface}66 0%, ${theme.surface}00 72%)`,
             }}
@@ -485,7 +487,7 @@ export function FarmPage({
           <p className="text-sm mb-2" style={{ color: theme.textMuted }}>{t.farmNoSeeds}</p>
           <button
             onClick={onGoWarehouse}
-            className="text-sm font-medium px-4 py-2 rounded-xl"
+            className="text-sm font-medium px-4 py-2 rounded-[var(--radius-sm)] transition-all duration-200 ease-in-out hover:-translate-y-0.5"
             style={{ color: theme.accent, backgroundColor: `${theme.accent}15` }}
           >
             {t.farmGoSlice}
@@ -604,7 +606,7 @@ function WeatherLayer({ weather, theme, t }: {
   const isRainy = weather === 'rainy' || weather === 'stormy';
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[30px]">
+    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[20px]">
       <div
         className="absolute inset-0"
         style={{
@@ -635,7 +637,7 @@ function WeatherLayer({ weather, theme, t }: {
         );
       })}
       <div
-        className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-medium"
+        className="absolute left-2 top-2 rounded-full px-2 py-1 text-[10px] font-medium"
         style={{
           color: theme.text,
           backgroundColor: `${theme.surface}cc`,
@@ -696,12 +698,12 @@ function AlienLayer({ alien, theme, t }: {
       style={{ animation: 'alienPop 220ms ease-out both' }}
     >
       <div
-        className="max-w-[180px] rounded-xl px-3 py-2 text-[11px] leading-relaxed"
+        className="max-w-[180px] rounded-[var(--radius-card)] px-3 py-2 text-[11px] leading-relaxed"
         style={{
           color: theme.text,
           backgroundColor: `${theme.surface}f2`,
           border: `1px solid ${theme.border}`,
-          boxShadow: '0 8px 18px rgba(0,0,0,0.22)',
+          boxShadow: 'var(--shadow-elevated)',
         }}
       >
         {bubbleText}
@@ -711,7 +713,7 @@ function AlienLayer({ alien, theme, t }: {
         style={{
           backgroundColor: `${theme.inputBg}ef`,
           borderColor: theme.border,
-          boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+          boxShadow: 'var(--shadow-card)',
         }}
       >
         {avatar}
@@ -738,7 +740,7 @@ function SubTabHeader({ subTab, setSubTab, theme, t }: {
     <div className="px-1 py-3">
       <div className="relative flex items-center rounded-full p-[3px]" style={{ backgroundColor: theme.inputBg }}>
         <div
-          className="absolute top-[3px] bottom-[3px] rounded-full transition-all duration-200 ease-out"
+          className="absolute top-[3px] bottom-[3px] rounded-full transition-all duration-200 ease-in-out"
           style={{
             backgroundColor: theme.border,
             width: 'calc((100% - 6px) / 4)',
@@ -748,7 +750,7 @@ function SubTabHeader({ subTab, setSubTab, theme, t }: {
         />
         <button
           onClick={() => setSubTab('plots')}
-          className="relative z-10 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 cursor-pointer flex-1"
+          className="relative z-10 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ease-in-out cursor-pointer flex-1"
           style={{
             color: subTab === 'plots' ? theme.text : theme.textMuted,
           }}
@@ -757,7 +759,7 @@ function SubTabHeader({ subTab, setSubTab, theme, t }: {
         </button>
         <button
           onClick={() => setSubTab('collection')}
-          className="relative z-10 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 cursor-pointer flex-1"
+          className="relative z-10 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ease-in-out cursor-pointer flex-1"
           style={{
             color: subTab === 'collection' ? theme.text : theme.textMuted,
           }}
@@ -766,7 +768,7 @@ function SubTabHeader({ subTab, setSubTab, theme, t }: {
         </button>
         <button
           onClick={() => setSubTab('hybrid')}
-          className="relative z-10 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 cursor-pointer flex-1"
+          className="relative z-10 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ease-in-out cursor-pointer flex-1"
           style={{
             color: subTab === 'hybrid' ? theme.text : theme.textMuted,
           }}
@@ -775,7 +777,7 @@ function SubTabHeader({ subTab, setSubTab, theme, t }: {
         </button>
         <button
           onClick={() => setSubTab('lab')}
-          className="relative z-10 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 cursor-pointer flex-1"
+          className="relative z-10 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ease-in-out cursor-pointer flex-1"
           style={{
             color: subTab === 'lab' ? theme.text : theme.textMuted,
           }}
@@ -877,9 +879,9 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
 
   return (
     <div className={`group relative aspect-square sm:aspect-[3/4] w-full select-none${isTooltipOpen ? ' z-[100]' : ''}`}>
-      <div className="relative h-full w-full transition-transform duration-200 group-hover:-translate-y-1">
+      <div className="relative h-full w-full transition-all duration-200 ease-in-out group-hover:-translate-y-0.5">
         <div
-          className="absolute inset-0 rounded-2xl border-2"
+          className="absolute inset-0 rounded-[var(--radius-card)] border-2"
           style={{
             background: tileBackground,
             borderColor: tileBorderColor,
@@ -888,7 +890,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
           }}
         />
         <div
-          className="pointer-events-none absolute inset-0 rounded-2xl"
+          className="pointer-events-none absolute inset-0 rounded-[var(--radius-card)]"
           style={{
             background: 'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 46%)',
           }}
@@ -898,7 +900,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
         {plot.state === 'empty' && (
           <button
             onClick={onPlantClick}
-            className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center gap-1 text-center"
+            className="absolute inset-0 rounded-[var(--radius-card)] flex flex-col items-center justify-center gap-1 text-center transition-all duration-200 ease-in-out"
           >
             <span className="text-[clamp(1.7rem,5vw,2.4rem)] font-light leading-none" style={{ color: '#f8eddc' }}>+</span>
             <span className="text-[10px] font-medium tracking-wide leading-none" style={{ color: '#f8eddc' }}>
@@ -910,7 +912,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
         {/* Growing plot */}
         {plot.state === 'growing' && (
           <div
-            className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center px-3 py-3 text-center cursor-pointer"
+            className="absolute inset-0 rounded-[var(--radius-card)] flex flex-col items-center justify-center px-3 py-3 text-center cursor-pointer transition-all duration-200 ease-in-out"
             onClick={(e) => {
               e.stopPropagation();
               onTooltipToggle();
@@ -983,7 +985,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
             )}
             {isTooltipOpen && (
               <div
-                className="absolute left-1/2 top-full z-50 mt-2 w-max max-w-[200px] -translate-x-1/2 rounded-[12px] px-4 py-3 text-[11px] leading-relaxed text-white"
+                className="absolute left-1/2 top-full z-50 mt-2 w-max max-w-[200px] -translate-x-1/2 rounded-[var(--radius-card)] px-4 py-3 text-[11px] leading-relaxed text-white"
                 style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
               >
                 <span
@@ -1016,7 +1018,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                 )}
                 {negativeStatusText && <div>{negativeStatusText}</div>}
 
-                <div className="flex flex-col gap-1.5 mt-2">
+                <div className="flex flex-col gap-2 mt-2">
                   {canUseMutationGun && (
                     <>
                       <div>{`${t.mutationChanceLabel}: ${Math.round(mutationChance * 100)}%`}</div>
@@ -1025,7 +1027,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                           e.stopPropagation();
                           onUseMutationGun();
                         }}
-                        className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                        className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                         style={{ color: '#000', backgroundColor: '#fbbf24' }}
                       >
                         {`🔦 ${t.mutationGunUse} · ${mutationGunCount}`}
@@ -1035,7 +1037,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                   {canUseStarTracker && (
                     <button
                       onClick={(e) => { e.stopPropagation(); onUseStarTracker(); }}
-                      className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                      className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                       style={{ color: '#000', backgroundColor: '#fbbf24' }}
                     >
                       📡 {t.itemName('star-tracker')} · {starTrackerCount}
@@ -1044,7 +1046,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                   {canUseTrapNet && (
                     <button
                       onClick={(e) => { e.stopPropagation(); onUseTrapNet(); }}
-                      className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                      className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                       style={{ color: '#000', backgroundColor: '#fbbf24' }}
                     >
                       🪤 {t.itemName('trap-net')} · {trapNetCount}
@@ -1067,7 +1069,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
               }
               onHarvestClick();
             }}
-            className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center px-3 py-3 text-center"
+            className="absolute inset-0 rounded-[var(--radius-card)] flex flex-col items-center justify-center px-3 py-3 text-center transition-all duration-200 ease-in-out"
           >
             <span className="text-[clamp(2rem,6vw,2.7rem)]" style={{
               filter: `drop-shadow(0 0 8px ${rarityColor})`,
@@ -1100,7 +1102,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                   e.stopPropagation();
                   onUseMoonDew();
                 }}
-                className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                className="rounded-full px-2 py-1 text-[10px] font-semibold"
                 style={{ backgroundColor: '#fbbf24', color: '#000' }}
               >
                 {`🌙 ${moonDewCount}`}
@@ -1112,7 +1114,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                   e.stopPropagation();
                   onUseStarTracker();
                 }}
-                className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                className="rounded-full px-2 py-1 text-[10px] font-semibold"
                 style={{ backgroundColor: '#60a5fa', color: '#001426' }}
               >
                 {`📡 ${starTrackerCount}`}
@@ -1123,7 +1125,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
 
         {plot.state === 'mature' && isTooltipOpen && (
           <div
-            className="absolute left-1/2 top-full z-50 mt-2 w-max max-w-[220px] -translate-x-1/2 rounded-[12px] px-4 py-3 text-[11px] leading-relaxed text-white"
+            className="absolute left-1/2 top-full z-50 mt-2 w-max max-w-[220px] -translate-x-1/2 rounded-[var(--radius-card)] px-4 py-3 text-[11px] leading-relaxed text-white"
             style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1139,14 +1141,14 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
             />
             <div className="font-semibold">{varietyLabel}</div>
             <div>{t.farmStage('fruit')}</div>
-            <div className="flex flex-col gap-1.5 mt-2">
+            <div className="flex flex-col gap-2 mt-2">
               {canUseMoonDew && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onUseMoonDew();
                   }}
-                  className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                  className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                   style={{ color: '#000', backgroundColor: '#fbbf24' }}
                 >
                   🌙 {t.itemName('moon-dew')} · {moonDewCount}
@@ -1158,7 +1160,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                     e.stopPropagation();
                     onUseStarTracker();
                   }}
-                  className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                  className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                   style={{ color: '#000', backgroundColor: '#60a5fa' }}
                 >
                   📡 {t.itemName('star-tracker')} · {starTrackerCount}
@@ -1169,7 +1171,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                   e.stopPropagation();
                   onHarvestClick();
                 }}
-                className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                 style={{ color: '#000', backgroundColor: '#fbbf24' }}
               >
                 ✋ {t.farmHarvest}
@@ -1189,7 +1191,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
               }
               onClearClick();
             }}
-            className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center px-3 py-3 text-center"
+            className="absolute inset-0 rounded-[var(--radius-card)] flex flex-col items-center justify-center px-3 py-3 text-center transition-all duration-200 ease-in-out"
           >
             <span className="text-[clamp(1.9rem,6vw,2.5rem)] grayscale">💀</span>
             <span className="text-[11px] font-medium" style={{ color: theme.textMuted }}>
@@ -1211,7 +1213,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                 e.stopPropagation();
                 onUseNectar();
               }}
-              className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+              className="rounded-full px-2 py-1 text-[10px] font-semibold"
               style={{ backgroundColor: '#38bdf8', color: '#001426' }}
             >
               {`💧 ${nectarCount}`}
@@ -1221,7 +1223,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
 
         {plot.state === 'withered' && isTooltipOpen && (
           <div
-            className="absolute left-1/2 top-full z-50 mt-2 w-max max-w-[220px] -translate-x-1/2 rounded-[12px] px-4 py-3 text-[11px] leading-relaxed text-white"
+            className="absolute left-1/2 top-full z-50 mt-2 w-max max-w-[220px] -translate-x-1/2 rounded-[var(--radius-card)] px-4 py-3 text-[11px] leading-relaxed text-white"
             style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1236,14 +1238,14 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
               }}
             />
             <div>{negativeStatusText ?? t.farmWithered}</div>
-            <div className="flex flex-col gap-1.5 mt-2">
+            <div className="flex flex-col gap-2 mt-2">
               {canUseNectar && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onUseNectar();
                   }}
-                  className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                  className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                   style={{ color: '#000', backgroundColor: '#38bdf8' }}
                 >
                   💧 {t.itemName('nectar')} · {nectarCount}
@@ -1254,7 +1256,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
                   e.stopPropagation();
                   onClearClick();
                 }}
-                className="w-full rounded-lg px-2.5 py-1.5 text-[11px] font-medium cursor-pointer"
+                className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-[11px] font-medium cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5"
                 style={{ color: theme.textMuted, backgroundColor: `${theme.border}66` }}
               >
                 {t.farmClear}
@@ -1267,7 +1269,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
         {plot.state === 'stolen' && (
           <button
             onClick={onClearClick}
-            className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center px-3 py-3 text-center"
+            className="absolute inset-0 rounded-[var(--radius-card)] flex flex-col items-center justify-center px-3 py-3 text-center transition-all duration-200 ease-in-out"
           >
             <span className="text-[clamp(1.8rem,5.8vw,2.4rem)]">📜</span>
             <span className="mt-1 text-[11px] font-semibold leading-tight" style={{ color: '#fee2e2' }}>
@@ -1278,7 +1280,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
             </span>
             {isStolenRecovered && (
               <span
-                className="mt-1 rounded-full px-2.5 py-1 text-[10px] font-semibold leading-tight"
+                className="mt-1 rounded-full px-3 py-1 text-[10px] font-semibold leading-tight"
                 style={{
                   color: '#dcfce7',
                   backgroundColor: 'rgba(22,163,74,0.24)',
@@ -1301,7 +1303,7 @@ function PlotCard({ plot, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, o
         {plot.seedQuality && plot.state !== 'empty' && plot.state !== 'withered' && plot.state !== 'stolen' && (
           <div className="absolute right-2 top-2 z-20">
             <span
-              className="rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+              className="rounded-full px-2 py-1 text-[10px] font-medium"
               style={{
                 backgroundColor: plot.seedQuality === 'legendary' ? '#fbbf2420' : plot.seedQuality === 'epic' ? '#a78bfa20' : `${theme.border}50`,
                 color: plot.seedQuality === 'legendary' ? '#fbbf24' : plot.seedQuality === 'epic' ? '#a78bfa' : theme.textFaint,
@@ -1352,7 +1354,7 @@ function LockedPlotCard({ requiredVarieties, theme, t }: {
   return (
     <div className="relative aspect-square sm:aspect-[3/4] w-full select-none">
       <div
-        className="absolute inset-0 rounded-2xl border-2"
+        className="absolute inset-0 rounded-[var(--radius-card)] border-2"
         style={{
           background: `linear-gradient(145deg, ${theme.surface} 0%, ${theme.inputBg} 100%)`,
           borderColor: theme.border,
@@ -1361,7 +1363,7 @@ function LockedPlotCard({ requiredVarieties, theme, t }: {
         }}
       />
       <div
-        className="pointer-events-none absolute inset-0 rounded-2xl"
+        className="pointer-events-none absolute inset-0 rounded-[var(--radius-card)]"
         style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 56%)' }}
       />
       <div className="absolute inset-0 flex flex-col items-center justify-center px-3 text-center">
@@ -1445,7 +1447,7 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMat
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="rounded-2xl border p-5 mx-4 max-w-sm w-full" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
+      <div className="rounded-[var(--radius-panel)] border p-5 mx-4 max-w-sm w-full" style={{ backgroundColor: theme.surface, borderColor: theme.border, boxShadow: 'var(--shadow-elevated)' }}>
         <h3 className="text-base font-semibold text-center mb-4" style={{ color: theme.text }}>{t.farmSelectSeed}</h3>
         <div className="flex flex-col gap-2">
           {options.map(opt => (
@@ -1453,12 +1455,13 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMat
               key={opt.quality}
               disabled={opt.count <= 0}
               onClick={() => onSelect(opt.quality)}
-              className="flex items-center justify-between p-3 rounded-xl border transition-all"
+              className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5"
               style={{
                 backgroundColor: opt.count > 0 ? opt.color + '08' : theme.inputBg,
                 borderColor: opt.count > 0 ? opt.color + '30' : theme.border,
                 opacity: opt.count > 0 ? 1 : 0.4,
                 cursor: opt.count > 0 ? 'pointer' : 'not-allowed',
+                boxShadow: 'var(--shadow-card)',
               }}
             >
               <div className="flex items-center gap-2">
@@ -1482,17 +1485,18 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMat
                   <button
                     key={seed.id}
                     onClick={() => onSelectInjected(seed.id)}
-                    className="flex items-center justify-between p-3 rounded-xl border transition-colors text-left"
+                    className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 text-left"
                     style={{
                       backgroundColor: `${badgeColor}10`,
                       borderColor: `${badgeColor}45`,
+                      boxShadow: 'var(--shadow-card)',
                     }}
                   >
                     <span className="text-sm font-medium truncate pr-3" style={{ color: theme.text }}>
                       {t.injectedSeedLabel(t.galaxyName(seed.targetGalaxyId))}
                     </span>
                     <span
-                      className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                      className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold"
                       style={{ color: badgeColor, backgroundColor: `${badgeColor}22` }}
                     >
                       {t.seedQualityLabel(seed.quality)}
@@ -1514,10 +1518,11 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMat
                 <button
                   key={seed.galaxyPair}
                   onClick={() => onSelectHybrid(seed.seedId)}
-                  className="flex items-center justify-between p-3 rounded-xl border transition-colors text-left"
+                  className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 text-left"
                   style={{
                     backgroundColor: `${theme.accent}10`,
                     borderColor: `${theme.accent}35`,
+                    boxShadow: 'var(--shadow-card)',
                   }}
                 >
                   <span className="text-sm font-medium truncate pr-3" style={{ color: theme.text }}>
@@ -1542,10 +1547,11 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMat
                 <button
                   key={seed.varietyId}
                   onClick={() => onSelectPrismatic(seed.seedId)}
-                  className="flex items-center justify-between p-3 rounded-xl border transition-colors text-left"
+                  className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 text-left"
                   style={{
                     backgroundColor: '#a78bfa12',
                     borderColor: '#a78bfa45',
+                    boxShadow: 'var(--shadow-card)',
                   }}
                 >
                   <span className="text-sm font-medium truncate pr-3" style={{ color: theme.text }}>
@@ -1570,10 +1576,11 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMat
                 <button
                   key={seed.varietyId}
                   onClick={() => onSelectDarkMatter(seed.seedId)}
-                  className="flex items-center justify-between p-3 rounded-xl border transition-colors text-left"
+                  className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 text-left"
                   style={{
                     backgroundColor: '#0f172a55',
                     borderColor: '#94a3b855',
+                    boxShadow: 'var(--shadow-card)',
                   }}
                 >
                   <span className="text-sm font-medium truncate pr-3" style={{ color: theme.text }}>
@@ -1589,7 +1596,7 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMat
         )}
 
         <p className="text-xs text-center mt-3" style={{ color: theme.textFaint }}>{t.farmSeedHint}</p>
-        <button onClick={onClose} className="w-full mt-3 py-2.5 rounded-xl text-sm" style={{ color: theme.textMuted, backgroundColor: theme.border + '30' }}>
+        <button onClick={onClose} className="w-full mt-3 py-2 rounded-[var(--radius-sm)] text-sm transition-all duration-200 ease-in-out hover:-translate-y-0.5" style={{ color: theme.textMuted, backgroundColor: theme.border + '30' }}>
           {t.cancel}
         </button>
       </div>
@@ -1708,7 +1715,7 @@ function RevealOverlay({ varietyId, t }: {
           >
             {t.varietyName(varietyId)}
           </p>
-          <div className="flex items-center justify-center gap-0.5 mt-1">
+          <div className="flex items-center justify-center gap-1 mt-1">
             {Array.from({ length: rarityStars }).map((_, i) => (
               <span
                 key={i}
@@ -1872,7 +1879,7 @@ function HarvestOverlay({ varietyId, isNew, collectedCount, rewardSeedQuality, t
           {t.varietyName(varietyId)}
         </p>
 
-        <div className="flex items-center gap-0.5 mb-2">
+        <div className="flex items-center gap-1 mb-2">
           {Array.from({ length: stars }).map((_, i) => (
             <span key={i} style={{ color, fontSize: 16 }}>⭐</span>
           ))}
@@ -1892,7 +1899,7 @@ function HarvestOverlay({ varietyId, isNew, collectedCount, rewardSeedQuality, t
             >
               {t.farmNewFlash}
             </span>
-            <div className="px-4 py-1.5 rounded-full text-sm font-bold" style={{
+            <div className="px-4 py-2 rounded-full text-sm font-bold" style={{
               backgroundColor: `${color}22`,
               color,
               border: `1px solid ${color}55`,
@@ -1991,14 +1998,14 @@ function FarmHelpModal({ theme, t, onClose }: {
   const rules = [t.farmHelpPlant, t.farmHelpGrow, t.farmHelpHarvest, t.farmHelpWither, t.farmHelpUnlock];
   return (
     <div className='fixed inset-0 z-[60] flex items-center justify-center' style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className='rounded-2xl border p-5 mx-4 max-w-sm w-full' style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
+      <div className='rounded-[var(--radius-panel)] border p-5 mx-4 max-w-sm w-full' style={{ backgroundColor: theme.surface, borderColor: theme.border, boxShadow: 'var(--shadow-elevated)' }}>
         <h3 className='text-base font-semibold text-center mb-4' style={{ color: theme.text }}>{t.farmHelpTitle}</h3>
         <div className='flex flex-col gap-3'>
           {rules.map((rule, i) => (
             <p key={i} className='text-sm leading-relaxed' style={{ color: theme.textMuted }}>{rule}</p>
           ))}
         </div>
-        <button onClick={onClose} className='w-full mt-4 py-2.5 rounded-xl text-sm' style={{ color: theme.textMuted, backgroundColor: theme.border + '30' }}>
+        <button onClick={onClose} className='w-full mt-4 py-2 rounded-[var(--radius-sm)] text-sm transition-all duration-200 ease-in-out hover:-translate-y-0.5' style={{ color: theme.textMuted, backgroundColor: theme.border + '30' }}>
           {t.cancel}
         </button>
       </div>

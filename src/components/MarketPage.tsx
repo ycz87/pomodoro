@@ -132,13 +132,13 @@ export function MarketPage(props: MarketPageProps) {
   return (
     <div className="w-full max-w-xs sm:max-w-sm px-4 pt-4 pb-6">
       <div
-        className="rounded-2xl p-5 border"
-        style={{ backgroundColor: theme.surface, borderColor: theme.border }}
+        className="rounded-[var(--radius-container)] p-5 border"
+        style={{ backgroundColor: theme.surface, borderColor: theme.border, boxShadow: 'var(--shadow-card)' }}
       >
         <div className="mb-4 flex items-center justify-between gap-2">
           <h2 className="text-lg font-semibold" style={{ color: theme.text }}>{messages.marketTitle}</h2>
           <div
-            className="text-sm font-semibold px-3 py-1.5 rounded-full"
+            className="text-sm font-semibold px-3 py-2 rounded-full"
             style={{ backgroundColor: theme.inputBg, color: '#fbbf24' }}
           >
             💰 {balance}
@@ -147,7 +147,7 @@ export function MarketPage(props: MarketPageProps) {
 
         <div className="mb-4 relative flex items-center rounded-full p-[3px]" style={{ backgroundColor: theme.inputBg }}>
           <div
-            className="absolute top-[3px] bottom-[3px] rounded-full transition-all duration-200 ease-out"
+            className="absolute top-[3px] bottom-[3px] rounded-full transition-all duration-200 ease-in-out"
             style={{
               backgroundColor: theme.border,
               width: 'calc((100% - 6px) / 3)',
@@ -157,21 +157,21 @@ export function MarketPage(props: MarketPageProps) {
           />
           <button
             onClick={() => setActiveTab('buy')}
-            className="relative z-10 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 cursor-pointer flex-1"
+            className="relative z-10 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ease-in-out cursor-pointer flex-1"
             style={{ color: activeTab === 'buy' ? theme.text : theme.textMuted }}
           >
             {messages.marketTabBuy}
           </button>
           <button
             onClick={() => setActiveTab('sell')}
-            className="relative z-10 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 cursor-pointer flex-1"
+            className="relative z-10 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ease-in-out cursor-pointer flex-1"
             style={{ color: activeTab === 'sell' ? theme.text : theme.textMuted }}
           >
             {messages.marketTabSell}
           </button>
           <button
             onClick={() => setActiveTab('weekly')}
-            className="relative z-10 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 cursor-pointer flex-1"
+            className="relative z-10 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ease-in-out cursor-pointer flex-1"
             style={{ color: activeTab === 'weekly' ? theme.text : theme.textMuted }}
           >
             {messages.marketTabWeekly}
@@ -189,11 +189,12 @@ export function MarketPage(props: MarketPageProps) {
                     key={item.id}
                     onClick={() => setPendingPurchase({ type: 'item', item })}
                     disabled={!affordable}
-                    className="w-full p-3 rounded-xl border transition-all text-left disabled:cursor-not-allowed cursor-pointer"
+                    className="w-full p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 text-left disabled:cursor-not-allowed cursor-pointer"
                     style={{
                       backgroundColor: theme.inputBg,
                       borderColor: theme.border,
                       opacity: affordable ? 1 : 0.55,
+                      boxShadow: 'var(--shadow-card)',
                     }}
                   >
                     <div className="flex items-center justify-between gap-3">
@@ -234,11 +235,12 @@ export function MarketPage(props: MarketPageProps) {
                       key={plot.plotIndex}
                       onClick={() => setPendingPurchase({ type: 'plot', plotIndex: plot.plotIndex, price: plot.price })}
                       disabled={disabled}
-                      className="w-full p-3 rounded-xl border transition-all text-left disabled:cursor-not-allowed cursor-pointer"
+                      className="w-full p-3 rounded-[var(--radius-card)] border transition-all duration-200 ease-in-out hover:-translate-y-0.5 text-left disabled:cursor-not-allowed cursor-pointer"
                       style={{
                         backgroundColor: theme.inputBg,
                         borderColor: theme.border,
                         opacity: disabled ? 0.6 : 1,
+                        boxShadow: 'var(--shadow-card)',
                       }}
                     >
                       <div className="flex items-center justify-between gap-3">
@@ -268,8 +270,8 @@ export function MarketPage(props: MarketPageProps) {
           <>
             {sellableVarieties.length === 0 ? (
               <div
-                className="text-sm text-center py-10 rounded-xl border"
-                style={{ color: theme.textMuted, borderColor: theme.border, backgroundColor: theme.inputBg }}
+                className="text-sm text-center py-10 rounded-[var(--radius-card)] border"
+                style={{ color: theme.textMuted, borderColor: theme.border, backgroundColor: theme.inputBg, boxShadow: 'var(--shadow-card)' }}
               >
                 {messages.marketSellEmpty}
               </div>
@@ -279,8 +281,8 @@ export function MarketPage(props: MarketPageProps) {
                   <button
                     key={item.key}
                     onClick={() => setPendingSellKey(item.key)}
-                    className="w-full p-3 rounded-xl border cursor-pointer transition-all text-left"
-                    style={{ backgroundColor: theme.inputBg, borderColor: theme.border }}
+                    className="w-full p-3 rounded-[var(--radius-card)] border cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5 text-left"
+                    style={{ backgroundColor: theme.inputBg, borderColor: theme.border, boxShadow: 'var(--shadow-card)' }}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2 min-w-0">

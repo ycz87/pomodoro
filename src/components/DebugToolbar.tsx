@@ -119,7 +119,7 @@ export function DebugToolbar({
   const [expanded, setExpanded] = useState(true);
 
   const toolbarBg = withOpacity(theme.surface, 0.95);
-  const actionBtnClass = 'text-[11px] rounded px-2 py-0.5 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed';
+  const actionBtnClass = 'text-[11px] rounded-[var(--radius-sm)] px-2 py-1 cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed';
   const weatherLabel = weather === null
     ? 'null'
     : `${WEATHER_ICON[weather] ?? '⛅'} ${weather}`;
@@ -165,10 +165,11 @@ export function DebugToolbar({
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 px-2 pb-2">
       <div
-        className="mx-auto max-w-[1280px] rounded-xl border"
+        className="mx-auto max-w-[1280px] rounded-[var(--radius-container)] border"
         style={{
           backgroundColor: toolbarBg,
           borderColor: theme.border,
+          boxShadow: 'var(--shadow-elevated)',
           backdropFilter: 'blur(6px)',
           WebkitBackdropFilter: 'blur(6px)',
         }}
@@ -182,11 +183,11 @@ export function DebugToolbar({
             e.preventDefault();
             setExpanded((prev) => !prev);
           }}
-          className="w-full flex items-center justify-between px-3 py-1.5 cursor-pointer"
+          className="w-full flex items-center justify-between px-3 py-2 cursor-pointer"
           style={{ color: theme.text }}
         >
           <span className="text-xs font-semibold">🧪 Debug Toolbar</span>
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-2">
             <span className="text-[11px]" style={{ color: theme.textMuted }}>
               {expanded ? '▾' : '▸'}
             </span>

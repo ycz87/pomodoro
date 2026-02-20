@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+:root {
+  --radius-sm: 8px;
+  --radius-card: 12px;
+  --radius-panel: 16px;
+  --radius-container: 20px;
+
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
 /* Smooth scrolling + hide scrollbar (keep scroll functional) */
 html {
   scroll-behavior: smooth;

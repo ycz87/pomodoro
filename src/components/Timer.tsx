@@ -325,8 +325,8 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
 
         {/* Quick duration picker */}
         {showQuickPicker && status === 'idle' && isWork && (
-          <div className="absolute -bottom-2 translate-y-full flex flex-wrap justify-center gap-1.5 px-4 py-2.5 rounded-2xl border animate-fade-up z-10"
-            style={{ backgroundColor: `${theme.surface}f0`, borderColor: theme.border }}>
+          <div className="absolute -bottom-2 translate-y-full flex flex-wrap justify-center gap-2 px-4 py-3 rounded-[var(--radius-panel)] border animate-fade-up z-10"
+            style={{ backgroundColor: `${theme.surface}f0`, borderColor: theme.border, boxShadow: 'var(--shadow-elevated)' }}>
             {QUICK_DURATIONS.map((m) => (
               <button key={m}
                 onClick={() => {
@@ -335,7 +335,7 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
                   if (m > 25) setHealthToast(true);
                   else setHealthToast(false);
                 }}
-                className="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer"
+                className="px-3 py-1 rounded-[var(--radius-sm)] text-xs transition-all duration-200 ease-in-out hover:-translate-y-0.5 cursor-pointer"
                 style={{
                   backgroundColor: workMinutes === m ? `${theme.accent}30` : theme.inputBg,
                   color: workMinutes === m ? theme.accent : theme.textMuted,
@@ -367,7 +367,7 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
             onTouchStart={() => startLongPress('abandon', () => guardedAction(onAbandon))}
             onTouchEnd={() => cancelLongPress(t.holdToGiveUp)}
             onTouchCancel={() => cancelLongPress()}
-            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer relative overflow-hidden"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center transition-all duration-200 ease-in-out hover:-translate-y-0.5 cursor-pointer relative overflow-hidden"
             style={{ backgroundColor: `${theme.textMuted}15`, color: theme.textMuted }}
             title={t.abandon}>
             {/* Long-press ring progress */}
@@ -388,9 +388,9 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
         {/* ▶ Start — idle only */}
         {status === 'idle' && (
           <button onClick={onStart}
-            className="w-[52px] h-[52px] min-w-[52px] min-h-[52px] rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
+            className="w-[52px] h-[52px] min-w-[52px] min-h-[52px] rounded-full flex items-center justify-center transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:scale-110 active:scale-95 cursor-pointer"
             style={{ background: `linear-gradient(135deg, ${colors.from}, ${colors.to})`, boxShadow: `0 2px 12px ${colors.from}30` }}>
-            <svg width="18" height="22" viewBox="0 0 20 24" fill="none" className="ml-0.5">
+            <svg width="18" height="22" viewBox="0 0 20 24" fill="none" className="ml-1">
               <path d="M2 2L18 12L2 22V2Z" fill="white" />
             </svg>
           </button>
@@ -399,7 +399,7 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
         {/* ⏸ Pause (center) */}
         {status === 'running' && (
           <button onClick={onPause}
-            className="w-[52px] h-[52px] min-w-[52px] min-h-[52px] rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer border"
+            className="w-[52px] h-[52px] min-w-[52px] min-h-[52px] rounded-full flex items-center justify-center transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:scale-110 active:scale-95 cursor-pointer border"
             style={{ backgroundColor: `${colors.from}20`, borderColor: `${colors.from}40` }}>
             <svg width="16" height="20" viewBox="0 0 16 20" fill="none">
               <rect x="1" y="1" width="4.5" height="18" rx="1.5" fill={colors.from} fillOpacity="0.7" />
@@ -411,9 +411,9 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
         {/* ▶ Resume (center) */}
         {status === 'paused' && (
           <button onClick={onResume}
-            className="w-[52px] h-[52px] min-w-[52px] min-h-[52px] rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
+            className="w-[52px] h-[52px] min-w-[52px] min-h-[52px] rounded-full flex items-center justify-center transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:scale-110 active:scale-95 cursor-pointer"
             style={{ background: `linear-gradient(135deg, ${colors.from}, ${colors.to})`, boxShadow: `0 2px 12px ${colors.from}30` }}>
-            <svg width="18" height="22" viewBox="0 0 20 24" fill="none" className="ml-0.5">
+            <svg width="18" height="22" viewBox="0 0 20 24" fill="none" className="ml-1">
               <path d="M2 2L18 12L2 22V2Z" fill="white" />
             </svg>
           </button>
@@ -428,7 +428,7 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
             onTouchStart={() => startLongPress('skip', () => guardedAction(onSkip))}
             onTouchEnd={() => cancelLongPress(t.holdToFinish)}
             onTouchCancel={() => cancelLongPress()}
-            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer relative overflow-hidden"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center transition-all duration-200 ease-in-out hover:-translate-y-0.5 cursor-pointer relative overflow-hidden"
             style={{ backgroundColor: `${colors.from}20`, color: colors.from }}
             title={t.projectMarkDone}>
             {/* Long-press ring progress */}
@@ -450,7 +450,7 @@ export function Timer({ timeLeft, totalDuration, phase, status, celebrating, cel
       {/* Toast for short-tap hint (long-press buttons) */}
       {toast && (
         <div
-          className="absolute -bottom-2 text-xs font-medium px-3 py-1.5 rounded-full animate-fade-up"
+          className="absolute -bottom-2 text-xs font-medium px-3 py-1 rounded-full animate-fade-up"
           style={{ backgroundColor: `${theme.surface}ee`, color: theme.textMuted, border: `1px solid ${theme.border}` }}
         >
           {toast}
