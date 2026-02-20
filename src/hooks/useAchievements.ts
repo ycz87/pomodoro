@@ -8,8 +8,27 @@ import { DEFAULT_ACHIEVEMENT_DATA } from '../achievements/types';
 import { detectAchievements, detectOnDailyOpen, detectWarehouseAchievements, detectFarmAchievements } from '../achievements/detection';
 import type { PomodoroRecord, Warehouse } from '../types';
 import type { AmbienceMixerConfig } from '../audio';
+import { ALL_ACHIEVEMENTS } from '../achievements/definitions';
 
 const STORAGE_KEY = 'achievements';
+
+function createEmptyAchievementData(): AchievementData {
+  return {
+    unlocked: {},
+    progress: {
+      ...DEFAULT_ACHIEVEMENT_DATA.progress,
+      soundComboDays: [],
+      soundComboHashes: [],
+      collectedStages: [],
+      collectedTools: [],
+      dailyModules: {
+        ...DEFAULT_ACHIEVEMENT_DATA.progress.dailyModules,
+        modules: [],
+      },
+    },
+    seen: [],
+  };
+}
 
 export function useAchievements(
   records: PomodoroRecord[],
@@ -138,6 +157,31 @@ export function useAchievements(
     });
   }, [setData]);
 
+  /** Debug helper: unlock all achievements with current timestamp */
+  const unlockAll = useCallback(() => {
+    const nowIso = new Date().toISOString();
+    const unlocked: AchievementData['unlocked'] = {};
+    for (const def of ALL_ACHIEVEMENTS) {
+      unlocked[def.id] = nowIso;
+    }
+
+    const nextData: AchievementData = {
+      ...data,
+      unlocked,
+    };
+    setData(nextData);
+    onSync?.(nextData);
+    pendingUnlocksRef.current = [];
+  }, [data, setData, onSync]);
+
+  /** Debug helper: clear all achievement progress and unlocked states */
+  const resetAll = useCallback(() => {
+    const nextData = createEmptyAchievementData();
+    setData(nextData);
+    onSync?.(nextData);
+    pendingUnlocksRef.current = [];
+  }, [setData, onSync]);
+
   return {
     data,
     checkAfterSession,
@@ -147,5 +191,7 @@ export function useAchievements(
     unseenCount,
     consumePendingUnlocks,
     mergeFromCloud,
+    unlockAll,
+    resetAll,
   };
 }

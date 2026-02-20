@@ -12,6 +12,8 @@ function isWeather(value: unknown): value is Weather {
     || value === 'rainy'
     || value === 'night'
     || value === 'rainbow'
+    || value === 'snowy'
+    || value === 'stormy'
   );
 }
 
@@ -41,9 +43,11 @@ export function migrateWeatherState(raw: unknown): WeatherState {
   if (!raw || typeof raw !== 'object') return createInitialWeatherState(now);
 
   const candidate = raw as Record<string, unknown>;
-  const current = isWeather(candidate.current)
-    ? candidate.current
-    : rollWeather();
+  const current = candidate.current === null
+    ? null
+    : isWeather(candidate.current)
+      ? candidate.current
+      : rollWeather();
   const lastChangeAt = typeof candidate.lastChangeAt === 'number' && Number.isFinite(candidate.lastChangeAt)
     ? candidate.lastChangeAt
     : now;

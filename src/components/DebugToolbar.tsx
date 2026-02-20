@@ -5,7 +5,7 @@
  */
 import { useCallback, useState } from 'react';
 import { useTheme } from '../hooks/useTheme';
-import { VARIETY_DEFS } from '../types/farm';
+import { VARIETY_DEFS, type Weather } from '../types/farm';
 
 interface DebugToolbarProps {
   // Warehouse actions (migrated from Settings testMode)
@@ -16,6 +16,19 @@ interface DebugToolbarProps {
   setFarmPlots: (plots: import('../types/farm').Plot[]) => void;
   setFarmCollection: (collection: import('../types/farm').CollectedVariety[]) => void;
   resetFarm: () => void;
+  // Economy + farm items
+  coinBalance: number;
+  addCoins: (amount: number) => void;
+  resetCoins: () => void;
+  addFarmItem: (itemId: 'mutation-gun' | 'guardian-barrier' | 'moon-dew', count: number) => void;
+  // Weather
+  weather: import('../types/farm').Weather | null;
+  cycleWeather: () => void;
+  clearWeather: () => void;
+  // Achievements
+  achievementUnlockedCount: number;
+  unlockAllAchievements: () => void;
+  resetAchievements: () => void;
   // Timer actions
   timerStatus: string;
   skipTimer: () => void;
@@ -66,6 +79,18 @@ const ITEM_ACTIONS: ReadonlyArray<{
 ];
 
 const MULTIPLIERS = [1, 100, 1000, 10000] as const;
+const COIN_AMOUNTS = [100, 1000, 10000] as const;
+const MUTATION_RAY_AMOUNTS = [1, 5, 10] as const;
+const DEFENSE_ITEM_AMOUNTS = [1, 5] as const;
+const WEATHER_ICON: Record<Weather, string> = {
+  sunny: '☀️',
+  rainy: '🌧️',
+  snowy: '❄️',
+  stormy: '⛈️',
+  cloudy: '☁️',
+  night: '🌙',
+  rainbow: '🌈',
+};
 
 export function DebugToolbar({
   addItems,
@@ -74,6 +99,16 @@ export function DebugToolbar({
   setFarmPlots,
   setFarmCollection,
   resetFarm,
+  coinBalance,
+  addCoins,
+  resetCoins,
+  addFarmItem,
+  weather,
+  cycleWeather,
+  clearWeather,
+  achievementUnlockedCount,
+  unlockAllAchievements,
+  resetAchievements,
   timerStatus,
   skipTimer,
   timeMultiplier,
@@ -85,6 +120,9 @@ export function DebugToolbar({
 
   const toolbarBg = withOpacity(theme.surface, 0.95);
   const actionBtnClass = 'text-[11px] rounded px-2 py-0.5 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed';
+  const weatherLabel = weather === null
+    ? 'null'
+    : `${WEATHER_ICON[weather] ?? '⛅'} ${weather}`;
 
   const handleInstantMature = useCallback(() => {
     const nowTimestamp = Date.now();
@@ -230,6 +268,116 @@ export function DebugToolbar({
                 >
                   🗑️ 重置农场
                 </button>
+              </section>
+
+              <section className="flex flex-col gap-1 pr-2 mr-2 border-r" style={{ borderColor: theme.border }}>
+                <div className="text-[11px] font-semibold" style={{ color: theme.textMuted }}>农场资源</div>
+                <div className="flex items-center gap-1">
+                  <span style={{ color: theme.textMuted }}>{`瓜币: ${coinBalance}`}</span>
+                  {COIN_AMOUNTS.map((amount) => (
+                    <button
+                      key={amount}
+                      type="button"
+                      onClick={() => addCoins(amount)}
+                      className={actionBtnClass}
+                      style={{ backgroundColor: withOpacity(theme.accent, 0.16), color: theme.accent }}
+                    >
+                      +{amount}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={resetCoins}
+                    className={actionBtnClass}
+                    style={{ backgroundColor: 'rgba(239,68,68,0.18)', color: '#ef4444' }}
+                  >
+                    清零
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="min-w-20" style={{ color: theme.textMuted }}>🔦 射线枪</span>
+                  {MUTATION_RAY_AMOUNTS.map((amount) => (
+                    <button
+                      key={amount}
+                      type="button"
+                      onClick={() => addFarmItem('mutation-gun', amount)}
+                      className={actionBtnClass}
+                      style={{ backgroundColor: theme.inputBg, color: theme.text }}
+                    >
+                      +{amount}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="min-w-20" style={{ color: theme.textMuted }}>🎪 结界</span>
+                  {DEFENSE_ITEM_AMOUNTS.map((amount) => (
+                    <button
+                      key={amount}
+                      type="button"
+                      onClick={() => addFarmItem('guardian-barrier', amount)}
+                      className={actionBtnClass}
+                      style={{ backgroundColor: theme.inputBg, color: theme.text }}
+                    >
+                      +{amount}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="min-w-20" style={{ color: theme.textMuted }}>🌙 月神甘露</span>
+                  {DEFENSE_ITEM_AMOUNTS.map((amount) => (
+                    <button
+                      key={amount}
+                      type="button"
+                      onClick={() => addFarmItem('moon-dew', amount)}
+                      className={actionBtnClass}
+                      style={{ backgroundColor: theme.inputBg, color: theme.text }}
+                    >
+                      +{amount}
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              <section className="flex flex-col gap-1 pr-2 mr-2 border-r" style={{ borderColor: theme.border }}>
+                <div className="text-[11px] font-semibold" style={{ color: theme.textMuted }}>成就 / 天气</div>
+                <div className="flex items-center gap-1">
+                  <span style={{ color: theme.textMuted }}>{`成就: ${achievementUnlockedCount}`}</span>
+                  <button
+                    type="button"
+                    onClick={unlockAllAchievements}
+                    className={actionBtnClass}
+                    style={{ backgroundColor: withOpacity(theme.accent, 0.16), color: theme.accent }}
+                  >
+                    解锁全部
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetAchievements}
+                    className={actionBtnClass}
+                    style={{ backgroundColor: 'rgba(239,68,68,0.18)', color: '#ef4444' }}
+                  >
+                    重置成就
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span style={{ color: theme.textMuted }}>{`天气: ${weatherLabel}`}</span>
+                  <button
+                    type="button"
+                    onClick={cycleWeather}
+                    className={actionBtnClass}
+                    style={{ backgroundColor: theme.inputBg, color: theme.text }}
+                  >
+                    切换天气
+                  </button>
+                  <button
+                    type="button"
+                    onClick={clearWeather}
+                    className={actionBtnClass}
+                    style={{ backgroundColor: 'rgba(239,68,68,0.18)', color: '#ef4444' }}
+                  >
+                    清除天气
+                  </button>
+                </div>
               </section>
 
               <section className="flex flex-col gap-1 pr-2 mr-2 border-r" style={{ borderColor: theme.border }}>

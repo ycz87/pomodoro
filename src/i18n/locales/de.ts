@@ -570,6 +570,8 @@ export const de: Messages = {
     rainy: 'Regnerisch',
     night: 'Nacht',
     rainbow: 'Regenbogen',
+    snowy: 'Schnee',
+    stormy: 'Sturm',
   }[weather] ?? weather),
   farmReveal: 'Ding! Es ist—',
   farmNewVariety: 'Neue Sorte!',

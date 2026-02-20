@@ -7,7 +7,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { useI18n } from '../i18n';
-import { useWeather } from '../hooks/useWeather';
 import { useCreatures } from '../hooks/useCreatures';
 import { useAlienVisit } from '../hooks/useAlienVisit';
 import type {
@@ -47,6 +46,7 @@ interface FarmPageProps {
   hybridSeeds: HybridSeed[];
   prismaticSeeds: PrismaticSeed[];
   darkMatterSeeds: DarkMatterSeed[];
+  weather: Weather | null;
   todayFocusMinutes: number;
   todayKey: string;
   addSeeds: (count: number, quality?: SeedQuality) => void;
@@ -105,6 +105,8 @@ const WEATHER_ICON: Record<Weather, string> = {
   rainy: '🌧️',
   night: '🌙',
   rainbow: '🌈',
+  snowy: '❄️',
+  stormy: '⛈️',
 };
 
 export function FarmPage({
@@ -116,6 +118,7 @@ export function FarmPage({
   hybridSeeds,
   prismaticSeeds,
   darkMatterSeeds,
+  weather,
   todayFocusMinutes,
   todayKey,
   addSeeds,
@@ -143,7 +146,6 @@ export function FarmPage({
 }: FarmPageProps) {
   const theme = useTheme();
   const t = useI18n();
-  const { weatherState } = useWeather();
   const { creatures } = useCreatures();
 
   const [subTab, setSubTab] = useState<SubTab>('plots');
@@ -192,6 +194,9 @@ export function FarmPage({
   const guardianBarrierCount = (items as Record<string, number>)['guardian-barrier'] ?? 0;
   const trapNetCount = (items as Record<string, number>)['trap-net'] ?? 0;
   const barrierActiveToday = farm.guardianBarrierDate === todayKey;
+  const weatherSummary = weather === null
+    ? '⛔ clear'
+    : `${WEATHER_ICON[weather]} ${t.farmWeatherName(weather)}`;
 
   const plotSlots = useMemo(
     () => Array.from({ length: TOTAL_PLOT_SLOTS }, (_, index) => {
@@ -351,7 +356,7 @@ export function FarmPage({
           </button>
         </div>
         <span className="text-xs whitespace-nowrap" style={{ color: theme.textFaint }}>
-          {`${WEATHER_ICON[weatherState.current]} ${t.farmWeatherName(weatherState.current)} · 🌰 ${totalBaseSeeds} · 🧬 ${injectedSeeds.length} · 🌈 ${prismaticSeeds.length} · 🌑 ${darkMatterSeeds.length}`}
+          {`${weatherSummary} · 🌰 ${totalBaseSeeds} · 🧬 ${injectedSeeds.length} · 🌈 ${prismaticSeeds.length} · 🌑 ${darkMatterSeeds.length}`}
         </span>
       </div>
 
@@ -392,7 +397,7 @@ export function FarmPage({
       {/* 3×3 俯视网格 */}
       <div className="relative mb-3 sm:mb-5 overflow-visible">
         <div className="relative mx-auto w-full max-w-[90%] sm:max-w-[760px]">
-          <WeatherLayer weather={weatherState.current} theme={theme} t={t} />
+          {weather !== null && <WeatherLayer weather={weather} theme={theme} t={t} />}
           <div
             className="pointer-events-none absolute inset-0 rounded-[30px] z-[1]"
             style={{
@@ -401,7 +406,7 @@ export function FarmPage({
           />
           <div
             className="farm-grid-perspective relative z-[5] grid grid-cols-3 gap-1 sm:gap-2"
-            style={{ filter: getWeatherGridFilter(weatherState.current) }}
+            style={{ filter: weather === null ? 'none' : getWeatherGridFilter(weather) }}
             onClick={() => setActiveTooltipPlotId(null)}
           >
             {plotSlots.map((slot, index) => (
@@ -540,6 +545,8 @@ function getWeatherGridFilter(weather: Weather): string {
   if (weather === 'cloudy') return 'saturate(0.95) brightness(0.98)';
   if (weather === 'rainy') return 'saturate(0.9) brightness(0.94)';
   if (weather === 'night') return 'saturate(0.85) brightness(0.88)';
+  if (weather === 'snowy') return 'saturate(0.92) brightness(1.05)';
+  if (weather === 'stormy') return 'saturate(0.82) brightness(0.84)';
   return 'saturate(1.18) brightness(1.04)';
 }
 
@@ -556,6 +563,12 @@ function getWeatherLayerBackground(weather: Weather, theme: ReturnType<typeof us
   if (weather === 'night') {
     return `linear-gradient(180deg, #0f172a4d 0%, #1e293b33 46%, transparent 100%)`;
   }
+  if (weather === 'snowy') {
+    return 'linear-gradient(180deg, rgba(226,232,240,0.28) 0%, rgba(186,230,253,0.18) 45%, transparent 100%)';
+  }
+  if (weather === 'stormy') {
+    return 'linear-gradient(180deg, rgba(30,41,59,0.42) 0%, rgba(71,85,105,0.24) 45%, transparent 100%)';
+  }
   return 'linear-gradient(180deg, rgba(244,114,182,0.18) 0%, rgba(59,130,246,0.16) 45%, transparent 100%)';
 }
 
@@ -565,6 +578,8 @@ const WEATHER_DECOR: Record<Weather, string[]> = {
   rainy: ['🌧️', '💧', '🌧️', '💧'],
   night: ['🌙', '✨', '⭐', '✨'],
   rainbow: ['🌈', '✨', '🌈', '✨'],
+  snowy: ['❄️', '❄️', '🌨️', '❄️'],
+  stormy: ['⛈️', '⚡', '🌩️', '💨'],
 };
 
 const WEATHER_DECOR_POSITIONS: ReadonlyArray<{ x: number; y: number }> = [
@@ -586,7 +601,7 @@ function WeatherLayer({ weather, theme, t }: {
   theme: ReturnType<typeof useTheme>;
   t: ReturnType<typeof useI18n>;
 }) {
-  const isRainy = weather === 'rainy';
+  const isRainy = weather === 'rainy' || weather === 'stormy';
 
   return (
     <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[30px]">

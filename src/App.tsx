@@ -58,6 +58,7 @@ import { useSync } from './hooks/useSync';
 import { ThemeProvider } from './hooks/useTheme';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useDragScroll } from './hooks/useDragScroll';
+import { useWeather } from './hooks/useWeather';
 import {
   requestNotificationPermission, sendBrowserNotification,
   playAlertRepeated, stopAlert,
@@ -100,7 +101,7 @@ import {
   PRISMATIC_VARIETIES,
   VARIETY_DEFS,
 } from './types/farm';
-import type { CollectedVariety, FusionHistory, Plot, VarietyId } from './types/farm';
+import type { CollectedVariety, FusionHistory, Plot, VarietyId, Weather } from './types/farm';
 import { SHOP_ITEMS, PLOT_PRICES } from './types/market';
 import type { ShopItemId, WeeklyItem } from './types/market';
 import type { DarkMatterFusion, DarkMatterFusionType, FusionResult } from './types/gene';
@@ -108,6 +109,7 @@ import type { DarkMatterFusion, DarkMatterFusionType, FusionResult } from './typ
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const FUSION_HISTORY_KEY = 'watermelon-fusion-history';
 const COSMIC_HEART_TARGET_COLLECTION_COUNT = 78;
+const DEBUG_WEATHER_ORDER: Weather[] = ['sunny', 'cloudy', 'rainy', 'night', 'rainbow', 'snowy', 'stormy'];
 
 function migrateFusionHistory(raw: unknown): FusionHistory {
   if (!raw || typeof raw !== 'object') return DEFAULT_FUSION_HISTORY;
@@ -219,7 +221,8 @@ function App() {
     upgradePlotRarity,
   } = useFarmStorage();
   const { geneInventory, setGeneInventory, addFragment, removeFragment, removeFragmentsByGalaxy } = useGeneStorage();
-  const { balance, addCoins, spendCoins } = useMelonCoin();
+  const { balance, addCoins, spendCoins, setBalance } = useMelonCoin();
+  const { weatherState, setWeatherState } = useWeather();
   const handleGrantWeeklyItem = useCallback((item: WeeklyItem) => {
     if (item.type === 'rare-gene-fragment') {
       const varietyDef = VARIETY_DEFS[item.data.varietyId];
@@ -986,6 +989,40 @@ function App() {
     });
   }, [setFarm]);
 
+  const handleDebugAddCoins = useCallback((amount: number) => {
+    if (amount <= 0) return;
+    addCoins(amount);
+  }, [addCoins]);
+
+  const handleDebugResetCoins = useCallback(() => {
+    setBalance(0);
+  }, [setBalance]);
+
+  const handleDebugAddFarmItem = useCallback((itemId: 'mutation-gun' | 'guardian-barrier' | 'moon-dew', count: number) => {
+    if (count <= 0) return;
+    addShedItem(itemId, count);
+  }, [addShedItem]);
+
+  const handleDebugCycleWeather = useCallback(() => {
+    setWeatherState((prev) => {
+      const currentIndex = prev.current === null ? -1 : DEBUG_WEATHER_ORDER.indexOf(prev.current);
+      const nextWeather = DEBUG_WEATHER_ORDER[(currentIndex + 1) % DEBUG_WEATHER_ORDER.length];
+      return {
+        ...prev,
+        current: nextWeather,
+        lastChangeAt: Date.now(),
+      };
+    });
+  }, [setWeatherState]);
+
+  const handleDebugClearWeather = useCallback(() => {
+    setWeatherState((prev) => ({
+      ...prev,
+      current: null,
+      lastChangeAt: Date.now(),
+    }));
+  }, [setWeatherState]);
+
   // Modal states
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
   const [showProjectExit, setShowProjectExit] = useState(false);
@@ -1693,6 +1730,7 @@ function App() {
             hybridSeeds={shed.hybridSeeds}
             prismaticSeeds={shed.prismaticSeeds}
             darkMatterSeeds={shed.darkMatterSeeds}
+            weather={weatherState.current}
             todayFocusMinutes={todayFocusMinutes}
             todayKey={todayKey}
             addSeeds={addSeeds}
@@ -1885,6 +1923,16 @@ function App() {
             setFarmPlots={setFarmPlots}
             setFarmCollection={setFarmCollection}
             resetFarm={resetFarm}
+            coinBalance={balance}
+            addCoins={handleDebugAddCoins}
+            resetCoins={handleDebugResetCoins}
+            addFarmItem={handleDebugAddFarmItem}
+            weather={weatherState.current}
+            cycleWeather={handleDebugCycleWeather}
+            clearWeather={handleDebugClearWeather}
+            achievementUnlockedCount={Object.keys(achievements.data.unlocked).length}
+            unlockAllAchievements={achievements.unlockAll}
+            resetAchievements={achievements.resetAll}
             timerStatus={timer.status}
             skipTimer={timer.skip}
             timeMultiplier={timeMultiplier}
