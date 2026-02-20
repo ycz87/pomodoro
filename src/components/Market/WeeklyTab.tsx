@@ -54,7 +54,7 @@ export function WeeklyTab(props: WeeklyTabProps) {
   );
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <div
         className="rounded-xl border p-3"
         style={{
@@ -70,48 +70,44 @@ export function WeeklyTab(props: WeeklyTabProps) {
         </div>
       </div>
 
-      {shop.items.map((item) => {
-        const soldOut = item.stock <= 0;
-        const affordable = balance >= item.price;
-        const disabled = soldOut || !affordable;
-        const itemName = getWeeklyItemDisplayName(item, messages);
-        const itemTypeLabel = getWeeklyItemTypeLabel(item, messages);
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {shop.items.map((item) => {
+          const soldOut = item.stock <= 0;
+          const affordable = balance >= item.price;
+          const disabled = soldOut || !affordable;
+          const itemName = getWeeklyItemDisplayName(item, messages);
+          const itemTypeLabel = getWeeklyItemTypeLabel(item, messages);
 
-        return (
-          <div
-            key={item.id}
-            className="rounded-xl border p-3"
-            style={{
-              backgroundColor: theme.inputBg,
-              borderColor: theme.border,
-              opacity: soldOut ? 0.65 : 1,
-            }}
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0 flex items-center gap-2">
-                <span className="text-2xl">{item.data.emoji}</span>
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold truncate" style={{ color: theme.text }}>
-                    {itemName}
-                  </div>
-                  <div className="text-xs truncate" style={{ color: theme.textMuted }}>
-                    {itemTypeLabel}
-                  </div>
+          return (
+            <div
+              key={item.id}
+              className="h-full rounded-xl border p-3 flex flex-col"
+              style={{
+                backgroundColor: theme.inputBg,
+                borderColor: theme.border,
+                opacity: soldOut ? 0.65 : 1,
+                boxShadow: 'var(--shadow-card)',
+              }}
+            >
+              <span className="text-3xl leading-none">{item.data.emoji}</span>
+              <div className="mt-2 min-w-0">
+                <div className="text-sm font-semibold truncate" style={{ color: theme.text }}>
+                  {itemName}
+                </div>
+                <div className="text-xs mt-1 truncate" style={{ color: theme.textMuted }}>
+                  {itemTypeLabel}
                 </div>
               </div>
-              <div className="shrink-0 text-sm font-semibold" style={{ color: affordable ? '#fbbf24' : '#ef4444' }}>
+              <div className="mt-3 text-sm font-semibold" style={{ color: affordable ? '#fbbf24' : '#ef4444' }}>
                 {item.price} 💰
               </div>
-            </div>
-
-            <div className="mt-2 flex items-center justify-between gap-2">
-              <span className="text-xs" style={{ color: theme.textMuted }}>
+              <span className="mt-1 text-xs" style={{ color: theme.textMuted }}>
                 {messages.marketWeeklyStock(item.stock)}
               </span>
               <button
                 onClick={() => onBuyItem(item.id)}
                 disabled={disabled}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer disabled:cursor-not-allowed"
+                className="mt-3 w-full px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer disabled:cursor-not-allowed"
                 style={{
                   backgroundColor: disabled ? theme.border : `${theme.accent}22`,
                   color: disabled ? theme.textMuted : theme.accent,
@@ -120,9 +116,9 @@ export function WeeklyTab(props: WeeklyTabProps) {
                 {soldOut ? messages.marketWeeklySoldOut : messages.marketWeeklyBuyButton}
               </button>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }

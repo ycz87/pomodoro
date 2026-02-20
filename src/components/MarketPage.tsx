@@ -131,156 +131,147 @@ export function MarketPage(props: MarketPageProps) {
   };
 
   return (
-    <div className={`w-full px-4 pt-4 pb-6 ${activeTab === 'buy' ? 'max-w-xs sm:max-w-sm md:max-w-3xl' : 'max-w-xs sm:max-w-sm'}`}>
-      <div
-        className="rounded-[var(--radius-container)] p-5 border"
-        style={{ backgroundColor: theme.surface, borderColor: theme.border, boxShadow: 'var(--shadow-card)' }}
-      >
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold" style={{ color: theme.text }}>{messages.marketTitle}</h2>
-          <div
-            className="text-sm font-semibold px-3 py-2 rounded-full"
-            style={{ backgroundColor: theme.inputBg, color: '#fbbf24' }}
-          >
-            💰 {balance}
+    <div className="w-full px-4 pt-4 pb-6">
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <h2 className="text-lg font-semibold" style={{ color: theme.text }}>{messages.marketTitle}</h2>
+        <div
+          className="text-sm font-semibold px-3 py-2 rounded-full"
+          style={{ backgroundColor: theme.inputBg, color: '#fbbf24' }}
+        >
+          💰 {balance}
+        </div>
+      </div>
+
+      <div className="mb-4 relative flex items-center rounded-full p-[3px]" style={{ backgroundColor: theme.inputBg }}>
+        <div
+          className="absolute top-[3px] bottom-[3px] rounded-full transition-all duration-200 ease-in-out"
+          style={{
+            backgroundColor: theme.accent,
+            opacity: 0.16,
+            width: 'calc((100% - 6px) / 3)',
+            left: '3px',
+            transform: `translateX(${marketTabIndex[activeTab] * 100}%)`,
+          }}
+        />
+        <button
+          onClick={() => setActiveTab('buy')}
+          className="relative z-10 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ease-in-out cursor-pointer flex-1"
+          style={{ color: activeTab === 'buy' ? theme.text : theme.textMuted }}
+        >
+          {messages.marketTabBuy}
+        </button>
+        <button
+          onClick={() => setActiveTab('sell')}
+          className="relative z-10 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ease-in-out cursor-pointer flex-1"
+          style={{ color: activeTab === 'sell' ? theme.text : theme.textMuted }}
+        >
+          {messages.marketTabSell}
+        </button>
+        <button
+          onClick={() => setActiveTab('weekly')}
+          className="relative z-10 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ease-in-out cursor-pointer flex-1"
+          style={{ color: activeTab === 'weekly' ? theme.text : theme.textMuted }}
+        >
+          {messages.marketTabWeekly}
+        </button>
+      </div>
+
+      {activeTab === 'buy' && (
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {SHOP_ITEMS.map((item) => {
+              const affordable = balance >= item.price;
+              const itemName = messages.itemName(item.id);
+              const justBought = recentBoughtItemId === item.id;
+              return (
+                <MarketItemCard
+                  key={item.id}
+                  icon={item.emoji}
+                  name={itemName}
+                  description={messages.itemDescription(item.id)}
+                  priceText={`${item.price} 💰`}
+                  actionText={justBought ? `✅ ${messages.marketBuySuccess}` : messages.marketBuyConfirmButton}
+                  disabled={!affordable}
+                  onAction={() => setPendingPurchase({ type: 'item', item })}
+                  theme={theme}
+                />
+              );
+            })}
           </div>
-        </div>
 
-        <div className="mb-4 relative flex items-center rounded-full p-[3px]" style={{ backgroundColor: theme.inputBg }}>
-          <div
-            className="absolute top-[3px] bottom-[3px] rounded-full transition-all duration-200 ease-in-out"
-            style={{
-              backgroundColor: theme.accent,
-              opacity: 0.16,
-              width: 'calc((100% - 6px) / 3)',
-              left: '3px',
-              transform: `translateX(${marketTabIndex[activeTab] * 100}%)`,
-            }}
-          />
-          <button
-            onClick={() => setActiveTab('buy')}
-            className="relative z-10 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ease-in-out cursor-pointer flex-1"
-            style={{ color: activeTab === 'buy' ? theme.text : theme.textMuted }}
-          >
-            {messages.marketTabBuy}
-          </button>
-          <button
-            onClick={() => setActiveTab('sell')}
-            className="relative z-10 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ease-in-out cursor-pointer flex-1"
-            style={{ color: activeTab === 'sell' ? theme.text : theme.textMuted }}
-          >
-            {messages.marketTabSell}
-          </button>
-          <button
-            onClick={() => setActiveTab('weekly')}
-            className="relative z-10 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ease-in-out cursor-pointer flex-1"
-            style={{ color: activeTab === 'weekly' ? theme.text : theme.textMuted }}
-          >
-            {messages.marketTabWeekly}
-          </button>
-        </div>
-
-        {activeTab === 'buy' && (
-          <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {SHOP_ITEMS.map((item) => {
-                const affordable = balance >= item.price;
-                const itemName = messages.itemName(item.id);
-                const justBought = recentBoughtItemId === item.id;
+          <div className="pt-4 border-t" style={{ borderColor: theme.border }}>
+            <h3 className="text-sm font-semibold mb-2" style={{ color: theme.text }}>
+              {messages.marketPlotSection}
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {buyablePlots.map((plot) => {
+                const unlocked = unlockedPlotCount > plot.plotIndex;
+                const affordable = balance >= plot.price;
+                const disabled = unlocked || !affordable;
                 return (
                   <MarketItemCard
-                    key={item.id}
-                    icon={item.emoji}
-                    name={itemName}
-                    description={messages.itemDescription(item.id)}
-                    priceText={`${item.price} 💰`}
-                    actionText={justBought ? `✅ ${messages.marketBuySuccess}` : messages.marketBuyConfirmButton}
-                    disabled={!affordable}
-                    onAction={() => setPendingPurchase({ type: 'item', item })}
+                    key={plot.plotIndex}
+                    icon="🧱"
+                    name={messages.marketPlotName(plot.plotIndex)}
+                    description={unlocked ? messages.marketPlotUnlocked : messages.marketPlotSection}
+                    priceText={unlocked ? messages.marketPlotUnlocked : `${plot.price} 💰`}
+                    actionText={unlocked ? messages.marketPlotUnlocked : messages.marketBuyConfirmButton}
+                    disabled={disabled}
+                    onAction={() => setPendingPurchase({ type: 'plot', plotIndex: plot.plotIndex, price: plot.price })}
                     theme={theme}
                   />
                 );
               })}
             </div>
-
-            <div className="pt-4 border-t" style={{ borderColor: theme.border }}>
-              <h3 className="text-sm font-semibold mb-2" style={{ color: theme.text }}>
-                {messages.marketPlotSection}
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {buyablePlots.map((plot) => {
-                  const unlocked = unlockedPlotCount > plot.plotIndex;
-                  const affordable = balance >= plot.price;
-                  const disabled = unlocked || !affordable;
-                  return (
-                    <MarketItemCard
-                      key={plot.plotIndex}
-                      icon="🧱"
-                      name={messages.marketPlotName(plot.plotIndex)}
-                      description={unlocked ? messages.marketPlotUnlocked : messages.marketPlotSection}
-                      priceText={unlocked ? messages.marketPlotUnlocked : `${plot.price} 💰`}
-                      actionText={unlocked ? messages.marketPlotUnlocked : messages.marketBuyConfirmButton}
-                      disabled={disabled}
-                      onAction={() => setPendingPurchase({ type: 'plot', plotIndex: plot.plotIndex, price: plot.price })}
-                      theme={theme}
-                    />
-                  );
-                })}
-              </div>
-            </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {activeTab === 'sell' && (
-          <>
-            {sellableVarieties.length === 0 ? (
-              <div
-                className="text-sm text-center py-10 rounded-[var(--radius-card)] border"
-                style={{ color: theme.textMuted, borderColor: theme.border, backgroundColor: theme.inputBg, boxShadow: 'var(--shadow-card)' }}
-              >
-                {messages.marketSellEmpty}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {sellableVarieties.map((item) => (
-                  <button
-                    key={item.key}
-                    onClick={() => setPendingSellKey(item.key)}
-                    className="w-full p-3 rounded-[var(--radius-card)] border cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5 text-left"
-                    style={{ backgroundColor: theme.inputBg, borderColor: theme.border, boxShadow: 'var(--shadow-card)' }}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-xl">{item.emoji}</span>
-                        <div className="min-w-0">
-                          <div className="text-sm font-medium truncate" style={{ color: theme.text }}>
-                            {item.name}
-                          </div>
-                          <div className="text-xs" style={{ color: theme.textMuted }}>
-                            {messages.marketSellOwned(item.count)}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="shrink-0 text-sm font-semibold" style={{ color: '#fbbf24' }}>
-                        {item.sellPrice} 💰
-                      </div>
+      {activeTab === 'sell' && (
+        <>
+          {sellableVarieties.length === 0 ? (
+            <div
+              className="text-sm text-center py-10 rounded-[var(--radius-card)] border"
+              style={{ color: theme.textMuted, borderColor: theme.border, backgroundColor: theme.inputBg, boxShadow: 'var(--shadow-card)' }}
+            >
+              {messages.marketSellEmpty}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {sellableVarieties.map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => setPendingSellKey(item.key)}
+                  className="h-full p-3 rounded-[var(--radius-card)] border cursor-pointer transition-all duration-200 ease-in-out hover:-translate-y-0.5 text-left flex flex-col"
+                  style={{ backgroundColor: theme.inputBg, borderColor: theme.border, boxShadow: 'var(--shadow-card)' }}
+                >
+                  <span className="text-3xl leading-none">{item.emoji}</span>
+                  <div className="mt-2 min-w-0">
+                    <div className="text-sm font-medium truncate" style={{ color: theme.text }}>
+                      {item.name}
                     </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </>
-        )}
+                    <div className="text-xs mt-1" style={{ color: theme.textMuted }}>
+                      {messages.marketSellOwned(item.count)}
+                    </div>
+                  </div>
+                  <div className="mt-3 text-sm font-semibold" style={{ color: '#fbbf24' }}>
+                    {item.sellPrice} 💰
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
-        {activeTab === 'weekly' && (
-          <WeeklyTab
-            balance={balance}
-            shop={weeklyShop}
-            messages={messages}
-            onBuyItem={onBuyWeeklyItem}
-          />
-        )}
-      </div>
+      {activeTab === 'weekly' && (
+        <WeeklyTab
+          balance={balance}
+          shop={weeklyShop}
+          messages={messages}
+          onBuyItem={onBuyWeeklyItem}
+        />
+      )}
 
       {pendingVariety && (
         <ConfirmModal

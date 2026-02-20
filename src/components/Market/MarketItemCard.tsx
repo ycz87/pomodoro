@@ -40,7 +40,7 @@ export function MarketItemCard(props: MarketItemCardProps) {
         opacity: disabled ? 0.68 : 1,
       }}
     >
-      <div className="text-4xl leading-none">{icon}</div>
+      <div className="text-3xl leading-none">{icon}</div>
 
       <div className="mt-2 text-sm font-semibold leading-5" style={{ color: theme.text }}>
         {name}
