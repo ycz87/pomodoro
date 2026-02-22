@@ -277,7 +277,7 @@ export function WarehousePage({ warehouse, shed, onSynthesize, onSynthesizeAll, 
                   <div className="flex items-center justify-between p-3 rounded-[var(--radius-card)] border"
                     style={{ backgroundColor: theme.inputBg, borderColor: theme.border, boxShadow: 'var(--shadow-card)' }}>
                     <div className="flex items-center gap-2">
-                      <span className="text-xl">🌰</span>
+                      <span className="text-xl">🌱</span>
                       <span className="text-sm font-medium" style={{ color: theme.text }}>
                         {t.seedQualityLabel('normal')} {t.shedSeedsCount(shed.seeds.normal)}
                       </span>

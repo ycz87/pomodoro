@@ -385,7 +385,7 @@ export const VARIETY_DEFS: Record<VarietyId, VarietyDef> = {
     breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 80,
   },
   'fire-seed': {
-    id: 'fire-seed', galaxy: 'thick-earth', hybridPair: 'fire-wood', rarity: 'epic', dropRate: 0.10, emoji: '🌰',
+    id: 'fire-seed', galaxy: 'thick-earth', hybridPair: 'fire-wood', rarity: 'epic', dropRate: 0.10, emoji: '🌱',
     breedType: 'hybrid', matureMinutes: HYBRID_MATURE_MINUTES, sellPrice: 250,
   },
 
@@ -548,7 +548,7 @@ export interface StageDef {
 }
 
 export const GROWTH_STAGES: StageDef[] = [
-  { id: 'seed',   threshold: 0,    emoji: '🌰' },
+  { id: 'seed',   threshold: 0,    emoji: '🌱' },
   { id: 'sprout', threshold: 0.20, emoji: '🌱' },
   { id: 'leaf',   threshold: 0.35, emoji: '🌿' },
   { id: 'flower', threshold: 0.55, emoji: '🌼' },

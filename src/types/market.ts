@@ -19,7 +19,7 @@ export const SHOP_ITEMS: ShopItemDef[] = [
   { id: 'crystal-ball', emoji: '🔮', price: 50, category: 'special' },
   { id: 'guardian-barrier', emoji: '🛡️', price: 60, category: 'defense' },
   { id: 'mutation-gun', emoji: '🔫', price: 80, category: 'special' },
-  { id: 'mystery-seed', emoji: '🌰', price: 80, category: 'seed' },
+  { id: 'mystery-seed', emoji: '🌱', price: 80, category: 'seed' },
   { id: 'moon-dew', emoji: '🌙', price: 80, category: 'special' },
   { id: 'drift-bottle', emoji: '🍾', price: 100, category: 'special' },
   { id: 'gene-modifier', emoji: '🧬', price: 120, category: 'special' },

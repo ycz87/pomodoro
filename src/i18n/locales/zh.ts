@@ -505,7 +505,7 @@ export const zh: Messages = {
     'gene-modifier': '变异博士的私人珍藏',
     'lullaby-record': '外星人录制的催眠曲，西瓜听了长得特别快',
   }[id] ?? ''),
-  shedSeedsTitle: '🌰 神秘种子',
+  shedSeedsTitle: '🌱 神秘种子',
   shedSeedsCount: (n) => `×${n}`,
   shedGoFarm: '去农场种植',
   shedFarmComingSoon: '农场即将开放',

@@ -41,7 +41,7 @@ interface ItemDrop {
 const JUICE_COLORS = ['#ff3b3b', '#ff6b6b', '#ff1a1a', '#cc0000', '#ff4d4d'];
 const GOLD_JUICE_COLORS = ['#fbbf24', '#f59e0b', '#fde68a', '#d97706', '#fef3c7'];
 
-const SEED_QUALITY_EMOJI = { normal: '🌰', epic: '💎', legendary: '🌟' } as const;
+const SEED_QUALITY_EMOJI = { normal: '🌱', epic: '💎', legendary: '🌟' } as const;
 const SEED_QUALITY_COLOR = { normal: '#a3a3a3', epic: '#a78bfa', legendary: '#fbbf24' } as const;
 
 export function SlicingScene({ melonType, comboCount, canContinue, pity, onComplete, onContinue, onCancel }: SlicingSceneProps) {
@@ -270,7 +270,7 @@ export function SlicingScene({ melonType, comboCount, canContinue, pity, onCompl
     if (result) onComplete(result);
   }, [result, onComplete]);
 
-  const seedEmoji = result ? SEED_QUALITY_EMOJI[result.seedQuality] : '🌰';
+  const seedEmoji = result ? SEED_QUALITY_EMOJI[result.seedQuality] : '🌱';
   const seedColor = result ? SEED_QUALITY_COLOR[result.seedQuality] : '#a3a3a3';
 
   return (
@@ -406,7 +406,7 @@ export function SlicingScene({ melonType, comboCount, canContinue, pity, onCompl
           left: s.x, top: s.y, transform: 'translate(-50%, -50%)',
           animation: `seedBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) ${s.delay}ms both`,
         }}>
-          {result ? SEED_QUALITY_EMOJI[result.seedQuality] : '🌰'}
+          {result ? SEED_QUALITY_EMOJI[result.seedQuality] : '🌱'}
         </div>
       ))}
 

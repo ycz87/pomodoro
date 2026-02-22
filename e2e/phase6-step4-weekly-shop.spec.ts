@@ -99,7 +99,7 @@ function createLegendarySeedItem(options?: {
     stock: options?.stock ?? 2,
     data: {
       varietyId,
-      emoji: '🌰',
+      emoji: '🌱',
     },
   };
 }

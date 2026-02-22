@@ -104,7 +104,7 @@ export function getStageEmoji(progress: number, varietyId?: VarietyId): string {
   if (stage === 'fruit' && varietyId) {
     return VARIETY_DEFS[varietyId]?.emoji ?? '🍉';
   }
-  return GROWTH_STAGES.find(s => s.id === stage)?.emoji ?? '🌰';
+  return GROWTH_STAGES.find(s => s.id === stage)?.emoji ?? '🌱';
 }
 
 /** 品种是否已揭晓（进度 >= 60%） */

@@ -505,7 +505,7 @@ export const de: Messages = {
     'gene-modifier': 'Dr. Mutations Privatsammlung',
     'lullaby-record': 'Ein Alien-Schlaflied, das Melonen extra schnell wachsen lässt',
   }[id] ?? ''),
-  shedSeedsTitle: '🌰 Geheimnisvolle Samen',
+  shedSeedsTitle: '🌱 Geheimnisvolle Samen',
   shedSeedsCount: (n) => `×${n}`,
   shedGoFarm: 'Zur Farm',
   shedFarmComingSoon: 'Farm kommt bald',

@@ -505,7 +505,7 @@ export const ko: Messages = {
     'gene-modifier': '변이 박사의 개인 소장품',
     'lullaby-record': '외계인이 녹음한 자장가, 수박이 특별히 빨리 자란다',
   }[id] ?? ''),
-  shedSeedsTitle: '🌰 미스터리 씨앗',
+  shedSeedsTitle: '🌱 미스터리 씨앗',
   shedSeedsCount: (n) => `×${n}`,
   shedGoFarm: '농장으로 가기',
   shedFarmComingSoon: '농장 곧 오픈',

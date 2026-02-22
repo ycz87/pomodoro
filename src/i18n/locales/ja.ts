@@ -505,7 +505,7 @@ export const ja: Messages = {
     'gene-modifier': '変異博士の秘蔵コレクション',
     'lullaby-record': 'エイリアンが録音した子守唄、スイカの成長が早くなる',
   }[id] ?? ''),
-  shedSeedsTitle: '🌰 ミステリーシード',
+  shedSeedsTitle: '🌱 ミステリーシード',
   shedSeedsCount: (n) => `×${n}`,
   shedGoFarm: '農場へ行く',
   shedFarmComingSoon: '農場は近日公開',

@@ -35,6 +35,7 @@ import { VARIETY_DEFS, RARITY_COLOR, RARITY_STARS, PLOT_MILESTONES } from '../ty
 import { getGrowthStage, getStageEmoji, isVarietyRevealed } from '../farm/growth';
 import { CollectionPage } from './CollectionPage';
 import { GeneLabPage } from './GeneLabPage';
+import { SkyLayer } from './farm/SkyLayer';
 
 interface FarmPageProps {
   farm: FarmStorage;
@@ -97,16 +98,6 @@ const REVEAL_RARE_PLUS_MIN_STARS = 2;
 const TOTAL_PLOT_SLOTS = 9;
 const LAST_PLOT_UNLOCK_REQUIRED = PLOT_MILESTONES[PLOT_MILESTONES.length - 1]?.requiredVarieties ?? 0;
 const PLOT_UNLOCK_BY_TOTAL = new Map(PLOT_MILESTONES.map((milestone) => [milestone.totalPlots, milestone.requiredVarieties]));
-
-const WEATHER_ICON: Record<Weather, string> = {
-  sunny: '☀️',
-  cloudy: '☁️',
-  rainy: '🌧️',
-  night: '🌙',
-  rainbow: '🌈',
-  snowy: '❄️',
-  stormy: '⛈️',
-};
 
 export function FarmPage({
   farm,
@@ -193,9 +184,6 @@ export function FarmPage({
   const guardianBarrierCount = (items as Record<string, number>)['guardian-barrier'] ?? 0;
   const trapNetCount = (items as Record<string, number>)['trap-net'] ?? 0;
   const barrierActiveToday = farm.guardianBarrierDate === todayKey;
-  const weatherSummary = weather === null
-    ? '⛔ clear'
-    : `${WEATHER_ICON[weather]} ${t.farmWeatherName(weather)}`;
 
   const plotSlots = useMemo(
     () => Array.from({ length: TOTAL_PLOT_SLOTS }, (_, index) => {
@@ -355,7 +343,7 @@ export function FarmPage({
           </button>
         </div>
         <span className="text-xs sm:whitespace-nowrap" style={{ color: theme.textFaint }}>
-          {`${weatherSummary} · 🌰 ${totalBaseSeeds} · 🧬 ${injectedSeeds.length} · 🌈 ${prismaticSeeds.length} · 🌑 ${darkMatterSeeds.length}`}
+          {`🌱 ${totalBaseSeeds} · 🧬 ${injectedSeeds.length} · 🌈 ${prismaticSeeds.length} · 🌑 ${darkMatterSeeds.length}`}
         </span>
       </div>
 
@@ -419,13 +407,13 @@ export function FarmPage({
                 background: 'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 62%)',
               }}
             />
-            <div className="weather-elements pointer-events-none absolute inset-0 z-[6]">
-              <SkyWeatherLayer weather={weather} theme={theme} t={t} />
+            <div className="pointer-events-none absolute inset-0 z-[10]">
+              <SkyLayer weather={weather} currentTime={new Date()} />
             </div>
 
-            <div className="farm-plots relative z-[10] px-1 sm:px-2 pb-2 sm:pb-3 pt-20 sm:pt-32 md:pt-36">
+            <div className="farm-plots relative z-0 px-1 sm:px-2 pb-2 sm:pb-3 pt-20 sm:pt-32 md:pt-36">
               <div
-                className="farm-grid-perspective relative z-[5] grid grid-cols-3 gap-1 sm:gap-2"
+                className="farm-grid-perspective relative z-0 grid grid-cols-3 gap-1 sm:gap-2"
                 onClick={() => setActiveTooltipPlotId(null)}
               >
                 {plotSlots.map((slot, index) => (
@@ -629,311 +617,12 @@ function getPlotSoilVariance(plotId: number): number {
   return (value - Math.floor(value) - 0.5) * 10;
 }
 
-interface SkyRainParticle {
-  left: number;
-  duration: number;
-  delay: number;
-  length: number;
-  bottom: number;
-}
-
-interface SkyRainSplashParticle {
-  left: number;
-  bottom: number;
-  duration: number;
-  delay: number;
-  size: number;
-}
-
-interface SkyCloudPoint {
-  left: number;
-  top: number;
-  size: number;
-  duration: number;
-  delay: number;
-}
-
-interface SkySnowParticle {
-  left: number;
-  duration: number;
-  delay: number;
-  size: number;
-}
-
-interface SkyStarPoint {
-  x: number;
-  y: number;
-  size: number;
-  duration: number;
-  delay: number;
-}
-
-const SKY_PARTICLE_DESKTOP_COUNT = 40;
-const SKY_PARTICLE_MOBILE_COUNT = 20;
-const SKY_FOREGROUND_CLOUDS: ReadonlyArray<SkyCloudPoint> = [
-  { left: 9, top: 9, size: 34, duration: 9.4, delay: 0 },
-  { left: 38, top: 14, size: 40, duration: 8.8, delay: 0.45 },
-  { left: 66, top: 10, size: 36, duration: 9.9, delay: 1.05 },
-];
-const SKY_BACKGROUND_CLOUDS: ReadonlyArray<SkyCloudPoint> = [
-  { left: 4, top: 6, size: 18, duration: 5.2, delay: 0.22 },
-  { left: 29, top: 11, size: 20, duration: 5.6, delay: 0.5 },
-  { left: 54, top: 7, size: 19, duration: 5.1, delay: 0.8 },
-  { left: 79, top: 13, size: 17, duration: 5.8, delay: 1.1 },
-];
-
-const SKY_RAIN_PARTICLES: ReadonlyArray<SkyRainParticle> = Array.from(
-  { length: SKY_PARTICLE_DESKTOP_COUNT },
-  (_, index) => ({
-    left: 1 + ((index * 9.7) % 97),
-    duration: 0.8 + (index % 9) * 0.05,
-    delay: (index % 11) * 0.09,
-    length: 8 + (index % 7),
-    bottom: 24 + (index % 5) * 4,
-  }),
-);
-
-const SKY_RAIN_SPLASH_PARTICLES: ReadonlyArray<SkyRainSplashParticle> = Array.from(
-  { length: SKY_PARTICLE_DESKTOP_COUNT },
-  (_, index) => ({
-    left: 2 + ((index * 8.1 + 3) % 96),
-    bottom: 20 + (index % 6) * 3,
-    duration: 0.66 + (index % 7) * 0.05,
-    delay: (index % 12) * 0.1,
-    size: 5 + (index % 4),
-  }),
-);
-
-const SKY_SNOW_PARTICLES: ReadonlyArray<SkySnowParticle> = Array.from(
-  { length: SKY_PARTICLE_DESKTOP_COUNT },
-  (_, index) => ({
-    left: 2 + ((index * 9.1 + 6) % 94),
-    duration: 2 + (index % 10) * 0.11,
-    delay: (index % 12) * 0.14,
-    size: 3 + (index % 4),
-  }),
-);
-
-const SKY_STAR_POINTS: ReadonlyArray<SkyStarPoint> = Array.from(
-  { length: 14 },
-  (_, index) => ({
-    x: 4 + ((index * 7.3) % 92),
-    y: 8 + ((index * 4.5) % 26),
-    size: 8 + (index % 4) * 2,
-    duration: 1.6 + ((index * 0.11) % 0.8),
-    delay: (index % 8) * 0.12,
-  }),
-);
-
 const CREATURE_EMOJI: Record<Creature['type'], string> = {
   bee: '🐝',
   butterfly: '🦋',
   ladybug: '🐞',
   bird: '🐦',
 };
-
-function SkyWeatherLayer({ weather, theme, t }: {
-  weather: Weather | null;
-  theme: ReturnType<typeof useTheme>;
-  t: ReturnType<typeof useI18n>;
-}) {
-  const cloudColor = weather === 'stormy'
-    ? '#2b3444'
-    : weather === 'cloudy'
-      ? '#d1d5db'
-      : 'rgba(255,255,255,0.95)';
-  const weatherLabel = weather === null ? '⛅ --' : `${WEATHER_ICON[weather]} ${t.farmWeatherName(weather)}`;
-  const showSun = weather === null || weather === 'sunny' || weather === 'rainbow';
-  const showClouds = weather !== 'night';
-  const showRain = weather === 'rainy' || weather === 'stormy';
-
-  return (
-    <div className="relative h-full w-full overflow-hidden transition-opacity duration-300 ease-out">
-      <div
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.06) 35%, rgba(255,255,255,0) 62%)',
-        }}
-      />
-
-      {showSun && (
-        <div className="absolute left-[8%] top-[5%] h-14 w-14 sm:h-20 sm:w-20">
-          <span
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: 'radial-gradient(circle, rgba(255,223,0,0.1) 0%, rgba(255,223,0,0) 72%)',
-              animation: 'skySunHaloPulse 4.2s ease-in-out infinite',
-            }}
-          />
-          <span
-            className="absolute inset-[12%] rounded-full"
-            style={{
-              background: 'radial-gradient(circle, rgba(255,215,0,0.3) 0%, rgba(255,215,0,0) 68%)',
-              animation: 'skySunHaloPulse 3.2s ease-in-out infinite',
-            }}
-          />
-          <span
-            className="absolute inset-[26%] rounded-full"
-            style={{
-              background: 'radial-gradient(circle, rgba(255,255,0,0.5) 0%, rgba(255,255,0,0) 64%)',
-              animation: 'skySunHaloPulse 2.4s ease-in-out infinite',
-            }}
-          />
-          <span className="absolute inset-0 flex items-center justify-center text-[24px] sm:text-[30px]">☀️</span>
-        </div>
-      )}
-
-      {showClouds && (
-        <>
-          {SKY_BACKGROUND_CLOUDS.map((cloud) => (
-            <span
-              key={`cloud-bg-${cloud.left}`}
-              className="absolute"
-              style={{
-                left: `${cloud.left}%`,
-                top: `${cloud.top}%`,
-                fontSize: `${cloud.size}px`,
-                color: cloudColor,
-                opacity: 0.46,
-                filter: 'blur(0.5px)',
-                animation: `skyCloudDrift ${cloud.duration}s ease-in-out infinite`,
-                animationDelay: `${cloud.delay}s`,
-              }}
-            >
-              ☁️
-            </span>
-          ))}
-          {SKY_FOREGROUND_CLOUDS.map((cloud) => (
-            <span
-              key={`cloud-fg-${cloud.left}`}
-              className="absolute"
-              style={{
-                left: `${cloud.left}%`,
-                top: `${cloud.top}%`,
-                fontSize: `${cloud.size}px`,
-                color: cloudColor,
-                opacity: 0.78,
-                filter: 'blur(0.5px)',
-                animation: `skyCloudDrift ${cloud.duration}s ease-in-out infinite`,
-                animationDelay: `${cloud.delay}s`,
-              }}
-            >
-              ☁️
-            </span>
-          ))}
-        </>
-      )}
-
-      {weather === 'rainbow' && (
-        <span
-          className="absolute left-[34%] top-[7%] text-[40px]"
-          style={{ animation: 'skyCloudDrift 6s ease-in-out infinite' }}
-        >
-          🌈
-        </span>
-      )}
-
-      {showRain && (
-        <>
-          {SKY_RAIN_PARTICLES.map((particle, index) => (
-            <span
-              key={`rain-${index}`}
-              className={`absolute block w-[2px] rounded-full ${index >= SKY_PARTICLE_MOBILE_COUNT ? 'sky-particle-desktop-only' : ''}`}
-              style={{
-                left: `${particle.left}%`,
-                top: `${11 + particle.bottom * 0.5}%`,
-                height: `${particle.length}px`,
-                background: weather === 'stormy'
-                  ? 'linear-gradient(180deg, rgba(191,219,254,0) 0%, rgba(191,219,254,0.92) 52%, rgba(191,219,254,0) 100%)'
-                  : 'linear-gradient(180deg, rgba(219,234,254,0) 0%, rgba(219,234,254,0.96) 52%, rgba(219,234,254,0) 100%)',
-                animation: `skyRainFallLong ${particle.duration}s linear infinite`,
-                animationDelay: `${particle.delay}s`,
-              }}
-            />
-          ))}
-          {SKY_RAIN_SPLASH_PARTICLES.map((particle, index) => (
-            <span
-              key={`splash-${index}`}
-              className={`absolute block rounded-full border ${index >= SKY_PARTICLE_MOBILE_COUNT ? 'sky-particle-desktop-only' : ''}`}
-              style={{
-                left: `${particle.left}%`,
-                bottom: `${particle.bottom}%`,
-                width: `${particle.size}px`,
-                height: `${Math.max(2, particle.size * 0.35)}px`,
-                borderColor: 'rgba(255,255,255,0.55)',
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                animation: `skyRainSplash ${particle.duration}s ease-out infinite`,
-                animationDelay: `${particle.delay}s`,
-              }}
-            />
-          ))}
-        </>
-      )}
-
-      {weather === 'snowy' && (
-        <>
-          {SKY_SNOW_PARTICLES.map((particle, index) => (
-            <span
-              key={`snow-${index}`}
-              className={`absolute block rounded-full ${index >= SKY_PARTICLE_MOBILE_COUNT ? 'sky-particle-desktop-only' : ''}`}
-              style={{
-                left: `${particle.left}%`,
-                top: '12%',
-                width: `${particle.size}px`,
-                height: `${particle.size}px`,
-                backgroundColor: '#ffffff',
-                boxShadow: '0 0 5px rgba(255,255,255,0.86)',
-                animation: `skySnowFallLong ${particle.duration}s linear infinite`,
-                animationDelay: `${particle.delay}s`,
-              }}
-            />
-          ))}
-        </>
-      )}
-
-      {weather === 'night' && (
-        <>
-          <span className="absolute left-[12%] top-[6%] text-[34px]" style={{ animation: 'skyCloudDrift 6.5s ease-in-out infinite' }}>🌙</span>
-          {SKY_STAR_POINTS.map((point, index) => (
-            <span
-              key={`star-${index}`}
-              className="absolute"
-              style={{
-                left: `${point.x}%`,
-                top: `${point.y}%`,
-                fontSize: `${point.size}px`,
-                color: '#f8fafc',
-                textShadow: '0 0 8px rgba(248,250,252,0.65)',
-                animation: `skyStarTwinkle ${point.duration}s ease-in-out infinite`,
-                animationDelay: `${point.delay}s`,
-              }}
-            >
-              ✦
-            </span>
-          ))}
-        </>
-      )}
-
-      {weather === 'stormy' && (
-        <>
-          <span className="absolute left-[42%] top-[22%] text-[20px]" style={{ animation: 'skyLightningFlash 2.8s ease-in-out infinite' }}>⚡</span>
-          <span className="absolute left-[66%] top-[25%] text-[18px]" style={{ animation: 'skyLightningFlash 3.4s ease-in-out infinite', animationDelay: '1.1s' }}>⚡</span>
-        </>
-      )}
-
-      <div
-        className="absolute left-2 top-2 rounded-full px-2 py-1 text-[10px] font-medium"
-        style={{
-          color: theme.text,
-          backgroundColor: `${theme.surface}b3`,
-          border: `1px solid ${theme.border}`,
-        }}
-      >
-        {weatherLabel}
-      </div>
-    </div>
-  );
-}
 
 function CreatureLayer({ creatures }: { creatures: Creature[] }) {
   if (creatures.length === 0) return null;
@@ -1291,7 +980,7 @@ function PlotCard({ plot, weather, stolenRecord, nowTimestamp, theme, t, isToolt
               animation: 'farmSeedDrop 420ms ease-out forwards',
             }}
           >
-            🌰
+            🌱
           </span>
         )}
         {harvestFxEmoji && (
@@ -1828,7 +1517,7 @@ function PlantModal({ seeds, injectedSeeds, hybridSeeds, prismaticSeeds, darkMat
   onClose: () => void;
 }) {
   const options = [
-    { quality: 'normal' as SeedQuality, emoji: '🌰', count: seeds.normal, color: '#a3a3a3' },
+    { quality: 'normal' as SeedQuality, emoji: '🌱', count: seeds.normal, color: '#a3a3a3' },
     { quality: 'epic' as SeedQuality, emoji: '💎', count: seeds.epic, color: '#a78bfa' },
     { quality: 'legendary' as SeedQuality, emoji: '🌟', count: seeds.legendary, color: '#fbbf24' },
   ];
@@ -2349,7 +2038,7 @@ function HarvestOverlay({ varietyId, isNew, collectedCount, rewardSeedQuality, t
                   border: '1px solid rgba(255,255,255,0.28)',
                 }}
               >
-                {`🌰 +1 ${t.seedQualityLabel(rewardSeedQuality)}`}
+                {`🌱 +1 ${t.seedQualityLabel(rewardSeedQuality)}`}
               </div>
             )}
           </div>

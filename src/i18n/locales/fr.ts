@@ -505,7 +505,7 @@ export const fr: Messages = {
     'gene-modifier': 'Collection privée du Dr. Mutation',
     'lullaby-record': 'Une berceuse alien qui fait pousser les pastèques très vite',
   }[id] ?? ''),
-  shedSeedsTitle: '🌰 Graines mystères',
+  shedSeedsTitle: '🌱 Graines mystères',
   shedSeedsCount: (n) => `×${n}`,
   shedGoFarm: 'Aller à la ferme',
   shedFarmComingSoon: 'Ferme bientôt disponible',

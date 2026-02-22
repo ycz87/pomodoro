@@ -505,7 +505,7 @@ export const en: Messages = {
     'gene-modifier': 'Dr. Mutation\'s private collection',
     'lullaby-record': 'An alien lullaby that makes melons grow extra fast',
   }[id] ?? ''),
-  shedSeedsTitle: '🌰 Mystery Seeds',
+  shedSeedsTitle: '🌱 Mystery Seeds',
   shedSeedsCount: (n) => `×${n}`,
   shedGoFarm: 'Go to Farm',
   shedFarmComingSoon: 'Farm coming soon',

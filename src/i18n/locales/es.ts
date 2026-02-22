@@ -505,7 +505,7 @@ export const es: Messages = {
     'gene-modifier': 'Colección privada del Dr. Mutación',
     'lullaby-record': 'Una nana alienígena que hace crecer las sandías muy rápido',
   }[id] ?? ''),
-  shedSeedsTitle: '🌰 Semillas misteriosas',
+  shedSeedsTitle: '🌱 Semillas misteriosas',
   shedSeedsCount: (n) => `×${n}`,
   shedGoFarm: 'Ir a la granja',
   shedFarmComingSoon: 'Granja próximamente',
