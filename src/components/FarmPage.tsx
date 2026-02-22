@@ -1,7 +1,7 @@
 /**
  * FarmPage — 农场主页面
  *
- * 3×3 地块网格（未解锁显示锁定卡）+ 种植/收获/清除交互 + 品种揭晓动画 + 收获动画。
+ * 7 地块等距农场布局 + 种植/收获/清除交互 + 品种揭晓动画 + 收获动画。
  * 内嵌图鉴入口（顶部 tab 切换）。
  */
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
@@ -31,11 +31,13 @@ import type {
   DarkMatterSeed,
   ItemId,
 } from '../types/slicing';
-import { VARIETY_DEFS, RARITY_COLOR, RARITY_STARS, PLOT_MILESTONES } from '../types/farm';
+import { VARIETY_DEFS, RARITY_COLOR, RARITY_STARS } from '../types/farm';
 import { getGrowthStage, getStageEmoji, isVarietyRevealed } from '../farm/growth';
 import { CollectionPage } from './CollectionPage';
 import { GeneLabPage } from './GeneLabPage';
 import { SkyLayer } from './farm/SkyLayer';
+import { FarmEnvironment } from './farm/FarmEnvironment';
+import { IsometricFarmGrid } from './farm/IsometricFarmGrid';
 
 interface FarmPageProps {
   farm: FarmStorage;
@@ -95,9 +97,6 @@ const REVEAL_DURATION_RARE_PLUS_MS = 3800;
 const HARVEST_DURATION_NEW_MS = 4200;
 const HARVEST_DURATION_REPEAT_MS = 2800;
 const REVEAL_RARE_PLUS_MIN_STARS = 2;
-const TOTAL_PLOT_SLOTS = 9;
-const LAST_PLOT_UNLOCK_REQUIRED = PLOT_MILESTONES[PLOT_MILESTONES.length - 1]?.requiredVarieties ?? 0;
-const PLOT_UNLOCK_BY_TOTAL = new Map(PLOT_MILESTONES.map((milestone) => [milestone.totalPlots, milestone.requiredVarieties]));
 
 export function FarmPage({
   farm,
@@ -184,23 +183,6 @@ export function FarmPage({
   const guardianBarrierCount = (items as Record<string, number>)['guardian-barrier'] ?? 0;
   const trapNetCount = (items as Record<string, number>)['trap-net'] ?? 0;
   const barrierActiveToday = farm.guardianBarrierDate === todayKey;
-
-  const plotSlots = useMemo(
-    () => Array.from({ length: TOTAL_PLOT_SLOTS }, (_, index) => {
-      const plot = farm.plots[index];
-      if (plot) {
-        return {
-          kind: 'plot' as const,
-          plot,
-        };
-      }
-      return {
-        kind: 'locked' as const,
-        requiredVarieties: PLOT_UNLOCK_BY_TOTAL.get(index + 1) ?? LAST_PLOT_UNLOCK_REQUIRED,
-      };
-    }),
-    [farm.plots],
-  );
 
   const latestStolenRecordByPlotId = useMemo(() => {
     const latestByPlot = new Map<number, StolenRecord>();
@@ -382,82 +364,47 @@ export function FarmPage({
         )}
       </div>
 
-      {/* 天空 + 3×3 俯视网格 */}
-      <div className="relative overflow-visible">
-        <div className="relative mx-auto w-full max-w-[90%] sm:max-w-[760px]">
-          <div
-            className="relative overflow-hidden min-h-[520px] sm:min-h-[620px] md:min-h-[720px] rounded-[var(--radius-panel)] bg-[linear-gradient(to_bottom,#1e3a8a_0%,#2563eb_45%,#4c1d95_45%,#4c1d95_50%,#1c120c_50%,#1c120c_100%)]"
-            style={{
-              filter: weather === null ? 'none' : getFarmToneFilter(weather),
-              transition: 'filter 260ms ease-out',
-              willChange: 'filter',
-            }}
-          >
-            <div
-              className="pointer-events-none absolute inset-0 z-[1]"
-              style={{
-                background: getSceneSoilOverlay(weather),
-              }}
-            />
-            <div
-              className="pointer-events-none absolute inset-0 z-[2]"
-              style={{
-                background: 'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 62%)',
-              }}
-            />
-            <div className="pointer-events-none absolute left-0 top-0 z-[10] h-[45%] w-full overflow-hidden">
-              <SkyLayer weather={weather} currentTime={new Date()} />
-            </div>
-
-            <div className="farm-plots absolute top-1/2 left-[5%] right-[5%] z-[20] pb-2 sm:pb-3">
-              <div className="rounded-[20px] bg-transparent p-1 sm:p-2">
-                <div
-                  className="farm-grid-perspective relative z-0 grid grid-cols-3 gap-1 sm:gap-2"
-                  onClick={() => setActiveTooltipPlotId(null)}
-                >
-                  {plotSlots.map((slot, index) => (
-                    <div key={slot.kind === 'plot' ? `plot-${slot.plot.id}` : `locked-${index}`}>
-                      {slot.kind === 'plot' ? (
-                        <PlotCard
-                          plot={slot.plot}
-                          weather={weather}
-                          stolenRecord={latestStolenRecordByPlotId.get(slot.plot.id)}
-                          nowTimestamp={nowTimestamp}
-                          theme={theme}
-                          t={t}
-                          isTooltipOpen={activeTooltipPlotId === slot.plot.id}
-                          onTooltipToggle={() => {
-                            setActiveTooltipPlotId((prev) => (prev === slot.plot.id ? null : slot.plot.id));
-                          }}
-                          onPlantClick={() => {
-                            if (totalPlantableSeeds > 0) setPlantingPlotId(slot.plot.id);
-                            else onGoWarehouse();
-                          }}
-                          onHarvestClick={() => handleHarvest(slot.plot.id)}
-                          onClearClick={() => onClear(slot.plot.id)}
-                          mutationGunCount={mutationGunCount}
-                          onUseMutationGun={() => onUseMutationGun(slot.plot.id)}
-                          moonDewCount={moonDewCount}
-                          onUseMoonDew={() => onUseMoonDew(slot.plot.id)}
-                          nectarCount={nectarCount}
-                          onUseNectar={() => onUseNectar(slot.plot.id)}
-                          starTrackerCount={starTrackerCount}
-                          onUseStarTracker={() => onUseStarTracker(slot.plot.id)}
-                          trapNetCount={trapNetCount}
-                          onUseTrapNet={() => onUseTrapNet(slot.plot.id)}
-                        />
-                      ) : (
-                        <LockedPlotCard requiredVarieties={slot.requiredVarieties} theme={theme} t={t} />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <CreatureLayer creatures={creatures} />
-              <AlienLayer alien={alienVisit.current} theme={theme} t={t} />
-            </div>
-          </div>
+      {/* 农场场景 */}
+      <div
+        className="farm-page relative isolate overflow-hidden min-h-[520px] sm:min-h-[620px] md:min-h-[720px] rounded-[var(--radius-panel)]"
+        style={{
+          filter: weather === null ? 'none' : getFarmToneFilter(weather),
+          transition: 'filter 260ms ease-out',
+          willChange: 'filter',
+        }}
+      >
+        <FarmEnvironment weather={weather} />
+        <div className="pointer-events-none absolute left-0 top-0 z-[10] h-[45%] w-full overflow-hidden">
+          <SkyLayer weather={weather} currentTime={new Date()} />
         </div>
+        <div className="relative z-[20] pt-3 sm:pt-4">
+          <IsometricFarmGrid
+            plots={farm.plots}
+            weather={weather}
+            nowTimestamp={nowTimestamp}
+            activeTooltipPlotId={activeTooltipPlotId}
+            stolenRecordByPlotId={latestStolenRecordByPlotId}
+            mutationGunCount={mutationGunCount}
+            moonDewCount={moonDewCount}
+            nectarCount={nectarCount}
+            starTrackerCount={starTrackerCount}
+            trapNetCount={trapNetCount}
+            onActiveTooltipChange={setActiveTooltipPlotId}
+            onPlant={(plotId) => {
+              if (totalPlantableSeeds > 0) setPlantingPlotId(plotId);
+              else onGoWarehouse();
+            }}
+            onHarvest={handleHarvest}
+            onClear={onClear}
+            onUseMutationGun={onUseMutationGun}
+            onUseMoonDew={onUseMoonDew}
+            onUseNectar={onUseNectar}
+            onUseStarTracker={onUseStarTracker}
+            onUseTrapNet={onUseTrapNet}
+          />
+        </div>
+        <CreatureLayer creatures={creatures} />
+        <AlienLayer alien={alienVisit.current} theme={theme} t={t} />
       </div>
 
       {/* 没有种子提示 */}
@@ -532,24 +479,6 @@ function getFarmToneFilter(weather: Weather): string {
   if (weather === 'snowy') return 'brightness(0.95) saturate(0.85) contrast(1.05)';
   if (weather === 'stormy') return 'brightness(0.65) saturate(0.75) contrast(0.85) hue-rotate(8deg)';
   return 'brightness(1.08) saturate(1.15) contrast(1.04)';
-}
-
-function getSceneSoilOverlay(weather: Weather | null): string {
-  const wetSoil = weather === 'rainy' || weather === 'stormy';
-  const baseSoilColor = wetSoil ? '#6B5D4F' : '#8B7355';
-  const deepSoilColor = wetSoil ? '#54483D' : '#6D5A45';
-  const layers = [
-    'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.14) 69%, rgba(0,0,0,0.24) 100%)',
-    'radial-gradient(circle at 50% 74%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 42%)',
-    'repeating-linear-gradient(126deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 5px)',
-    `linear-gradient(180deg, ${adjustHexColor(baseSoilColor, 8)} 0%, ${baseSoilColor} 46%, ${deepSoilColor} 100%)`,
-  ];
-
-  if (wetSoil) {
-    layers.unshift('linear-gradient(164deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 24%, rgba(255,255,255,0) 58%)');
-  }
-
-  return layers.join(', ');
 }
 
 function getPlotLightOverlay(weather: Weather | null): string {
@@ -730,7 +659,7 @@ function SubTabHeader({ subTab, setSubTab, theme, t }: {
 }
 
 // ─── 地块卡片 ───
-function PlotCard({ plot, weather, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick, onHarvestClick, onClearClick, mutationGunCount, onUseMutationGun, moonDewCount, onUseMoonDew, nectarCount, onUseNectar, starTrackerCount, onUseStarTracker, trapNetCount, onUseTrapNet }: {
+export interface PlotCardProps {
   plot: Plot;
   weather: Weather | null;
   stolenRecord?: StolenRecord;
@@ -752,7 +681,9 @@ function PlotCard({ plot, weather, stolenRecord, nowTimestamp, theme, t, isToolt
   onUseStarTracker: () => void;
   trapNetCount: number;
   onUseTrapNet: () => void;
-}) {
+}
+
+export function PlotCard({ plot, weather, stolenRecord, nowTimestamp, theme, t, isTooltipOpen, onTooltipToggle, onPlantClick, onHarvestClick, onClearClick, mutationGunCount, onUseMutationGun, moonDewCount, onUseMoonDew, nectarCount, onUseNectar, starTrackerCount, onUseStarTracker, trapNetCount, onUseTrapNet }: PlotCardProps) {
   const variety = plot.varietyId ? VARIETY_DEFS[plot.varietyId] : null;
   const varietyLabel = plot.varietyId
     ? `${t.varietyName(plot.varietyId)}${plot.isMutant ? ` · ${t.mutationPositive}` : ''}`
@@ -1438,39 +1369,6 @@ function PlotCard({ plot, weather, stolenRecord, nowTimestamp, theme, t, isToolt
           100% { transform: translateX(390%); opacity: 0; }
         }
       `}</style>
-    </div>
-  );
-}
-
-function LockedPlotCard({ requiredVarieties, theme, t }: {
-  requiredVarieties: number;
-  theme: ReturnType<typeof useTheme>;
-  t: ReturnType<typeof useI18n>;
-}) {
-  return (
-    <div className="relative aspect-square sm:aspect-[3/4] w-full select-none">
-      <div
-        className="absolute inset-0 rounded-[16px] border-2"
-        style={{
-          background: `linear-gradient(145deg, ${theme.surface} 0%, ${theme.inputBg} 100%)`,
-          borderColor: theme.border,
-          opacity: 0.8,
-          boxShadow: 'var(--shadow-card)',
-        }}
-      />
-      <div
-        className="pointer-events-none absolute inset-0 rounded-[16px]"
-        style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 56%)' }}
-      />
-      <div className="absolute inset-0 flex flex-col items-center justify-center px-3 text-center">
-        <span className="text-[clamp(1.5rem,4.8vw,2.2rem)]">🔒</span>
-        <span className="mt-1 text-[11px] font-semibold" style={{ color: theme.textMuted }}>
-          {t.collectionLocked}
-        </span>
-        <span className="mt-1 text-[10px] leading-snug" style={{ color: theme.textFaint }}>
-          {t.farmUnlockHint(requiredVarieties)}
-        </span>
-      </div>
     </div>
   );
 }

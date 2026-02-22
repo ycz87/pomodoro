@@ -10,13 +10,13 @@ const __dirname = dirname(__filename);
  * E2E: 瓜田布局改版 v0.23.0 — 全部验收标准覆盖
  *
  * AC1:  3×3 CSS Grid + perspective rotateX 伪 3D
- * AC2:  9 块地始终显示，4 块已开发 + 5 块锁定
+ * AC2:  7 块地始终显示，4 块已开发 + 3 块锁定
  * AC3:  LockedPlotCard 组件存在且显示锁定状态
  * AC4:  farmUnlockHint i18n 8 种语言都有
  * AC5:  圆角矩形地块，diamondClip 完全移除
  * AC6:  地块比例 3:4（宽:高）
  * AC7:  transformStyle 为 flat
- * AC8:  手机端（375px 宽度）一屏显示 9 块地不溢出
+ * AC8:  手机端（375px 宽度）一屏显示 7 块地不溢出
  * AC9:  种植弹窗 / 揭晓动画 / 收获动画正常
  * AC10: package.json version = 0.23.0
  * AC11: DEVLOG / CHANGELOG / PRODUCT / README 都有 v0.23.0 条目
@@ -63,18 +63,18 @@ test('AC1: farm uses 3×3 CSS Grid with perspective rotateX', async ({ page }) =
   expect(gridStyle.transform).not.toBe('none');
 });
 
-// ─── AC2: 9 块地始终显示 ───
-test('AC2: 9 plot slots rendered (4 active + 5 locked)', async ({ page }) => {
+// ─── AC2: 7 块地始终显示 ───
+test('AC2: 7 plot slots rendered (4 active + 3 locked)', async ({ page }) => {
   await goToFarm(page);
 
   const grid = page.locator('.farm-grid-perspective');
   const slots = grid.locator('> div');
-  await expect(slots).toHaveCount(9);
+  await expect(slots).toHaveCount(7);
 
   // Count locked plots (contain 🔒)
   const lockedSlots = grid.locator('> div').filter({ hasText: '🔒' });
   const lockedCount = await lockedSlots.count();
-  expect(lockedCount).toBe(5);
+  expect(lockedCount).toBe(3);
 });
 
 // ─── AC3: LockedPlotCard 显示锁定状态 ───
@@ -148,7 +148,7 @@ test('AC7: farm grid uses transform-style: flat', async ({ page }) => {
 });
 
 // ─── AC8: 手机端一屏显示 ───
-test('AC8: mobile viewport (375px) shows all 9 plots without overflow', async ({ page, browserName }, testInfo) => {
+test('AC8: mobile viewport (375px) shows all 7 plots without overflow', async ({ page, browserName }, testInfo) => {
   if (testInfo.project.name !== 'mobile') {
     test.skip();
     return;
@@ -167,9 +167,9 @@ test('AC8: mobile viewport (375px) shows all 9 plots without overflow', async ({
   const gridBottom = gridBox!.y + gridBox!.height;
   expect(gridBottom).toBeLessThanOrEqual(viewport!.height);
 
-  // All 9 slots rendered
+  // All 7 slots rendered
   const slots = grid.locator('> div');
-  await expect(slots).toHaveCount(9);
+  await expect(slots).toHaveCount(7);
 });
 
 // ─── AC9: 种植弹窗正常 ───
