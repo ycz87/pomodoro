@@ -386,7 +386,7 @@ export function FarmPage({
       <div className="relative overflow-visible">
         <div className="relative mx-auto w-full max-w-[90%] sm:max-w-[760px]">
           <div
-            className="relative overflow-hidden rounded-[var(--radius-panel)] bg-[linear-gradient(to_bottom,#1e3a8a_0%,#2563eb_45%,#4c1d95_45%,#4c1d95_50%,#1c120c_50%,#1c120c_100%)]"
+            className="relative overflow-hidden min-h-[520px] sm:min-h-[620px] md:min-h-[720px] rounded-[var(--radius-panel)] bg-[linear-gradient(to_bottom,#1e3a8a_0%,#2563eb_45%,#4c1d95_45%,#4c1d95_50%,#1c120c_50%,#1c120c_100%)]"
             style={{
               filter: weather === null ? 'none' : getFarmToneFilter(weather),
               transition: 'filter 260ms ease-out',
@@ -409,7 +409,7 @@ export function FarmPage({
               <SkyLayer weather={weather} currentTime={new Date()} />
             </div>
 
-            <div className="farm-plots relative z-0 px-1 sm:px-2 pb-2 sm:pb-3 pt-20 sm:pt-32 md:pt-36">
+            <div className="farm-plots absolute top-1/2 left-[5%] right-[5%] z-[20] pb-2 sm:pb-3">
               <div className="rounded-[20px] bg-transparent p-1 sm:p-2">
                 <div
                   className="farm-grid-perspective relative z-0 grid grid-cols-3 gap-1 sm:gap-2"
