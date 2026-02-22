@@ -21,7 +21,7 @@ function getWeatherOverlay(weather: Weather | null | undefined): string | null {
     return 'linear-gradient(to bottom, rgba(36,67,99,0.34) 0%, rgba(36,67,99,0.16) 45%, rgba(24,56,40,0.22) 100%), repeating-linear-gradient(105deg, rgba(255,255,255,0.14) 0px, rgba(255,255,255,0.14) 1px, rgba(255,255,255,0) 4px, rgba(255,255,255,0) 12px)';
   }
   if (weather === 'night') {
-    return 'linear-gradient(to bottom, rgba(5,20,44,0.65) 0%, rgba(10,30,58,0.46) 44%, rgba(20,48,40,0.52) 100%)';
+    return 'linear-gradient(to bottom, rgba(5,20,44,0.3) 0%, rgba(10,30,58,0.2) 44%, rgba(20,48,40,0.25) 100%)';
   }
   if (weather === 'rainbow') {
     return 'radial-gradient(circle at 22% 18%, rgba(255,255,255,0.26) 0%, rgba(255,255,255,0) 34%), linear-gradient(112deg, rgba(255,0,0,0.2) 0%, rgba(255,127,0,0.2) 16%, rgba(255,255,0,0.18) 32%, rgba(0,255,0,0.16) 48%, rgba(0,127,255,0.16) 64%, rgba(0,0,255,0.16) 80%, rgba(139,0,255,0.2) 100%)';
