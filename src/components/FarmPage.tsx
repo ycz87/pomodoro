@@ -313,7 +313,7 @@ export function FarmPage({
 
   return (
     <div
-      className="flex-1 flex flex-col w-full px-4 pt-4 pb-6 gap-4 rounded-[var(--radius-panel)] transition-[background] duration-300 ease-out bg-[linear-gradient(to_bottom,#1e3a8a_0%,#1e40af_45%,#475569_45%,#475569_50%,#3f2b1c_50%,#291a10_100%)]"
+      className="flex-1 flex flex-col w-full px-4 pt-4 pb-6 gap-4 rounded-[var(--radius-panel)] transition-[background] duration-300 ease-out bg-[linear-gradient(to_bottom,#1e3a8a_0%,#2563eb_45%,#4c1d95_45%,#4c1d95_50%,#1c120c_50%,#1c120c_100%)]"
     >
       {/* Sub-tab header */}
       <SubTabHeader subTab={subTab} setSubTab={setSubTab} theme={theme} t={t} />
@@ -386,7 +386,7 @@ export function FarmPage({
       <div className="relative overflow-visible">
         <div className="relative mx-auto w-full max-w-[90%] sm:max-w-[760px]">
           <div
-            className="relative overflow-hidden rounded-[var(--radius-panel)] bg-[linear-gradient(to_bottom,#1e3a8a_0%,#1e40af_45%,#475569_45%,#475569_50%,#3f2b1c_50%,#291a10_100%)]"
+            className="relative overflow-hidden rounded-[var(--radius-panel)] bg-[linear-gradient(to_bottom,#1e3a8a_0%,#2563eb_45%,#4c1d95_45%,#4c1d95_50%,#1c120c_50%,#1c120c_100%)]"
             style={{
               filter: weather === null ? 'none' : getFarmToneFilter(weather),
               transition: 'filter 260ms ease-out',
@@ -410,7 +410,7 @@ export function FarmPage({
             </div>
 
             <div className="farm-plots relative z-0 px-1 sm:px-2 pb-2 sm:pb-3 pt-20 sm:pt-32 md:pt-36">
-              <div className="rounded-[20px] bg-[#312216] p-1 sm:p-2 shadow-[inset_0_4px_10px_rgba(0,0,0,0.8)]">
+              <div className="rounded-[20px] bg-transparent p-1 sm:p-2">
                 <div
                   className="farm-grid-perspective relative z-0 grid grid-cols-3 gap-1 sm:gap-2"
                   onClick={() => setActiveTooltipPlotId(null)}
@@ -917,7 +917,7 @@ function PlotCard({ plot, weather, stolenRecord, nowTimestamp, theme, t, isToolt
 
   return (
     <div
-      className={`group relative aspect-square sm:aspect-[3/4] w-full select-none${isTooltipOpen ? ' z-[100]' : ''}`}
+      className={`group relative aspect-square sm:aspect-[3/4] w-full select-none rounded-[12px] bg-[#3f2b1c] shadow-[0_4px_8px_rgba(0,0,0,0.6)]${isTooltipOpen ? ' z-[100]' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onFocusCapture={() => setIsHovered(true)}
