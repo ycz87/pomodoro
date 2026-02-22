@@ -313,8 +313,7 @@ export function FarmPage({
 
   return (
     <div
-      className="flex-1 flex flex-col w-full px-4 pt-4 pb-6 gap-4 rounded-[var(--radius-panel)] transition-[background] duration-300 ease-out"
-      style={{ background: getFarmSceneBackground(weather, theme) }}
+      className="flex-1 flex flex-col w-full px-4 pt-4 pb-6 gap-4 rounded-[var(--radius-panel)] transition-[background] duration-300 ease-out bg-[linear-gradient(to_bottom,#0F172A_0%,#1E293B_45%,#334155_48%,#111827_50%,#000000_100%)]"
     >
       {/* Sub-tab header */}
       <SubTabHeader subTab={subTab} setSubTab={setSubTab} theme={theme} t={t} />
@@ -387,11 +386,10 @@ export function FarmPage({
       <div className="relative overflow-visible">
         <div className="relative mx-auto w-full max-w-[90%] sm:max-w-[760px]">
           <div
-            className="relative overflow-hidden rounded-[var(--radius-panel)]"
+            className="relative overflow-hidden rounded-[var(--radius-panel)] bg-[linear-gradient(to_bottom,#0F172A_0%,#1E293B_45%,#334155_48%,#111827_50%,#000000_100%)]"
             style={{
-              background: getFarmSceneBackground(weather, theme),
               filter: weather === null ? 'none' : getFarmToneFilter(weather),
-              transition: 'background 320ms ease-out, filter 260ms ease-out',
+              transition: 'filter 260ms ease-out',
               willChange: 'filter',
             }}
           >
@@ -407,51 +405,53 @@ export function FarmPage({
                 background: 'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 62%)',
               }}
             />
-            <div className="pointer-events-none absolute inset-0 z-[10]">
+            <div className="pointer-events-none absolute left-0 top-0 z-[10] h-[45%] w-full overflow-hidden">
               <SkyLayer weather={weather} currentTime={new Date()} />
             </div>
 
             <div className="farm-plots relative z-0 px-1 sm:px-2 pb-2 sm:pb-3 pt-20 sm:pt-32 md:pt-36">
-              <div
-                className="farm-grid-perspective relative z-0 grid grid-cols-3 gap-1 sm:gap-2"
-                onClick={() => setActiveTooltipPlotId(null)}
-              >
-                {plotSlots.map((slot, index) => (
-                  <div key={slot.kind === 'plot' ? `plot-${slot.plot.id}` : `locked-${index}`}>
-                    {slot.kind === 'plot' ? (
-                      <PlotCard
-                        plot={slot.plot}
-                        weather={weather}
-                        stolenRecord={latestStolenRecordByPlotId.get(slot.plot.id)}
-                        nowTimestamp={nowTimestamp}
-                        theme={theme}
-                        t={t}
-                        isTooltipOpen={activeTooltipPlotId === slot.plot.id}
-                        onTooltipToggle={() => {
-                          setActiveTooltipPlotId((prev) => (prev === slot.plot.id ? null : slot.plot.id));
-                        }}
-                        onPlantClick={() => {
-                          if (totalPlantableSeeds > 0) setPlantingPlotId(slot.plot.id);
-                          else onGoWarehouse();
-                        }}
-                        onHarvestClick={() => handleHarvest(slot.plot.id)}
-                        onClearClick={() => onClear(slot.plot.id)}
-                        mutationGunCount={mutationGunCount}
-                        onUseMutationGun={() => onUseMutationGun(slot.plot.id)}
-                        moonDewCount={moonDewCount}
-                        onUseMoonDew={() => onUseMoonDew(slot.plot.id)}
-                        nectarCount={nectarCount}
-                        onUseNectar={() => onUseNectar(slot.plot.id)}
-                        starTrackerCount={starTrackerCount}
-                        onUseStarTracker={() => onUseStarTracker(slot.plot.id)}
-                        trapNetCount={trapNetCount}
-                        onUseTrapNet={() => onUseTrapNet(slot.plot.id)}
-                      />
-                    ) : (
-                      <LockedPlotCard requiredVarieties={slot.requiredVarieties} theme={theme} t={t} />
-                    )}
-                  </div>
-                ))}
+              <div className="rounded-[20px] bg-[#0a0a0a] p-1 sm:p-2 shadow-[inset_0_4px_10px_rgba(0,0,0,0.8)]">
+                <div
+                  className="farm-grid-perspective relative z-0 grid grid-cols-3 gap-1 sm:gap-2"
+                  onClick={() => setActiveTooltipPlotId(null)}
+                >
+                  {plotSlots.map((slot, index) => (
+                    <div key={slot.kind === 'plot' ? `plot-${slot.plot.id}` : `locked-${index}`}>
+                      {slot.kind === 'plot' ? (
+                        <PlotCard
+                          plot={slot.plot}
+                          weather={weather}
+                          stolenRecord={latestStolenRecordByPlotId.get(slot.plot.id)}
+                          nowTimestamp={nowTimestamp}
+                          theme={theme}
+                          t={t}
+                          isTooltipOpen={activeTooltipPlotId === slot.plot.id}
+                          onTooltipToggle={() => {
+                            setActiveTooltipPlotId((prev) => (prev === slot.plot.id ? null : slot.plot.id));
+                          }}
+                          onPlantClick={() => {
+                            if (totalPlantableSeeds > 0) setPlantingPlotId(slot.plot.id);
+                            else onGoWarehouse();
+                          }}
+                          onHarvestClick={() => handleHarvest(slot.plot.id)}
+                          onClearClick={() => onClear(slot.plot.id)}
+                          mutationGunCount={mutationGunCount}
+                          onUseMutationGun={() => onUseMutationGun(slot.plot.id)}
+                          moonDewCount={moonDewCount}
+                          onUseMoonDew={() => onUseMoonDew(slot.plot.id)}
+                          nectarCount={nectarCount}
+                          onUseNectar={() => onUseNectar(slot.plot.id)}
+                          starTrackerCount={starTrackerCount}
+                          onUseStarTracker={() => onUseStarTracker(slot.plot.id)}
+                          trapNetCount={trapNetCount}
+                          onUseTrapNet={() => onUseTrapNet(slot.plot.id)}
+                        />
+                      ) : (
+                        <LockedPlotCard requiredVarieties={slot.requiredVarieties} theme={theme} t={t} />
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
               <CreatureLayer creatures={creatures} />
               <AlienLayer alien={alienVisit.current} theme={theme} t={t} />
@@ -532,31 +532,6 @@ function getFarmToneFilter(weather: Weather): string {
   if (weather === 'snowy') return 'brightness(0.95) saturate(0.85) contrast(1.05)';
   if (weather === 'stormy') return 'brightness(0.65) saturate(0.75) contrast(0.85) hue-rotate(8deg)';
   return 'brightness(1.08) saturate(1.15) contrast(1.04)';
-}
-
-function getFarmSceneBackground(weather: Weather | null, theme: ReturnType<typeof useTheme>): string {
-  if (weather === 'sunny') {
-    return 'linear-gradient(180deg, #87CEEB 0%, #E0F6FF 42%, #D4A574 64%, #8B7355 100%)';
-  }
-  if (weather === 'night') {
-    return 'linear-gradient(180deg, #0F1729 0%, #1A2332 46%, #2A2520 66%, #4A4034 100%)';
-  }
-  if (weather === 'cloudy') {
-    return 'linear-gradient(180deg, #6B7280 0%, #9CA3AF 46%, #8B7355 68%, #6F5C46 100%)';
-  }
-  if (weather === 'rainy') {
-    return 'linear-gradient(180deg, #4B5563 0%, #6B7280 46%, #6B5D4F 66%, #4E443A 100%)';
-  }
-  if (weather === 'snowy') {
-    return 'linear-gradient(180deg, #E8F4F8 0%, #D6E9F0 46%, #C4D4DC 68%, #AFBEC8 100%)';
-  }
-  if (weather === 'stormy') {
-    return 'linear-gradient(180deg, #2D3748 0%, #4A5568 44%, #5A5A5A 66%, #49443D 100%)';
-  }
-  if (weather === 'rainbow') {
-    return 'linear-gradient(180deg, #87CEEB 0%, #E0F6FF 36%, #FFD700 56%, #D4A574 72%, #8B7355 100%)';
-  }
-  return `linear-gradient(180deg, ${theme.inputBg} 0%, ${theme.surface} 48%, ${theme.border} 70%, ${theme.inputBg} 100%)`;
 }
 
 function getSceneSoilOverlay(weather: Weather | null): string {
