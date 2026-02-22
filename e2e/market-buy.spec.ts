@@ -192,8 +192,8 @@ test.describe('Market Buy', () => {
   });
 
   test('AC5: 已解锁地块不显示购买选项', async ({ page }) => {
-    // 9 块地全部解锁
-    await bootWithSeed(page, createSeedPayload({ balance: 9999, plotCount: 9 }));
+    // 7 块地全部解锁
+    await bootWithSeed(page, createSeedPayload({ balance: 9999, plotCount: 7 }));
 
     await goToMarket(page);
     await openBuyTab(page);

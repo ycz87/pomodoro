@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 /**
  * E2E: 手机端瓜田地块比例优化 — 验收标准覆盖
  *
- * AC1: 手机端（390×844）9 块地全部在视口内，无需滚动
+ * AC1: 手机端（390×844）7 块地全部在视口内，无需滚动
  * AC2: 手机端地块为正方形比例
  * AC3: 手机端间距紧凑（gap-1 = 4px）
  * AC4: PC 端布局、比例、间距与改动前完全一致
@@ -23,9 +23,9 @@ async function goToFarm(page: import('@playwright/test').Page) {
   await page.waitForSelector('.farm-grid-perspective', { timeout: 5000 });
 }
 
-// ─── AC1: 手机端 9 块地全部在视口内 ───
+// ─── AC1: 手机端 7 块地全部在视口内 ───
 test.describe('AC1: Mobile — no overflow', () => {
-  test('all 9 plots visible within viewport on mobile (390×844)', async ({ page }, testInfo) => {
+  test('all 7 plots visible within viewport on mobile (390×844)', async ({ page }, testInfo) => {
     if (testInfo.project.name !== 'mobile') { test.skip(); return; }
     await goToFarm(page);
 
@@ -40,9 +40,9 @@ test.describe('AC1: Mobile — no overflow', () => {
     const gridBottom = gridBox!.y + gridBox!.height;
     expect(gridBottom).toBeLessThanOrEqual(viewport!.height);
 
-    // All 9 slots rendered
+    // All 7 slots rendered
     const slots = grid.locator('> div');
-    await expect(slots).toHaveCount(9);
+    await expect(slots).toHaveCount(7);
   });
 });
 
@@ -108,13 +108,13 @@ test.describe('AC4: Desktop — unchanged layout', () => {
     expect(gap).toBe('8px');
   });
 
-  test('desktop has 9 plots with perspective rotateX', async ({ page }, testInfo) => {
+  test('desktop has 7 plots with perspective rotateX', async ({ page }, testInfo) => {
     if (testInfo.project.name !== 'desktop') { test.skip(); return; }
     await goToFarm(page);
 
     const grid = page.locator('.farm-grid-perspective');
     const slots = grid.locator('> div');
-    await expect(slots).toHaveCount(9);
+    await expect(slots).toHaveCount(7);
 
     const transform = await grid.evaluate((el) => getComputedStyle(el).transform);
     expect(transform).not.toBe('none');
@@ -144,11 +144,11 @@ test.describe('AC5: Theme switching', () => {
       await farmTab.click();
       await page.waitForSelector('.farm-grid-perspective', { timeout: 5000 });
 
-      // Grid should be visible with 9 slots
+      // Grid should be visible with 7 slots
       const grid = page.locator('.farm-grid-perspective');
       await expect(grid).toBeVisible();
       const slots = grid.locator('> div');
-      await expect(slots).toHaveCount(9);
+      await expect(slots).toHaveCount(7);
 
       // No error overlays or blank screens
       const errorOverlay = page.locator('[class*="error"]');
@@ -177,7 +177,7 @@ test.describe('AC6: Interactions', () => {
 
     const lockedCards = page.locator('.farm-grid-perspective > div').filter({ hasText: '🔒' });
     const count = await lockedCards.count();
-    expect(count).toBe(5);
+    expect(count).toBe(3);
 
     // Locked card should show lock + hint text
     const firstLocked = lockedCards.first();
@@ -198,11 +198,11 @@ test.describe('AC7: Mobile — bottom row not clipped', () => {
     expect(viewport).not.toBeNull();
 
     const slots = page.locator('.farm-grid-perspective > div');
-    await expect(slots).toHaveCount(9);
+    await expect(slots).toHaveCount(7);
 
-    for (let i = 6; i < 9; i++) {
+    for (let i = 0; i < 7; i++) {
       const box = await slots.nth(i).boundingBox();
-      expect(box, `bottom row slot ${i} should have a bounding box`).not.toBeNull();
+      expect(box, `slot ${i} should have a bounding box`).not.toBeNull();
       expect(box!.x).toBeGreaterThanOrEqual(0);
       expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width);
     }

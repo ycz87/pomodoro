@@ -4,12 +4,15 @@
 import { useCallback } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 import type { FarmStorage, Plot, CollectedVariety, VarietyId, GalaxyId, StolenRecord, Rarity } from '../types/farm';
-import type { SeedQuality } from '../types/slicing';
+import type { SeedCounts, SeedQuality } from '../types/slicing';
 import { DEFAULT_FARM_STORAGE, createEmptyPlot, VARIETY_DEFS } from '../types/farm';
+import { DEFAULT_SEED_COUNTS } from '../types/slicing';
 import { rollVariety } from '../farm/growth';
 import { getPlotCount } from '../farm/galaxy';
 
 const FARM_KEY = 'watermelon-farm';
+const MAX_PLOT_COUNT = 7;
+const SHED_KEY = 'watermelon-shed';
 const RARITY_UPGRADE_MAP: Record<Rarity, Rarity | null> = {
   common: 'rare',
   rare: 'epic',
@@ -81,6 +84,94 @@ function ensurePlotCapacity(plots: Plot[], requiredCount: number): Plot[] {
   return nextPlots;
 }
 
+function toNonNegativeInt(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
+  return Math.max(0, Math.floor(value));
+}
+
+function normalizeSeedCounts(rawSeeds: unknown): SeedCounts {
+  if (typeof rawSeeds === 'number') {
+    return {
+      ...DEFAULT_SEED_COUNTS,
+      normal: toNonNegativeInt(rawSeeds),
+    };
+  }
+
+  if (!rawSeeds || typeof rawSeeds !== 'object') {
+    return { ...DEFAULT_SEED_COUNTS };
+  }
+
+  const seedRecord = rawSeeds as Record<string, unknown>;
+  return {
+    normal: toNonNegativeInt(seedRecord.normal),
+    epic: toNonNegativeInt(seedRecord.epic),
+    legendary: toNonNegativeInt(seedRecord.legendary),
+  };
+}
+
+function normalizeSeedQuality(rawQuality: unknown): SeedQuality {
+  if (rawQuality === 'epic' || rawQuality === 'legendary' || rawQuality === 'normal') return rawQuality;
+  return 'normal';
+}
+
+function mergeCollectionWithHarvestedPlot(
+  collection: CollectedVariety[],
+  harvestedPlot: Plot,
+  obtainedDate: string,
+): CollectedVariety[] {
+  if (harvestedPlot.state !== 'mature' || !harvestedPlot.varietyId) return collection;
+  const harvestedIsMutant = harvestedPlot.isMutant === true;
+  const isSameCollectionEntry = (record: CollectedVariety): boolean => (
+    record.varietyId === harvestedPlot.varietyId
+    && (record.isMutant === true) === harvestedIsMutant
+  );
+  const existing = collection.find(isSameCollectionEntry);
+
+  if (existing) {
+    return collection.map((record) => (
+      isSameCollectionEntry(record)
+        ? { ...record, count: record.count + 1 }
+        : record
+    ));
+  }
+
+  return [
+    ...collection,
+    {
+      varietyId: harvestedPlot.varietyId,
+      isMutant: harvestedIsMutant ? true : undefined,
+      firstObtainedDate: obtainedDate,
+      count: 1,
+    },
+  ];
+}
+
+function syncRefundedSeedsToShed(refundedSeeds: SeedCounts): void {
+  const hasRefundedSeeds = refundedSeeds.normal > 0 || refundedSeeds.epic > 0 || refundedSeeds.legendary > 0;
+  if (!hasRefundedSeeds) return;
+
+  try {
+    const stored = localStorage.getItem(SHED_KEY);
+    const parsed = stored ? JSON.parse(stored) : null;
+    const shedObject = parsed && typeof parsed === 'object'
+      ? (parsed as Record<string, unknown>)
+      : {};
+    const currentSeeds = normalizeSeedCounts(shedObject.seeds);
+    const nextSeeds: SeedCounts = {
+      normal: currentSeeds.normal + refundedSeeds.normal,
+      epic: currentSeeds.epic + refundedSeeds.epic,
+      legendary: currentSeeds.legendary + refundedSeeds.legendary,
+    };
+
+    localStorage.setItem(SHED_KEY, JSON.stringify({
+      ...shedObject,
+      seeds: nextSeeds,
+    }));
+  } catch {
+    // Storage unavailable — ignore migration refund.
+  }
+}
+
 function migrateFarm(raw: unknown): FarmStorage {
   if (!raw || typeof raw !== 'object') return DEFAULT_FARM_STORAGE;
   const s = raw as Record<string, unknown>;
@@ -129,7 +220,31 @@ function migrateFarm(raw: unknown): FarmStorage {
     });
   }
 
-  const targetPlotCount = getPlotCount(result.collection);
+  if (result.plots.length > MAX_PLOT_COUNT) {
+    const migratedDate = getTodayKeyFromTimestamp(Date.now());
+    const removedPlots = [result.plots[7], result.plots[8]];
+    const refundedSeeds: SeedCounts = { ...DEFAULT_SEED_COUNTS };
+    let nextCollection = result.collection;
+
+    for (const plot of removedPlots) {
+      if (!plot || plot.state === 'empty') continue;
+
+      if (plot.state === 'mature' && plot.varietyId) {
+        nextCollection = mergeCollectionWithHarvestedPlot(nextCollection, plot, migratedDate);
+      }
+
+      if (plot.state === 'growing') {
+        const seedQuality = normalizeSeedQuality(plot.seedQuality);
+        refundedSeeds[seedQuality] += 1;
+      }
+    }
+
+    result.collection = nextCollection;
+    syncRefundedSeedsToShed(refundedSeeds);
+    result.plots = result.plots.slice(0, MAX_PLOT_COUNT);
+  }
+
+  const targetPlotCount = Math.min(getPlotCount(result.collection), MAX_PLOT_COUNT);
   result.plots = ensurePlotCapacity(result.plots, targetPlotCount);
 
   if (typeof s.lastActiveDate === 'string') result.lastActiveDate = s.lastActiveDate;

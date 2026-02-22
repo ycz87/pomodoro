@@ -692,6 +692,4 @@ export const PLOT_MILESTONES = [
   { requiredVarieties: 3, totalPlots: 5 },
   { requiredVarieties: 5, totalPlots: 6 },
   { requiredVarieties: 8, totalPlots: 7 },
-  { requiredVarieties: 15, totalPlots: 8 },
-  { requiredVarieties: 22, totalPlots: 9 },
 ];
